@@ -5,17 +5,18 @@ import scala.tools.jline.console.history.FileHistory
 import scala.tools.jline.console.completer._
 
 import java.io._
-import java.util._
 
 import cli.controllers._
-import cli.models._
 
-object ParserDSLTest extends ParserDSL with App {
+object CommandLoop extends ParserDSL with App {
 
   var loop = true
   val reader : ConsoleReader = new ConsoleReader()
   val history = new FileHistory(new File(".history"))
   val os = System.getProperty("os.name")
+  val banner = new ActorbaseBanner
+  print(banner.getBanner())
+
 
   reader.setHistory(history)
   reader.setPrompt("actorbasecli@" + os.toLowerCase + "$ ")

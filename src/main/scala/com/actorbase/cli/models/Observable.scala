@@ -13,6 +13,8 @@ trait Observable {
 
   def attach(observer: Observer) : Unit = observers :+= observer
 
+  def detach(observer: Observer) : Unit = observers :-= observer
+
   def notifyAllObservers() : Unit = {
     for(observer <- observers)
       observer.update(this)

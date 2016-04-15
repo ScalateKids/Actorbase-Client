@@ -8,8 +8,6 @@ import scala.tools.jline.console.completer._
 
 import java.io._
 
-import cli.controllers._
-
 object CommandLoop extends GrammarParser with App {
 
   var loop = true

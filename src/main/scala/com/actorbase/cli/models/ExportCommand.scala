@@ -1,5 +1,5 @@
 package com.actorbase.cli.models
 
-class ExportCommand(op: CommandReceiver) extends Command {
-  override def execute() : String = op.export
+class ExportCommand(cr: CommandReceiver) extends Command {
+  override def execute() : String = cr.export
 }

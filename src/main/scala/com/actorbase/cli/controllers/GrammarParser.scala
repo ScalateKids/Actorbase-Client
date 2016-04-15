@@ -39,5 +39,31 @@ class GrammarParser extends JavaTokenParsers {
     }
   }
 
-  def commandList = rep(insertItemCommand | exportCommand | loginCommand)
+  def addContributorCommand : Parser[String] = "addContributor " ~ key ~ "to " ~ key ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
+      val exp = new AddContributorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
+      cl.storeAndExecute(exp)
+    }
+  }
+
+  def findCommand : Parser[String] = "find " ~ key ~ "from " ~ (list | key) ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => { //searches the key in the listed collections
+      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
+      cl.storeAndExecute(exp)
+    }
+    case cmd_part_1 ~ args_1 ~ cmd_part_2  => { //search key in whole database
+      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
+      cl.storeAndExecute(exp)
+    }
+    case cmd_part_1 ~ cmd_part_2 ~ args_2  => {//returns all the content of the listed collections unreachable at the moment
+      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("collections" -> args_2)))
+      cl.storeAndExecute(exp)
+    }
+    case cmd_part_1 => { //returns all the content of the database, unreachable at the moment
+    val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("whole database" -> "lol")))
+    cl.storeAndExecute(exp)
+    }
+  }
+
+  def commandList = rep(insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand)
 }

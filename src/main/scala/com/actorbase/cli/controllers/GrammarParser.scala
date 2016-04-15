@@ -22,7 +22,7 @@ class GrammarParser extends JavaTokenParsers {
 
   def insertItemCommand : Parser[String] = "insert" ~ key ~ types ~ value ~ "to" ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => cl.storeAndExecute(new InsertItemCommand(
-      new Operations(Map[Any, Any]("key" -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
+      new CommandReceiver(Map[Any, Any]("key" -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
   }
 
   def exportCommand : Parser[String] = "export" ~ (list | key) ~ "to" ~ string ^^ {

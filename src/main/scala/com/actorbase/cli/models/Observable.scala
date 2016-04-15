@@ -2,9 +2,11 @@ package com.actorbase.cli.models
 
 import com.actorbase.cli.views.Observer
 
+import scala.collection.mutable.ListBuffer
+
 trait Observable {
 
-  private var observers : List[Observer] = Nil
+  private var observers : ListBuffer[Observer] = new ListBuffer[Observer]
   private var state : String = ""
 
   def setState(s: String) : Unit = state = s
@@ -13,7 +15,7 @@ trait Observable {
 
   def attach(observer: Observer) : Unit = observers :+= observer
 
-  def detach(observer: Observer) : Unit = observers :-= observer
+  def detach(observer: Observer) : Unit = observers -= observer
 
   def notifyAllObservers() : Unit = {
     for(observer <- observers)

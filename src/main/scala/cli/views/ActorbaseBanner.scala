@@ -1,9 +1,5 @@
 package cli.views
 
-/**
-  * Created by kids on 15/04/16.
-  */
-
 class ActorbaseBanner() {
   def getBanner() : String = {
     val banner = """    ___   ________________  ____  ____  ___   _____ ______

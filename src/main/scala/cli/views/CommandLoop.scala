@@ -14,12 +14,13 @@ object CommandLoop extends GrammarParser with App {
   val reader : ConsoleReader = new ConsoleReader()
   val history = new FileHistory(new File(".history"))
   val os = System.getProperty("os.name")
+  val prompt : PromptProvider = new ActorbasePrompt
   val banner = new ActorbaseBanner
   print(banner.getBanner())
 
 
   reader.setHistory(history)
-  reader.setPrompt("actorbasecli@" + os.toLowerCase + "$ ")
+  reader.setPrompt(prompt.getPrompt)
   reader.setBellEnabled(false)
   reader.addCompleter(new StringsCompleter("export", "insert"))
 

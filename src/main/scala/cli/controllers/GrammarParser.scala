@@ -8,7 +8,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
 class GrammarParser extends JavaTokenParsers {
 
   val cl = new CommandLauncher
-  val view = new View
+  val view = new ResultView
   cl.attach(view)
 
   // base arguments types

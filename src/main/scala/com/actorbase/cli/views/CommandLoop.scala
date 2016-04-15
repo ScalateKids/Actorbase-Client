@@ -22,7 +22,7 @@ object CommandLoop extends GrammarParser with App {
   reader.setHistory(history)
   reader.setPrompt(prompt.getPrompt)
   reader.setBellEnabled(false)
-  reader.addCompleter(new StringsCompleter("export", "insert"))
+  reader.addCompleter(new StringsCompleter("export", "insert", "login"))
 
   var line : String = ""
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))

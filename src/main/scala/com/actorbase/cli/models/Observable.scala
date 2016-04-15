@@ -1,6 +1,6 @@
-package cli.models
+package com.actorbase.cli.models
 
-import cli.views.Observer
+import com.actorbase.cli.views.Observer
 
 trait Observable {
 

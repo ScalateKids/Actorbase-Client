@@ -1,4 +1,4 @@
-package cli.views
+package com.actorbase.cli.views
 
 class ActorbasePrompt extends PromptProvider{
 

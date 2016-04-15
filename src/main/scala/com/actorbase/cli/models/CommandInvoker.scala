@@ -1,4 +1,4 @@
-package cli.models
+package com.actorbase.cli.models
 
 class CommandInvoker extends Observable {
 

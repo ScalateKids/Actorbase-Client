@@ -1,7 +1,9 @@
-package cli.controllers
+package com.actorbase.cli.controllers
 
 import cli.models._
 import cli.views._
+import com.actorbase.cli.models._
+import com.actorbase.cli.views.ResultView
 
 import scala.util.parsing.combinator.JavaTokenParsers
 

@@ -1,4 +1,6 @@
-package cli.views
+package com.actorbase.cli.views
+
+import com.actorbase.cli.controllers.GrammarParser
 
 import scala.tools.jline.console.ConsoleReader
 import scala.tools.jline.console.history.FileHistory

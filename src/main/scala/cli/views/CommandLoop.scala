@@ -27,10 +27,12 @@ object CommandLoop extends GrammarParser with App {
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
   do {
     line = reader.readLine()
-    if(line.matches("login .*")) {
+    if(line.matches("login [a-zA-Z]{4,}")) {
       line += " " + reader.readLine(">> password: ", '*')
       reader.setPrompt("actorbasecli@" + os.toLowerCase + "$ ")
     }
+    else
+      println("error nel login") // bisogna fermare parseAll
     parseAll(commandList, line)  match {
     //   case Success(matched, _) => {
     //     if (matched.length > 0)

@@ -31,12 +31,12 @@ class GrammarParser extends JavaTokenParsers {
     }
   }
 
-  def loginCommand : Parser[String] = "login" ~ (key) ~ key ^^ {
+  def loginCommand : Parser[String] = "login" ~ key ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 => {
       val exp = new LoginCommand(new Operations(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
       cl.storeAndExecute(exp)
     }
   }
 
-  def commandList = rep(insertCommand | exportCommand)
+  def commandList = rep(insertCommand | exportCommand | loginCommand)
 }

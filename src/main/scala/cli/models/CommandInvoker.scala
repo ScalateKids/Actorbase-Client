@@ -7,7 +7,7 @@ class CommandInvoker extends Observable {
   def storeAndExecute(cmd : Command) : String = {
     this.history :+= cmd
     setState(cmd.execute())
-    notifyAllObservers()
+    notifyAllObservers
     getState
   }
 }

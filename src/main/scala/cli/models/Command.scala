@@ -52,6 +52,13 @@ class Operations(params: Map[Any, Any]) {
     }
     result
   }
+  def login() : String = {
+    var result : String ="[LOGIN]\n"
+    for((k,v) <- params) {
+      result += s"$k -> $v\n"
+    }
+    result
+  }
 }
 
 class InsertCommand(op: Operations) extends Command {
@@ -62,4 +69,6 @@ class ExportCommand(op: Operations) extends Command {
   override def execute() : String = op.export
 }
 
-
+class LoginCommand(op: Operations) extends Command {
+  override def execute() : String = op.login
+}

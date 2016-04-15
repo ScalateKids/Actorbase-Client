@@ -5,7 +5,7 @@ import cli.views._
 
 import scala.util.parsing.combinator.JavaTokenParsers
 
-class ParserDSL extends JavaTokenParsers {
+class GrammarParser extends JavaTokenParsers {
 
   val cl = new CommandLauncher
   val view = new View
@@ -27,6 +27,13 @@ class ParserDSL extends JavaTokenParsers {
   def exportCommand : Parser[String] = "export" ~ (list | key) ~ "to" ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new ExportCommand(new Operations(Map[Any, Any]("p_list" -> args_1, "f_path" -> args_2)))
+      cl.storeAndExecute(exp)
+    }
+  }
+
+  def loginCommand : Parser[String] = "login" ~ (key) ~ key ^^ {
+    case cmd_part_1 ~ args_1 ~ args_2 => {
+      val exp = new LoginCommand(new Operations(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
       cl.storeAndExecute(exp)
     }
   }

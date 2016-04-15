@@ -8,7 +8,7 @@ import java.io._
 
 import cli.controllers._
 
-object CommandLoop extends ParserDSL with App {
+object CommandLoop extends GrammarParser with App {
 
   var loop = true
   val reader : ConsoleReader = new ConsoleReader()
@@ -28,7 +28,7 @@ object CommandLoop extends ParserDSL with App {
   do {
     line = reader.readLine()
     if(line  == "login") {
-      line = reader.readLine(">> password: ", '*')
+      line += reader.readLine(">> password: ", '*')
       reader.setPrompt("actorbasecli@" + os.toLowerCase + "$ ")
     }
     parseAll(commandList, line)  match {

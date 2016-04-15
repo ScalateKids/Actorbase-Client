@@ -19,8 +19,8 @@ class GrammarParser extends JavaTokenParsers {
   def key : Parser[String] = """\S*""".r
 
   // chained commands
-  def insertCommand : Parser[String] = "insert" ~ key ~ types ~ value ~ "to" ~ string ^^ {
-    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => cl.storeAndExecute(new InsertCommand(new Operations(
+  def insertItemCommand : Parser[String] = "insert" ~ key ~ types ~ value ~ "to" ~ string ^^ {
+    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => cl.storeAndExecute(new InsertItemCommand(new Operations(
       Map[Any, Any]("key" -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
   }
 
@@ -38,5 +38,5 @@ class GrammarParser extends JavaTokenParsers {
     }
   }
 
-  def commandList = rep(insertCommand | exportCommand | loginCommand)
+  def commandList = rep(insertItemCommand | exportCommand | loginCommand)
 }

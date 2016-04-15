@@ -16,3 +16,4 @@ project/boot/
 project/plugins/project/
 
 .ensime
+.ensime_cache/

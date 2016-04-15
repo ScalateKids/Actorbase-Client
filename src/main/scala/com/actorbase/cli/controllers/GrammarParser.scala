@@ -20,19 +20,19 @@ class GrammarParser extends JavaTokenParsers {
 
   // chained commands
 
-  def insertItemCommand : Parser[String] = "insert" ~ key ~ types ~ value ~ "to" ~ string ^^ {
+  def insertItemCommand : Parser[String] = "insert " ~ key ~ types ~ value ~ "to " ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => cl.storeAndExecute(new InsertItemCommand(
-      new CommandReceiver(Map[Any, Any]("key" -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
+      new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
   }
 
-  def exportCommand : Parser[String] = "export" ~ (list | key) ~ "to" ~ string ^^ {
+  def exportCommand : Parser[String] = "export " ~ (list | key) ~ "to " ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1, "f_path" -> args_2)))
       cl.storeAndExecute(exp)
     }
   }
 
-  def loginCommand : Parser[String] = "login" ~ key ~ string ^^ {
+  def loginCommand : Parser[String] = "login " ~ key ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 => {
       val exp = new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
       cl.storeAndExecute(exp)

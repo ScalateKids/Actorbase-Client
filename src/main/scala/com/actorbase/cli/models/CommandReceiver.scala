@@ -1,5 +1,8 @@
 package com.actorbase.cli.models
 
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConversions._
+
 class CommandReceiver(params: Map[Any, Any]) {
 
   def insert() : String = {
@@ -38,6 +41,15 @@ class CommandReceiver(params: Map[Any, Any]) {
     var result: String="[FIND]\n"
     for((k,v) <- params){
       result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  // ugly as hell
+  def help() : String = {
+    var result : String = "[HELP]\n"
+    val set = ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
+      result += entry.getKey + "\t" + entry.getValue.unwrapped + "\n"
     }
     result
   }

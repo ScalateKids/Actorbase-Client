@@ -59,7 +59,15 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def commandList = rep(insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand)
+  // ugly as hell, needs improvements
+  def helpCommand : Parser[String] = "help" ~ key.? ^^ {
+    case cmd_part_1 => {
+      val exp = new HelpCommand(new CommandReceiver(Map[Any, Any]("key" -> "key")))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  def commandList = rep(insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand | helpCommand)
 
   /**
     * Parse CommandLoop input line, sets state on observable view

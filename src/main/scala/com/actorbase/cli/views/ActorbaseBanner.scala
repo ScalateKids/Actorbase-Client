@@ -8,6 +8,6 @@ class ActorbaseBanner() {
                    # / ___ / /___  / / / /_/ / _, _/ /_/ / ___ |___/ / /___
                    #/_/  |_\____/ /_/  \____/_/ |_/_____/_/  |_/____/_____/
                    #""".stripMargin('#')
-    banner.toString()
+    banner.toString() + "\n"
   }
 }

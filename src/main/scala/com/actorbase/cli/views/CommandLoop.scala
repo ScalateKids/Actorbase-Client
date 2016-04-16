@@ -40,17 +40,30 @@ object CommandLoop extends App {
 
   var line : String = ""
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
+
+  // login check regex
+  val pattern = """login(\s*)(\w*)""".r
+
   do {
     line = reader.readLine()
-    if(line.matches("login .*")) //checks if the users tried to type the login command
-      if(line.matches("login [a-zA-Z]{4,}")) { //checks if login command is used correctly
+
+    line match {
+      case login if login.matches("login\\s*.*") => {
+        pattern.findAllIn(login).matchData foreach {
+          m =>
+          m match {
+            case username if m.group(2).isEmpty => line += " " + reader.readLine(">> username: ")
+            case nousername if !m.group(2).isEmpty =>
+          }
+        }
         line += " " + reader.readLine(">> password: ", '*')
         reader.setPrompt(prompt.getPrompt)
+        loop = grammarParser.parseInput(line)
       }
-      else //login command is used incorrectly
-        line = "" // resets line so that the match fails
-    loop = grammarParser.parseInput(line)
+      case quit if quit.matches("(quit|exit)\\s*") => loop = false
+      case _ => loop = grammarParser.parseInput(line)
+    }
     out.flush
   }  while(line != null && loop)
-    reader.getHistory.asInstanceOf[FileHistory].flush()
+    // reader.getHistory.asInstanceOf[FileHistory].flush()
 }

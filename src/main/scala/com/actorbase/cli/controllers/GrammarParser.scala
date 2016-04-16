@@ -3,7 +3,7 @@ package com.actorbase.cli.controllers
 import com.actorbase.cli.models._
 import com.actorbase.cli.views.ResultView
 
-import scala.util.parsing.combinator.JavaTokenParsers
+import scala.util.parsing.combinator._
 
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
 
@@ -12,6 +12,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def value : Parser[String] = """".*"""".r
   def string : Parser[String] = """.*""".r
   def list : Parser[String] = """\S+,\s*\S+""".r
+  // def list : Parser[Any] = repsep(stringLiteral, ",")
   def key : Parser[String] = """\S*""".r
 
   // chained commands
@@ -42,21 +43,18 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def findCommand : Parser[String] = "find " ~ key ~ "from " ~ (list | key) ^^ {
+  /**
+    * TODO: needs improvement
+    * probably splitted into sub commands
+    */
+
+  def findCommand : Parser[String] = "find " ~ key.? ~ "from ".? ~ (list | key).? ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => { //searches the key in the listed collections
       val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
-    case cmd_part_1 ~ args_1 ~ cmd_part_2  => { //search key in whole database
+    case cmd_part_1 ~ args_1 => { //search key in whole database
       val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
-      commandInvoker.storeAndExecute(exp)
-    }
-    case cmd_part_1 ~ cmd_part_2 ~ args_2  => { // returns all the content of the listed collections unreachable at the moment
-      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("collections" -> args_2)))
-      commandInvoker.storeAndExecute(exp)
-    }
-    case cmd_part_1 => { // returns all the content of the database, unreachable at the moment
-      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("whole database" -> "lol")))
       commandInvoker.storeAndExecute(exp)
     }
   }

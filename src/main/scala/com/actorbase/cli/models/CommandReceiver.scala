@@ -29,6 +29,11 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
+  def logout() : String = {
+    val result : String ="[LOGOUT]\nSuccessfully logged out from actorbase"
+    result
+  }
+
   def addContributor() : String = {
     var result: String="[ADD CONTRIBUTOR]\n"
     for((k,v) <- params){

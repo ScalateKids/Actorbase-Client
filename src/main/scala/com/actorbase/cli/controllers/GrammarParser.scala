@@ -87,9 +87,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     if(line == "quit" || line == "exit")
       status = false
     parseAll(commandList, line) match {
-      case Success(matched, _) => {
-        setState("")
-      }
+      case Success(matched, _) => setState("")
       case Failure(msg, _) => {
         os match {
           case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg") // handle with exceptions etc..

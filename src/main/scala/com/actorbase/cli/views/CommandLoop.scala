@@ -55,7 +55,6 @@ object CommandLoop extends App {
             case nousername if m.group(2).isEmpty => {
               val user = reader.readLine(">> username: ")
               line += " " + """\w*""".r.findFirstIn(user).get
-              println(line)
             }
             case username if !m.group(2).isEmpty => line = "login " + m.group(2)
           }

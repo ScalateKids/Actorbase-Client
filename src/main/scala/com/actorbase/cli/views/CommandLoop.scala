@@ -52,8 +52,12 @@ object CommandLoop extends App {
         pattern.findAllIn(login).matchData foreach {
           m =>
           m match {
-            case username if m.group(2).isEmpty => line += " " + reader.readLine(">> username: ")
-            case nousername if !m.group(2).isEmpty =>
+            case nousername if m.group(2).isEmpty => {
+              val user = reader.readLine(">> username: ")
+              line += " " + """\w*""".r.findFirstIn(user).get
+              println(line)
+            }
+            case username if !m.group(2).isEmpty => line = "login " + m.group(2)
           }
         }
         line += " " + reader.readLine(">> password: ", '*')
@@ -66,4 +70,4 @@ object CommandLoop extends App {
     out.flush
   }  while(line != null && loop)
     // reader.getHistory.asInstanceOf[FileHistory].flush()
-}
+    }

@@ -14,6 +14,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def list : Parser[String] = """\S+,\s*\S+""".r
   // def list : Parser[Any] = repsep(stringLiteral, ",")
   def key : Parser[String] = """\S*""".r
+  def nothing : Parser[String] = """"""
 
   // chained commands
 
@@ -32,6 +33,13 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def loginCommand : Parser[String] = "login " ~ key ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 => {
       val exp = new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  def logoutCommand : Parser[String] = "logout" ~ nothing ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new LogoutCommand(new CommandReceiver(Map[Any, Any]("asd" -> args_1)))
       commandInvoker.storeAndExecute(exp)
     }
   }
@@ -67,7 +75,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def commandList = rep(insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand | helpCommand)
+  def commandList = rep(insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand | helpCommand | logoutCommand)
 
   /**
     * Parse CommandLoop input line, sets state on observable view

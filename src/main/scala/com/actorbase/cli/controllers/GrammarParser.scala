@@ -11,7 +11,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def types : Parser[String] = """Integer|Double|String|Binary""".r
   def value : Parser[String] = """".*"""".r
   def string : Parser[String] = """.*""".r
-  def list : Parser[String] = """\S+,\s*\S+""".r        //TODO taglia dopo la seconda parola
+  def list : Parser[String] = """(\S+,\s*\S+)+""".r        // TODO non-taglia dopo la seconda parola
   // def list : Parser[Any] = repsep(stringLiteral, ",")
   def key : Parser[String] = """\S*""".r
   def nothing : Parser[String] = """"""
@@ -111,7 +111,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /********************************************************************************************************************/
   /**                                              END OF OPERATIONS                                                 **/
   /********************************************************************************************************************/
-  
+
   def commandList = rep( insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand |
                         helpCommand | logoutCommand | createCollection | listCollections | renameCollection |
                         deleteCollection )

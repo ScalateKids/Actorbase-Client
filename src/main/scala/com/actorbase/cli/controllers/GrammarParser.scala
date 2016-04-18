@@ -11,10 +11,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def types : Parser[String] = """Integer|Double|String|Binary""".r
   def value : Parser[String] = """".*"""".r
   def string : Parser[String] = """.*""".r
-  def list : Parser[String] = """(\S+,\s*\S+)+""".r        // TODO non-taglia dopo la seconda parola
+  def list : Parser[String] = """\S+,\s*\S+""".r        // TODO should be translated to List[String]
+  // def list : Parser[List[String]] = rep("\\S+,\\s*\\S+")
   // def list : Parser[Any] = repsep(stringLiteral, ",")
   def key : Parser[String] = """\S*""".r
-  def nothing : Parser[String] = """"""
+  def nothing : Parser[String] = """""" // ???????
 
   // chained commands
 
@@ -37,9 +38,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def logoutCommand : Parser[String] = "logout" ~ nothing ^^ {
-    case cmd_part_1 ~ args_1 => {
-      val exp = new LogoutCommand(new CommandReceiver(Map[Any, Any]("asd" -> args_1)))
+  def logoutCommand : Parser[String] = "logout" ^^ {
+    case cmd_part_1 => {
+      val exp = new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
       commandInvoker.storeAndExecute(exp)
     }
   }
@@ -86,22 +87,22 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def listCollections : Parser[String] = "listCollections" ~ nothing ^^ {
-    case cmd_part_1 ~ args_1 => {
-      val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("nothing" -> args_1)))
+  def listCollections : Parser[String] = "listCollections" ^^ {
+    case cmd_part_1 => {
+      val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("list" -> None)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
   // TODO sbagliato, non funziona
-  def renameCollection : Parser[String] = "renameCollection" ~ value ~ "to " ~ value ^^ {
+  def renameCollection : Parser[String] = "renameCollection " ~ key ~ "to " ~ key ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  def deleteCollection : Parser[String] = "deleteCollection" ~ value ^^ {
+  def deleteCollection : Parser[String] = "deleteCollection " ~ value ^^ {
     case cmd_part_1 ~ args_1 => {
       val exp = new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
       commandInvoker.storeAndExecute(exp)

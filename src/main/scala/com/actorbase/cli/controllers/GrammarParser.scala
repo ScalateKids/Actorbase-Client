@@ -94,9 +94,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   // TODO sbagliato, non funziona
-  def modifyCollectionName : Parser[String] = "modifyCollectionName" ~ value ~ "in" ~ value ^^ {
+  def renameCollection : Parser[String] = "renameCollection" ~ value ~ "to " ~ value ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
-      val exp = new ModifyCollectionNameCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
+      val exp = new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }
@@ -108,14 +108,12 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-
   /********************************************************************************************************************/
   /**                                              END OF OPERATIONS                                                 **/
   /********************************************************************************************************************/
-
-
+  
   def commandList = rep( insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand |
-                        helpCommand | logoutCommand | createCollection | listCollections | modifyCollectionName |
+                        helpCommand | logoutCommand | createCollection | listCollections | renameCollection |
                         deleteCollection )
   /**
     * Parse CommandLoop input line, sets state on observable view

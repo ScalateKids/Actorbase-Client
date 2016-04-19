@@ -74,7 +74,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  def modifyCollectionName() : String = {
+  def renameCollection() : String = {
     var result : String = "[MODIFY COLLECT NAME]\n"
     for((k,v) <- params){
       result += s"$k -> $v\n"

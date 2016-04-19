@@ -8,14 +8,14 @@ import scala.util.parsing.combinator._
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
 
   // base arguments types
-  def types : Parser[String] = """Integer|Double|String|Binary""".r
-  def value : Parser[String] = """".*"""".r
-  def string : Parser[String] = """.*""".r
-  def list : Parser[String] = """\S+,\s*\S+""".r        // TODO should be translated to List[String]
-  // def list : Parser[List[String]] = rep("\\S+,\\s*\\S+")
-  // def list : Parser[Any] = repsep(stringLiteral, ",")
-  def key : Parser[String] = """\S*""".r
-  def nothing : Parser[String] = """""" // ???????
+  val types : Parser[String] = """Integer|Double|String|Binary""".r
+  val value : Parser[String] = """".*"""".r
+  val string : Parser[String] = """.*""".r
+  val list : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
+  // val list : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
+  // val list : Parser[Any] = repsep(stringLiteral, ",")
+  val key : Parser[String] = """\S*""".r
+  val nothing : Parser[String] = """""" // ???????
 
   // chained commands
 
@@ -24,9 +24,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
       new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
   }
 
-  def exportCommand : Parser[String] = "export " ~ (list | key) ~ "to " ~ string ^^ {
+  def exportCommand : Parser[String] = "export " ~ (key | list) ~ "to " ~ string ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
-      val exp = new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1, "f_path" -> args_2)))
+      val exp = new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }

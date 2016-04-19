@@ -38,7 +38,8 @@ object CommandLoop extends App {
   reader.setBellEnabled(false)
   reader.addCompleter(new StringsCompleter("addCollaborator", "changePassword", "createCollection", "deleteCollection",
                                             "export", "find", "help", "insert", "listCollections", "login", "logout",
-                                            "removeCollaborator", "removeItem", "renameCollection"))                    //autocompleted commands
+                                            "removeCollaborator", "removeItem", "renameCollection", "addUser", "removeUser",
+                                            "resetPassword"))                    //autocompleted commands
 
   var line : String = ""
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))

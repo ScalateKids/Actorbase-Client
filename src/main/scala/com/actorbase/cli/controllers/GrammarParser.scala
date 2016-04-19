@@ -46,7 +46,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
       commandInvoker.storeAndExecute(exp)
     }
   }
-  
+
   /**
     * TODO: needs improvement
     * probably splitted into sub commands
@@ -75,14 +75,14 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                          COLLECTION OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
-  def createCollection : Parser[String] = "createCollection" ~ literalString ^^ {
+  def createCollectionCommand : Parser[String] = "createCollection" ~ literalString ^^ {
     case cmd_part_1 ~ args_1 => {
       val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  def listCollections : Parser[String] = "listCollections" ^^ {
+  def listCollectionsCommand : Parser[String] = "listCollections" ^^ {
     case cmd_part_1 => {
       val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("list" -> None)))
       commandInvoker.storeAndExecute(exp)
@@ -90,21 +90,21 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   // key? o String?
-  def renameCollection : Parser[String] = "renameCollection " ~ keyString ~ "to " ~ keyString ^^ {
+  def renameCollectionCommand : Parser[String] = "renameCollection " ~ keyString ~ "to " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  def deleteCollection : Parser[String] = "deleteCollection " ~ quotedString ^^ {
+  def deleteCollectionCommand : Parser[String] = "deleteCollection " ~ quotedString ^^ {
     case cmd_part_1 ~ args_1 => {
       val exp = new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  def addCollaboratorCommand : Parser[String] = "addCollaborator " ~ key ~ "to " ~ key ~ permissions ^^ {
+  def addCollaboratorCommand : Parser[String] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 => {
       val exp = new AddCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2, "permissions" -> args_3)))
       commandInvoker.storeAndExecute(exp)
@@ -123,8 +123,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /********************************************************************************************************************/
 
   def commandList = rep( insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
-                        helpCommand | logoutCommand | createCollection | listCollections | renameCollection |
-                        deleteCollection )
+                        helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
+                        renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand )
   /**
     * Parse CommandLoop input line, sets state on observable view
     * and notify them

@@ -9,7 +9,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // base arguments types
   val types : Parser[String] = """Integer|Double|String|Binary""".r
-  val value : Parser[String] = """".*"""".r
+  val value : Parser[String] = """['"].*['"]""".r
   val string : Parser[String] = """.*""".r
   val list : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
   // val list : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r

@@ -9,29 +9,29 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // base arguments types
   val types : Parser[String] = """Integer|Double|String|Binary""".r
-  val value : Parser[String] = """['"].*['"]""".r
-  val string : Parser[String] = """.*""".r
-  val list : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
-  // val list : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
-  // val list : Parser[Any] = repsep(stringLiteral, ",")
-  val key : Parser[String] = """\S*""".r
+  val quotedString : Parser[String] = """['"].*['"]""".r
+  val literalString : Parser[String] = """.*""".r
+  val listString : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
+  // val listString : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
+  // val listString : Parser[Any] = repsep(stringLiteral, ",")
+  val keyString : Parser[String] = """\S*""".r
   //val nothing : Parser[String] = """""" // ???????
 
   // chained commands
 
-  def insertItemCommand : Parser[String] = "insert " ~ key ~ types ~ value ~ "to " ~ string ^^ {
+  def insertItemCommand : Parser[String] = "insert " ~ keyString ~ types ~ quotedString ~ "to " ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => commandInvoker.storeAndExecute(new InsertItemCommand(
-      new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "value" -> args_3, cmd_part_2 -> args_4))))
+      new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "quotedString" -> args_3, cmd_part_2 -> args_4))))
   }
 
-  def exportCommand : Parser[String] = "export " ~ (key | list) ~ "to " ~ string ^^ {
+  def exportCommand : Parser[String] = "export " ~ (keyString | listString) ~ "to " ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  def loginCommand : Parser[String] = "login " ~ key ~ string ^^ {
+  def loginCommand : Parser[String] = "login " ~ keyString ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 => {
       val exp = new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
       commandInvoker.storeAndExecute(exp)
@@ -45,7 +45,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def addContributorCommand : Parser[String] = "addContributor " ~ key ~ "to " ~ key ^^ {
+  def addContributorCommand : Parser[String] = "addContributor " ~ keyString ~ "to " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new AddContributorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
       commandInvoker.storeAndExecute(exp)
@@ -57,7 +57,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     * probably splitted into sub commands
     */
 
-  def findCommand : Parser[String] = "find " ~ key.? ~ "from ".? ~ (list | key).? ^^ {
+  def findCommand : Parser[String] = "find " ~ keyString.? ~ "from ".? ~ (listString | keyString).? ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => { //searches the key in the listed collections
       val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
       commandInvoker.storeAndExecute(exp)
@@ -69,7 +69,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   // ugly as hell, needs improvements
-  def helpCommand : Parser[String] = "help" ~ key.? ^^ {
+  def helpCommand : Parser[String] = "help" ~ keyString.? ^^ {
     case cmd_part_1 => {
       val exp = new HelpCommand(new CommandReceiver(Map[Any, Any]("key" -> "key")))
       commandInvoker.storeAndExecute(exp)
@@ -80,7 +80,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                          COLLECTION OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
-  def createCollection : Parser[String] = "createCollection" ~ string ^^ {
+  def createCollection : Parser[String] = "createCollection" ~ literalString ^^ {
     case cmd_part_1 ~ args_1 => {
       val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
       commandInvoker.storeAndExecute(exp)
@@ -95,14 +95,14 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   // key? o String?
-  def renameCollection : Parser[String] = "renameCollection " ~ key ~ "to " ~ key ^^ {
+  def renameCollection : Parser[String] = "renameCollection " ~ keyString ~ "to " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  def deleteCollection : Parser[String] = "deleteCollection " ~ value ^^ {
+  def deleteCollection : Parser[String] = "deleteCollection " ~ quotedString ^^ {
     case cmd_part_1 ~ args_1 => {
       val exp = new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
       commandInvoker.storeAndExecute(exp)

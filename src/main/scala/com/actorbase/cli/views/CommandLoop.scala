@@ -36,7 +36,9 @@ object CommandLoop extends App {
   reader.setHistory(history)
   reader.setPrompt(prompt.getPrompt)
   reader.setBellEnabled(false)
-  reader.addCompleter(new StringsCompleter("export", "insert", "login", "addContributor", "find")) //autocompleted commands
+  reader.addCompleter(new StringsCompleter("addCollaborator", "changePassword", "createCollection", "deleteCollection",
+                                            "export", "find", "help", "insert", "listCollections", "login", "logout",
+                                            "removeCollaborator", "removeItem", "renameCollection"))                    //autocompleted commands
 
   var line : String = ""
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
@@ -60,6 +62,16 @@ object CommandLoop extends App {
           }
         }
         line += " " + reader.readLine(">> password: ", '*')
+        reader.setPrompt(prompt.getPrompt)
+        loop = grammarParser.parseInput(line)
+      }
+      case "changePassword" | "changePassword " => {  // ugly as hell
+        val oldPw = reader.readLine(">> password: ", '*')
+        line += " " + """.*""".r.findFirstIn(oldPw).get
+        val newPw = reader.readLine(">> new password: ", '*')
+        line += " " + """\w*""".r.findFirstIn(newPw).get
+        val rptPw = reader.readLine(">> repeat password: ", '*')
+        line += " " + """\w*""".r.findFirstIn(rptPw).get
         reader.setPrompt(prompt.getPrompt)
         loop = grammarParser.parseInput(line)
       }

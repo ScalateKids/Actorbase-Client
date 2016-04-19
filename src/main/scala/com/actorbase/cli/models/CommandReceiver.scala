@@ -58,4 +58,35 @@ class CommandReceiver(params: Map[Any, Any]) {
     }
     result
   }
+
+  /*  collection operations */
+  def createCollection() : String = {
+    var result : String = "[CREATE COLLECTION]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def listCollections() : String = {
+    var result : String = "[LIST COLLECTIONS]\n"
+    //TODO
+    result
+  }
+
+  def modifyCollectionName() : String = {
+    var result : String = "[MODIFY COLLECT NAME]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def deleteCollection() : String = {
+    var result : String = "[DELETE COLLECTION]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
 }

@@ -11,7 +11,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def types : Parser[String] = """Integer|Double|String|Binary""".r
   def value : Parser[String] = """".*"""".r
   def string : Parser[String] = """.*""".r
-  def list : Parser[String] = """\S+,\s*\S+""".r
+  def list : Parser[String] = """\S+,\s*\S+""".r        //TODO taglia dopo la seconda parola
   // def list : Parser[Any] = repsep(stringLiteral, ",")
   def key : Parser[String] = """\S*""".r
   def nothing : Parser[String] = """"""
@@ -75,8 +75,48 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def commandList = rep(insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand | helpCommand | logoutCommand)
+  /********************************************************************************************************************/
+  /**                                          COLLECTION OPERATIONS                                                 **/
+  /********************************************************************************************************************/
 
+  def createCollection : Parser[String] = "createCollection" ~ string ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  def listCollections : Parser[String] = "listCollections" ~ nothing ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("nothing" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  // TODO sbagliato, non funziona
+  def modifyCollectionName : Parser[String] = "modifyCollectionName" ~ value ~ "in" ~ value ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
+      val exp = new ModifyCollectionNameCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  def deleteCollection : Parser[String] = "deleteCollection" ~ value ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+
+  /********************************************************************************************************************/
+  /**                                              END OF OPERATIONS                                                 **/
+  /********************************************************************************************************************/
+
+
+  def commandList = rep( insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand |
+                        helpCommand | logoutCommand | createCollection | listCollections | modifyCollectionName |
+                        deleteCollection )
   /**
     * Parse CommandLoop input line, sets state on observable view
     * and notify them

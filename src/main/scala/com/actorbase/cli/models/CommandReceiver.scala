@@ -34,14 +34,6 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  def addContributor() : String = {
-    var result: String="[ADD CONTRIBUTOR]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
-    }
-    result
-  }
-
   def find() : String = {
     var result: String="[FIND]\n"
     for((k,v) <- params){
@@ -84,6 +76,22 @@ class CommandReceiver(params: Map[Any, Any]) {
 
   def deleteCollection() : String = {
     var result : String = "[DELETE COLLECTION]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def addCollaborator() : String = {
+    var result: String="[ADD CONTRIBUTOR]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def removeCollaborator() : String = {
+    var result: String="[REMOVE CONTRIBUTOR]\n"
     for((k,v) <- params){
       result += s"$k -> $v\n"
     }

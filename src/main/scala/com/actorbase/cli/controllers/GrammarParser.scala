@@ -9,6 +9,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // base arguments types
   val types : Parser[String] = """Integer|Double|String|Binary""".r
+  val permissions : Parser[String] = """ReadOnly|ReadWrite""".r
   val value : Parser[String] = """".*"""".r
   val string : Parser[String] = """.*""".r
   val list : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
@@ -41,13 +42,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def logoutCommand : Parser[String] = "logout" ^^ {
     case cmd_part_1 => {
       val exp = new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
-      commandInvoker.storeAndExecute(exp)
-    }
-  }
-
-  def addContributorCommand : Parser[String] = "addContributor " ~ key ~ "to " ~ key ^^ {
-    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
-      val exp = new AddContributorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
       commandInvoker.storeAndExecute(exp)
     }
   }
@@ -109,11 +103,25 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
+  def addCollaboratorCommand : Parser[String] = "addCollaborator " ~ key ~ "to " ~ key ~ permissions ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 => {
+      val exp = new AddCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2, "permissions" -> args_3)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  def removeCollaboratorCommand : Parser[String] = "removeCollaborator" ~ keyString ~ "from " ~ keyString ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
+      val exp = new RemoveCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
   /********************************************************************************************************************/
   /**                                              END OF OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
-  def commandList = rep( insertItemCommand | exportCommand | loginCommand | addContributorCommand | findCommand |
+  def commandList = rep( insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
                         helpCommand | logoutCommand | createCollection | listCollections | renameCollection |
                         deleteCollection )
   /**

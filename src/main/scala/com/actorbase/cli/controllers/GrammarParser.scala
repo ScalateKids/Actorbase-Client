@@ -10,7 +10,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   // base arguments types
   val types : Parser[String] = """Integer|Double|String|Binary""".r
   val permissions : Parser[String] = """ReadOnly|ReadWrite""".r
-
   val quotedString : Parser[String] = """['"].*['"]""".r
   val literalString : Parser[String] = """.*""".r
   val listString : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
@@ -21,18 +20,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // chained commands
 
-  def insertItemCommand : Parser[String] = "insert " ~ keyString ~ types ~ quotedString ~ "to " ~ literalString ^^ {
-    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => commandInvoker.storeAndExecute(new InsertItemCommand(
-      new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "quotedString" -> args_3, cmd_part_2 -> args_4))))
-  }
-
-  def exportCommand : Parser[String] = "export " ~ (keyString | listString) ~ "to " ~ literalString ^^ {
-    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
-      val exp = new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
-      commandInvoker.storeAndExecute(exp)
-    }
-  }
-
   def loginCommand : Parser[String] = "login " ~ keyString ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 => {
       val exp = new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
@@ -40,25 +27,16 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def logoutCommand : Parser[String] = "logout" ^^ {
+  def logoutCommand : Parser[String] = "logout " ^^ {
     case cmd_part_1 => {
       val exp = new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
       commandInvoker.storeAndExecute(exp)
     }
   }
 
-  /**
-    * TODO: needs improvement
-    * probably splitted into sub commands
-    */
-
-  def findCommand : Parser[String] = "find " ~ keyString.? ~ "from ".? ~ (listString | keyString).? ^^ {
-    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => { //searches the key in the listed collections
-      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
-      commandInvoker.storeAndExecute(exp)
-    }
-    case cmd_part_1 ~ args_1 => { //search key in whole database
-      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
+  def changePasswordCommand : Parser[String] = "changePassword " ~ keyString ~ keyString ~ keyString ^^ {
+    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 => {
+      val exp = new ChangePasswordCommand(new CommandReceiver(Map[Any, Any]("oldPsw" -> args_1, "newPsw" -> args_2, "repeatedPsw" -> args_3)))
       commandInvoker.storeAndExecute(exp)
     }
   }
@@ -75,7 +53,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                          COLLECTION OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
-  def createCollectionCommand : Parser[String] = "createCollection" ~ literalString ^^ {
+  def createCollectionCommand : Parser[String] = "createCollection " ~ literalString ^^ {
     case cmd_part_1 ~ args_1 => {
       val exp = new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
       commandInvoker.storeAndExecute(exp)
@@ -118,13 +96,60 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
+  def exportCommand : Parser[String] = "export " ~ (keyString | listString) ~ "to " ~ literalString ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
+      val exp = new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  /********************************************************************************************************************/
+  /**                                               ITEM OPERATIONS                                                  **/
+  /********************************************************************************************************************/
+
+  // TODO flag sovrascrittura
+  // TODO inserimento item con creazione nuova collezione
+  def insertItemCommand : Parser[String] = "insert " ~ keyString ~ types ~ quotedString ~ "to " ~ literalString ^^ {
+    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 => commandInvoker.storeAndExecute(new InsertItemCommand(
+      new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "quotedString" -> args_3, cmd_part_2 -> args_4))))
+  }
+
+  // TODO insert item da file?
+
+  def removeItemCommand : Parser[String] = "remove " ~ keyString ~ "from " ~ keyString ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
+      val exp = new RemoveItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  // TODO: needs improvement, probably splitted into sub commands
+  def findCommand : Parser[String] = "find " ~ keyString.? ~ "from ".? ~ (listString | keyString).? ^^ {
+    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => { //searches the key in the listed collections
+      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
+      commandInvoker.storeAndExecute(exp)
+    }
+    case cmd_part_1 ~ args_1 => { //search key in whole database
+      val exp = new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
+
+  /********************************************************************************************************************/
+  /**                                         USER MANAGMENT OPERATIONS                                              **/
+  /********************************************************************************************************************/
+
+
+
+
   /********************************************************************************************************************/
   /**                                              END OF OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
   def commandList = rep( insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
                         helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
-                        renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand )
+                        renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand |
+                        removeItemCommand | changePasswordCommand )
   /**
     * Parse CommandLoop input line, sets state on observable view
     * and notify them

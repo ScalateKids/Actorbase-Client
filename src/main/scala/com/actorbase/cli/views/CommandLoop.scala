@@ -63,6 +63,16 @@ object CommandLoop extends App {
         reader.setPrompt(prompt.getPrompt)
         loop = grammarParser.parseInput(line)
       }
+      case "changePassword" => {
+        val oldPw = reader.readLine(">> password: ", '*')
+        line += " " + """.*""".r.findAllIn(oldPw).toString()
+        val newPw = reader.readLine(">> new password: ", '*')
+        line += " " + """\w*""".r.findFirstIn(newPw).get
+        val rptPw = reader.readLine(">> repeat password: ", '*')
+        line += " " + """\w*""".r.findFirstIn(rptPw).get
+        reader.setPrompt(prompt.getPrompt)
+        loop = grammarParser.parseInput(line)
+      }
       case quit if quit.matches("(quit|exit)\\s*") => loop = false
       case _ => loop = grammarParser.parseInput(line)
     }

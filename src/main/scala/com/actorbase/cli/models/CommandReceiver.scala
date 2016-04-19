@@ -13,6 +13,14 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
+  def removeItem() : String = {
+    var result : String = "[REMOVE ITEM]\n"
+    for ((k, v) <- params) {
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
   def export() : String = {
     var result : String = "[EXPORT]\n"
     for ((k, v) <- params) {
@@ -62,7 +70,6 @@ class CommandReceiver(params: Map[Any, Any]) {
 
   def listCollections() : String = {
     var result : String = "[LIST COLLECTIONS]\n"
-    //TODO
     result
   }
 
@@ -91,7 +98,15 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   def removeCollaborator() : String = {
-    var result: String="[REMOVE CONTRIBUTOR]\n"
+    var result: String="[REMOVE COLLABORATOR]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def changePassword() : String = {
+    var result: String="[CHANGE PASSWORD]\n"
     for((k,v) <- params){
       result += s"$k -> $v\n"
     }

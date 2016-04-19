@@ -15,7 +15,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   // val list : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
   // val list : Parser[Any] = repsep(stringLiteral, ",")
   val key : Parser[String] = """\S*""".r
-  val nothing : Parser[String] = """""" // ???????
+  //val nothing : Parser[String] = """""" // ???????
 
   // chained commands
 
@@ -94,7 +94,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  // TODO sbagliato, non funziona
+  // key? o String?
   def renameCollection : Parser[String] = "renameCollection " ~ key ~ "to " ~ key ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 => {
       val exp = new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))

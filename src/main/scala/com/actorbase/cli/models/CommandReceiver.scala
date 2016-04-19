@@ -112,4 +112,28 @@ class CommandReceiver(params: Map[Any, Any]) {
     }
     result
   }
+
+  def addUser() : String = {
+    var result: String="[ADD USER]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def removeUser() : String = {
+    var result: String="[REMOVE USER]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
+
+  def resetPassword() : String = {
+    var result: String="[RESET PASSWORD]\n"
+    for((k,v) <- params){
+      result += s"$k -> $v\n"
+    }
+    result
+  }
 }

@@ -136,20 +136,35 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   /********************************************************************************************************************/
-  /**                                         USER MANAGEMENT OPERATIONS                                             **/
+  /**                                              USERS MANAGEMENT                                                  **/
   /********************************************************************************************************************/
 
+  def addUserCommand : Parser[String] = "addUser" ~ keyString ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new AddUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
 
+  def removeUserCommand : Parser[String] = "removeUser" ~ keyString ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
 
-
-  /********************************************************************************************************************/
-  /**                                              END OF OPERATIONS                                                 **/
-  /********************************************************************************************************************/
+  def resetPasswordCommand : Parser[String] = "resetPassword" ~ keyString ^^ {
+    case cmd_part_1 ~ args_1 => {
+      val exp = new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+      commandInvoker.storeAndExecute(exp)
+    }
+  }
 
   def commandList = rep( insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
                         helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
                         renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand |
-                        removeItemCommand | changePasswordCommand )   // all possible commands
+                        removeItemCommand | changePasswordCommand|addUserCommand | removeUserCommand |
+                        resetPasswordCommand) //all possible commands
   /**
     * Parse CommandLoop input line, sets state on observable view
     * and notify them

@@ -136,7 +136,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   /********************************************************************************************************************/
-  /**                                         USER MANAGMENT OPERATIONS                                              **/
+  /**                                         USER MANAGEMENT OPERATIONS                                             **/
   /********************************************************************************************************************/
 
 
@@ -149,7 +149,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   def commandList = rep( insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
                         helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
                         renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand |
-                        removeItemCommand | changePasswordCommand )
+                        removeItemCommand | changePasswordCommand )   // all possible commands
   /**
     * Parse CommandLoop input line, sets state on observable view
     * and notify them

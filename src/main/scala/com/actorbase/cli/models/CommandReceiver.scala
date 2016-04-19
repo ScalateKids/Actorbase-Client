@@ -28,6 +28,9 @@
 
 package com.actorbase.cli.models
 
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConversions._
+
 class CommandReceiver(params: Map[Any, Any]) {
 
   def insert() : String = {

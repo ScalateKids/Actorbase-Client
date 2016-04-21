@@ -40,7 +40,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   val permissions : Parser[String] = """ReadOnly|ReadWrite""".r
   val quotedString : Parser[String] = """['"].*['"]""".r
   val literalString : Parser[String] = """.*""".r
-  val listString : Parser[String] = """\S+,\s*\S+""".r        // only works without spaces for now
+  val listString : Parser[String] = """[\S+,\s*\S+]+""".r        // only works without spaces for now
   // val listString : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
   // val listString : Parser[Any] = repsep(stringLiteral, ",")
   val keyString : Parser[String] = """\S*""".r

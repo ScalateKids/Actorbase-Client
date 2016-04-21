@@ -32,8 +32,6 @@ import com.actorbase.cli.models._
 import com.actorbase.cli.views.ResultView
 
 import scala.tools.jline.console.ConsoleReader
-import scala.tools.jline.console.history.FileHistory
-import scala.tools.jline.console.completer._
 
 import scala.util.parsing.combinator._
 

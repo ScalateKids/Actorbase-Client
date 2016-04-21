@@ -65,9 +65,9 @@ object CommandLoop extends App {
   reader.setPrompt(prompt.getPrompt)
   reader.setBellEnabled(false)
   reader.addCompleter(new StringsCompleter("addCollaborator", "changePassword", "createCollection", "deleteCollection",
-                                            "export", "find", "help", "insert", "listCollections", "login", "logout",
-                                            "removeCollaborator", "removeItem", "renameCollection", "addUser", "removeUser",
-                                            "resetPassword"))                    //autocompleted commands
+    "export", "find", "help", "insert", "listCollections", "login", "logout",
+    "removeCollaborator", "removeItem", "renameCollection", "addUser", "removeUser",
+    "resetPassword"))                    //autocompleted commands
 
   var line : String = ""
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
@@ -94,12 +94,12 @@ object CommandLoop extends App {
         reader.setPrompt(prompt.getPrompt)
         loop = grammarParser.parseInput(line)
       }
-      case "changePassword" | "changePassword " => {  // ugly as hell
-        val oldPw = reader.readLine(">> password: ", '*')
+      case change if change.matches("changePassword\\s*") => {
+        val oldPassword = reader.readLine(">> password: ", '*')
         line += " " + """.*""".r.findFirstIn(oldPw).get
-        val newPw = reader.readLine(">> new password: ", '*')
+        val newPassword = reader.readLine(">> new password: ", '*')
         line += " " + """\w*""".r.findFirstIn(newPw).get
-        val rptPw = reader.readLine(">> repeat password: ", '*')
+        val repeatPassword = reader.readLine(">> repeat password: ", '*')
         line += " " + """\w*""".r.findFirstIn(rptPw).get
         reader.setPrompt(prompt.getPrompt)
         loop = grammarParser.parseInput(line)
@@ -108,6 +108,6 @@ object CommandLoop extends App {
       case _ => loop = grammarParser.parseInput(line)
     }
     out.flush
-  }  while(line != null && loop)
+  } while(line != null && loop)
     // reader.getHistory.asInstanceOf[FileHistory].flush()
-    }
+}

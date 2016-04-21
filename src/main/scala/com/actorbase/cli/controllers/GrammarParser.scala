@@ -43,8 +43,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   val quotedString : Parser[String] = """['"].*['"]""".r
   val literalString : Parser[String] = """.*""".r
   val listString : Parser[String] = """[\S+,\s*\S+]+""".r        // only works without spaces for now
-  // def listString : Parser[List[String]] = rep(keyString ~ "," ~ keyString)
   val keyString : Parser[String] = """\S+""".r
+
 
   // chained commands
 
@@ -100,7 +100,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1, "f_path" -> args_2)))
+      new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
   }
 
   /********************************************************************************************************************/

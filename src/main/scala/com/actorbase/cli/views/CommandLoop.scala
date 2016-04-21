@@ -96,11 +96,11 @@ object CommandLoop extends App {
       }
       case change if change.matches("changePassword\\s*") => {
         val oldPassword = reader.readLine(">> password: ", '*')
-        line += " " + """.*""".r.findFirstIn(oldPw).get
+        line += " " + """.*""".r.findFirstIn(oldPassword).get
         val newPassword = reader.readLine(">> new password: ", '*')
-        line += " " + """\w*""".r.findFirstIn(newPw).get
+        line += " " + """\w*""".r.findFirstIn(newPassword).get
         val repeatPassword = reader.readLine(">> repeat password: ", '*')
-        line += " " + """\w*""".r.findFirstIn(rptPw).get
+        line += " " + """\w*""".r.findFirstIn(repeatPassword).get
         reader.setPrompt(prompt.getPrompt)
         loop = grammarParser.parseInput(line)
       }

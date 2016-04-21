@@ -42,18 +42,15 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   val permissions : Parser[String] = """ReadOnly|ReadWrite""".r
   val quotedString : Parser[String] = """['"].*['"]""".r
   val literalString : Parser[String] = """.*""".r
-  val listString : Parser[String] = """[\S+,\s*\S+]+""".r        // only works without spaces for now
+  val listString : Parser[String] = """[\S+,\s*\S+]+""".r
   val keyString : Parser[String] = """\S+""".r
 
 
   // chained commands
 
-  def loginCommand : Parser[Command] = "login " ~ keyString ~ literalString ^^ {
-    case cmd_part_1 ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
-  }
-
-  def logoutCommand : Parser[Command] = "logout" ^^ {
-    case cmd_part_1 => new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
+  def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ literalString | "logout") ^^ {
+    case "logout" => new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
+    case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
   }
 
   def changePasswordCommand : Parser[Command] = "changePassword " ~ keyString ~ keyString ~ keyString ^^ {
@@ -70,23 +67,17 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                          COLLECTION OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
-  def createCollectionCommand : Parser[Command] = "createCollection " ~ literalString ^^ {
-    case cmd_part_1 ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
-  }
+  def collectionManagementCommand : Parser[Command] =
+    (("createCollection" | "deleteCollection") ~ literalString |
+      "listCollections" |
+      "renameCollection" ~ keyString ~ "to " ~ keyString) ^^ {
 
-  def listCollectionsCommand : Parser[Command] = "listCollections" ^^ {
-    case cmd_part_1 => new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("list" -> None)))
-  }
-
-  // key? o String?
-  def renameCollectionCommand : Parser[Command] = "renameCollection " ~ keyString ~ "to " ~ keyString ^^ {
-    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
-  }
-
-  def deleteCollectionCommand : Parser[Command] = "deleteCollection " ~ quotedString ^^ {
-    case cmd_part_1 ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
-  }
+      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
+      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
+      case "listCollections" => new ListCollectionsCommand(new CommandReceiver(Map[Any, Any]("list" -> None)))
+      case "renameCollection" ~ args_1 ~ cmd_part_2 ~ args_2 =>
+        new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
+    }
 
   def addCollaboratorCommand : Parser[Command] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 =>
@@ -98,6 +89,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
       new RemoveCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
   }
 
+  // only works without spaces for now
   def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
       new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
@@ -121,36 +113,29 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
       new RemoveItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
   }
 
-  // TODO: needs improvement, probably splitted into sub commands
-  def findCommand : Parser[Command] = "find " ~ keyString.? ~ "from ".? ~ (listString | keyString).? ^^ {
-    case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
-
-    case cmd_part_1 ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
+  // meh
+  def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
+    case "find" => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> None, "collection" -> None)))
+    case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
+    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> None, "collection" -> args_1.asInstanceOf[String].split(",").toList)))
+    case "find" ~ args_1 ~ "from"  ~ args_2 =>
+      new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2.asInstanceOf[String].split(",").toList)))
   }
 
   /********************************************************************************************************************/
   /**                                              USERS MANAGEMENT                                                  **/
   /********************************************************************************************************************/
 
-  def addUserCommand : Parser[Command] = "addUser" ~ keyString ^^ {
-    case cmd_part_1 ~ args_1 => new AddUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
-  }
-
-  def removeUserCommand : Parser[Command] = "removeUser" ~ keyString ^^ {
-    case cmd_part_1 ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
-  }
-
-  def resetPasswordCommand : Parser[Command] = "resetPassword" ~ keyString ^^ {
-    case cmd_part_1 ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+  def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
+    case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+    case "removeUser"  ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+    case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
   }
 
   def commandList : Parser[Command] = {
-    insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
-    helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
-    renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand |
-    removeItemCommand | changePasswordCommand|addUserCommand | removeUserCommand |
-    resetPasswordCommand
+    insertItemCommand | exportCommand | authManagementCommand | addCollaboratorCommand | findCommand |
+    helpCommand | collectionManagementCommand | removeCollaboratorCommand | removeItemCommand |
+    changePasswordCommand | userManagementCommand
   }
 
   /**
@@ -191,20 +176,22 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
         case _ => line
       }
       setState("") // reset controller state
-      parseAll(commandList, line) match {
-        case Success(matched, _) => commandInvoker.storeAndExecute(matched)
-        case Failure(msg, _) => {
-          os match {
-            case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg") // handle with exceptions etc..
-            case windows if windows.contains("Windows") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // handle with exceptions etc..
-            case mac if mac.contains("Darwin") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // handle with exceptions etc..
-            case _ => setState(s"FAILURE: $msg")
+      if(!line.isEmpty) {
+        parseAll(commandList, line) match {
+          case Success(matched, _) => commandInvoker.storeAndExecute(matched)
+          case Failure(msg, _) => {
+            os match {
+              case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg")       // DEBUG
+              case windows if windows.contains("Windows") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // DEBUG
+              case mac if mac.contains("Darwin") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg")          // DEBUG
+              case _ => setState(s"FAILURE: $msg")
+            }
           }
+          case Error(msg, _) => setState(s"ERROR: $msg") // DEBUG
         }
-        case Error(msg, _) => setState(s"ERROR: $msg") // handle with exceptions etc..
       }
+      notifyAllObservers()
     }
-    notifyAllObservers()
     return status
   }
 }

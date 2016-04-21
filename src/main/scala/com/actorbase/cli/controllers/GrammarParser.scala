@@ -31,6 +31,10 @@ package com.actorbase.cli.controllers
 import com.actorbase.cli.models._
 import com.actorbase.cli.views.ResultView
 
+import scala.tools.jline.console.ConsoleReader
+import scala.tools.jline.console.history.FileHistory
+import scala.tools.jline.console.completer._
+
 import scala.util.parsing.combinator._
 
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
@@ -197,22 +201,52 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     * Parse CommandLoop input line, sets state on observable view
     * and notify them
     */
-  def parseInput(line: String) : Boolean = {
+  def parseInput(input: String) : Boolean = {
     val os = System.getProperty("os.name")
     var status : Boolean = true
-    if(line == "quit" || line == "exit")
+    val reader : ConsoleReader = new ConsoleReader()
+    if(input.matches("(quit|exit)\\s*"))
       status = false
-    parseAll(commandList, line) match {
-      case Success(matched, _) => setState("")
-      case Failure(msg, _) => {
-        os match {
-          case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg") // handle with exceptions etc..
-          case windows if windows.contains("Windows") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // handle with exceptions etc..
-          case mac if mac.contains("Darwin") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // handle with exceptions etc..
-          case _ => setState(s"FAILURE: $msg")
+    else {
+      val pattern = """login(\s*)(\w*)""".r
+      var line : String = input
+      line match {
+        case login if login.matches("login\\s*.*") => {
+          pattern.findAllIn(login).matchData foreach {
+            m =>
+            m match {
+              case nousername if m.group(2).isEmpty => {
+                val user = reader.readLine(">> username: ")
+                line += " " + """\w*""".r.findFirstIn(user).get
+              }
+              case username if !m.group(2).isEmpty => line = "login " + m.group(2)
+            }
+          }
+          line += " " + reader.readLine(">> password: ", '*')
         }
+        case change if change.matches("changePassword\\s*") => {
+          val oldPassword = reader.readLine(">> password: ", '*')
+          line += " " + """.*""".r.findFirstIn(oldPassword).get
+          val newPassword = reader.readLine(">> new password: ", '*')
+          line += " " + """\w*""".r.findFirstIn(newPassword).get
+          val repeatPassword = reader.readLine(">> repeat password: ", '*')
+          line += " " + """\w*""".r.findFirstIn(repeatPassword).get
+        }
+        case quit if quit.matches("(quit|exit)\\s*") => status = false
+        case _ => line
       }
-      case Error(msg, _) => setState(s"ERROR: $msg") // handle with exceptions etc..
+      parseAll(commandList, line) match {
+        case Success(matched, _) => setState("")
+        case Failure(msg, _) => {
+          os match {
+            case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg") // handle with exceptions etc..
+            case windows if windows.contains("Windows") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // handle with exceptions etc..
+            case mac if mac.contains("Darwin") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // handle with exceptions etc..
+            case _ => setState(s"FAILURE: $msg")
+          }
+        }
+        case Error(msg, _) => setState(s"ERROR: $msg") // handle with exceptions etc..
+      }
     }
     notifyAllObservers()
     return status

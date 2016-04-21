@@ -69,45 +69,14 @@ object CommandLoop extends App {
     "removeCollaborator", "removeItem", "renameCollection", "addUser", "removeUser",
     "resetPassword"))                    //autocompleted commands
 
-  var line : String = ""
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
 
   // login check regex
   val pattern = """login(\s*)(\w*)""".r
 
   do {
-    line = reader.readLine()
-
-    line match {
-      case login if login.matches("login\\s*.*") => {
-        pattern.findAllIn(login).matchData foreach {
-          m =>
-          m match {
-            case nousername if m.group(2).isEmpty => {
-              val user = reader.readLine(">> username: ")
-              line += " " + """\w*""".r.findFirstIn(user).get
-            }
-            case username if !m.group(2).isEmpty => line = "login " + m.group(2)
-          }
-        }
-        line += " " + reader.readLine(">> password: ", '*')
-        reader.setPrompt(prompt.getPrompt)
-        loop = grammarParser.parseInput(line)
-      }
-      case change if change.matches("changePassword\\s*") => {
-        val oldPassword = reader.readLine(">> password: ", '*')
-        line += " " + """.*""".r.findFirstIn(oldPassword).get
-        val newPassword = reader.readLine(">> new password: ", '*')
-        line += " " + """\w*""".r.findFirstIn(newPassword).get
-        val repeatPassword = reader.readLine(">> repeat password: ", '*')
-        line += " " + """\w*""".r.findFirstIn(repeatPassword).get
-        reader.setPrompt(prompt.getPrompt)
-        loop = grammarParser.parseInput(line)
-      }
-      case quit if quit.matches("(quit|exit)\\s*") => loop = false
-      case _ => loop = grammarParser.parseInput(line)
-    }
+    loop = grammarParser.parseInput(reader.readLine)
     out.flush
-  } while(line != null && loop)
+  } while(loop)
     // reader.getHistory.asInstanceOf[FileHistory].flush()
 }

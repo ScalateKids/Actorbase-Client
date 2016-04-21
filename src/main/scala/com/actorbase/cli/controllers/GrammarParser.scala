@@ -43,8 +43,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   val quotedString : Parser[String] = """['"].*['"]""".r
   val literalString : Parser[String] = """.*""".r
   val listString : Parser[String] = """[\S+,\s*\S+]+""".r        // only works without spaces for now
-  // val listString : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
-  // val listString : Parser[Any] = repsep(stringLiteral, ",")
+                                                                 // val listString : Parser[String] = """^[-\w\s]+(?:,[-\w\s]*)*$""".r
+                                                                 // val listString : Parser[Any] = repsep(stringLiteral, ",")
   val keyString : Parser[String] = """\S*""".r
   //val nothing : Parser[String] = """""" // ???????
 
@@ -191,11 +191,13 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     }
   }
 
-  def commandList = rep( insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
-                        helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
-                        renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand |
-                        removeItemCommand | changePasswordCommand|addUserCommand | removeUserCommand |
-                        resetPasswordCommand) //all possible commands
+  def commandList = {
+    insertItemCommand | exportCommand | loginCommand | addCollaboratorCommand | findCommand |
+    helpCommand | logoutCommand | createCollectionCommand | listCollectionsCommand |
+    renameCollectionCommand | deleteCollectionCommand | removeCollaboratorCommand |
+    removeItemCommand | changePasswordCommand|addUserCommand | removeUserCommand |
+    resetPasswordCommand
+  }
   /**
     * Parse CommandLoop input line, sets state on observable view
     * and notify them
@@ -204,15 +206,14 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     val os = System.getProperty("os.name")
     var status : Boolean = true
     val reader : ConsoleReader = new ConsoleReader()
-    if(input.matches("(quit|exit)\\s*"))
+    if(input matches("(quit|exit)\\s*"))
       status = false
     else {
       val pattern = """login(\s*)(\w*)""".r
       var line : String = input
       line match {
-        case login if login.matches("login\\s*.*") => {
-          pattern.findAllIn(login).matchData foreach {
-            m =>
+        case login if login matches("login\\s*.*") => {
+          pattern.findAllIn(login).matchData foreach { m =>
             m match {
               case nousername if m.group(2).isEmpty => {
                 val user = reader.readLine(">> username: ")
@@ -223,7 +224,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
           }
           line += " " + reader.readLine(">> password: ", '*')
         }
-        case change if change.matches("changePassword\\s*") => {
+        case change if change matches("changePassword\\s*") => {
           val oldPassword = reader.readLine(">> password: ", '*')
           line += " " + """.*""".r.findFirstIn(oldPassword).get
           val newPassword = reader.readLine(">> new password: ", '*')
@@ -231,15 +232,12 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
           val repeatPassword = reader.readLine(">> repeat password: ", '*')
           line += " " + """\w*""".r.findFirstIn(repeatPassword).get
         }
-        case quit if quit.matches("(quit|exit)\\s*") => status = false
+        case quit if quit matches("(quit|exit)\\s*") => status = false
         case _ => line
       }
       setState("") // reset controller state
       parseAll(commandList, line) match {
-        case Success(matched, _) => {
-          if(!matched.isEmpty) commandInvoker.storeAndExecute(matched.head.asInstanceOf[Command])
-          else setState("")
-        }
+        case Success(matched, _) => commandInvoker.storeAndExecute(matched)
         case Failure(msg, _) => {
           os match {
             case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg") // handle with exceptions etc..

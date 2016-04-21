@@ -59,8 +59,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   // ugly as hell, needs improvements
-  def helpCommand : Parser[Command] = "help" ~ keyString.? ^^ {
-    case cmd_part_1 => new HelpCommand(new CommandReceiver(Map[Any, Any]("key" -> "key")))
+  def helpCommand : Parser[Command] = "help" ~> keyString.? ^^ {
+    case arg => new HelpCommand(new CommandReceiver(Map[Any, Any]("command" -> arg)))
   }
 
   /********************************************************************************************************************/
@@ -128,7 +128,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
     case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
-    case "removeUser"  ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+    case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
     case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
   }
 

@@ -60,7 +60,7 @@ class GrammarParserSpec extends FlatSpec {
     assert(grammarParser.parseInput("createCollection customer") === true)
   }
 
-  it should "parse 'help customer'" in {
+  it should "parse 'help'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
     assert(grammarParser.parseInput("help") === true)
   }

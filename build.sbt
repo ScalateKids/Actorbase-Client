@@ -8,4 +8,6 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.2.1",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
   "org.scala-lang" % "jline" % "2.11.0-M3",
-  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test")
+  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
+  "com.typesafe.play" %% "play-ws" % "2.4.3"
+)

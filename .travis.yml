@@ -1,3 +1,9 @@
+language: scala
+jdk: openjdk7
+
+scala:
+    - 2.11.8
+
 notifications:
     email:
         recipients:
@@ -7,9 +13,4 @@ notifications:
         on_failure:
                 change
 
-language: scala
-jdk: openjdk7
-
-scala:
-    - 2.11.8
 

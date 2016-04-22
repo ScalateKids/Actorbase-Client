@@ -16,14 +16,18 @@ object HttpTest extends App {
 
   var input = "";
   while( input != "quit" ){
-  	input = readLine()
-  	if( input != "quit" ){
-	  	val responseFuture: Future[WSResponse] = client.url("https://"+input).get()
+    try{
+    	input = readLine()
+    	if( input != "quit" ){
+  	  	val responseFuture: Future[WSResponse] = client.url("http://"+input).get()
 
-		  val result = Await.result(responseFuture, Duration.Inf)
-			
-			println(result.body)
-		}
+  		  val result = Await.result(responseFuture, Duration.Inf)
+  			
+  			println(result.body)
+  		}
+    }
+    catch{ 
+      case e: Exception => println ("catched excp") }
   }
   
   client.close()

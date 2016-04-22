@@ -1,31 +1,29 @@
 package com.actorbase.cli
 
-import com.ning.http.client.AsyncHttpClientConfig
-import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ning.NingWSClient
+import com.ning.http.client.AsyncHttpClientConfig
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object HttpTest extends App {
 
-  val timeout = 60000 * 10
+  val client = new NingWSClient(new AsyncHttpClientConfig.Builder().build)
 
-  val builder = new AsyncHttpClientConfig.Builder()
-  val client = new NingWSClient(builder.build())
+  var input: String = ""
 
-  var input = "";
   while( input != "quit" ){
-  	input = readLine()
-  	if( input != "quit" ){
-	  	val responseFuture: Future[WSResponse] = client.url("https://"+input).get()
-
-		  val result = Await.result(responseFuture, Duration.Inf)
-			
-			println(result.body)
-		}
+    input = readLine("> ")
+    client
+      .url("http://" + input)
+      .withHeaders("Cache-Control" -> "no-cache")
+      .get
+      .map { response =>
+      if(!(200 to 299).contains(response.status)) {
+        sys.error(s"Error ${response.status} : ${response.body}")
+      }
+      println(s"OK:\n${response.body}")
+      println(s"Content-Length: ${response.header("Content-Length").get}")
+    }
   }
-  
   client.close()
-
 }

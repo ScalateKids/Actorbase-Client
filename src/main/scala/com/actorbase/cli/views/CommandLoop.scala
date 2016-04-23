@@ -37,7 +37,7 @@ import scala.tools.jline.console.completer._
 
 import java.io._
 
-object CommandLoop{
+object CommandLoop extends App {
 /* extends App */
   // status variable, represents do\while condition
   var loop : Boolean = true

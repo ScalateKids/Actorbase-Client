@@ -28,6 +28,10 @@
 
 package com.actorbase.driver.client
 
+import com.actorbase.driver.client.RestMethods._
+
+import scala.concurrent.Future
+
 /**
   * Insert description here
   *
@@ -38,11 +42,21 @@ package com.actorbase.driver.client
 trait Client {
 
   /**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-  def send(request: Request) : Response
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def send(request: Request) : Future[Response]
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def shutdown(): Unit
+
 }

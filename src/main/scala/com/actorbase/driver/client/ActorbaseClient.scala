@@ -29,12 +29,24 @@
 package com.actorbase.driver.client
 
 import play.api.libs.ws.ning.NingWSClient
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{WSResponse, WSRequest}
 import com.ning.http.client.AsyncHttpClientConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Success, Failure}
+
+import com.actorbase.driver.client.RestMethods._
+
+/**
+  * Insert description here
+  *
+  * @param
+  * @return
+  * @throws
+  */
+object ActorbaseClient {
+  lazy val client = new NingWSClient(new AsyncHttpClientConfig.Builder().build)
+}
 
 /**
   * Insert description here
@@ -45,8 +57,6 @@ import scala.util.{Success, Failure}
   */
 class ActorbaseClient {
 
-  val client = new NingWSClient(new AsyncHttpClientConfig.Builder().build)
-
   /**
     * Insert description here
     *
@@ -54,10 +64,10 @@ class ActorbaseClient {
     * @return
     * @throws
     */
-  def send(request: Request) : Response = {
-    Response(1, Some("ciao"))
-  //   // val futureResponse = createResponse(request)
-  //   // futureResponse onSuccess { case response => Response(response.status, Some(response.body)) }
+  def send(request: Request) : Future[Response] = {
+    createResponse(request).map {
+      response => Response(response.status, Some(response.body))
+    }
   }
 
   /**
@@ -68,30 +78,21 @@ class ActorbaseClient {
     * @throws
     */
   def createResponse(request: Request): Future[WSResponse] = {
+    val wsRequest: WSRequest = ActorbaseClient.client.url(request.uri).withHeaders("Cache-Control" -> "no-cache")
     request.method match {
-      case GET =>
-        client
-          .url(request.uri)
-          .withHeaders("Cache-Control" -> "no-cache")
-          .get
-
-      // case POST =>
-        // client
-        //   .url(request.uri)
-        //   .withHeaders("Cache-Control" -> "no-cache")
-        //   .post _
-
-      // case PUT =>
-        // client
-        //   .url(request.uri)
-        //   .withHeaders("Cache-Control" -> "no-cache")
-        //   .put _
-
-      // case DELETE =>
-        // client
-        //   .url(request.uri)
-        //   .withHeaders("Cache-Control" -> "no-cache")
-        //   .delete
+      case GET    => wsRequest.get
+      case POST   => wsRequest.post(request.body.get)
+      case PUT    => wsRequest.put(request.body.get)
+      case DELETE => wsRequest.delete
     }
   }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def shutdown(): Unit = ActorbaseClient.client.close
 }

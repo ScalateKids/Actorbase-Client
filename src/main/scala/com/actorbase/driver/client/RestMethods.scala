@@ -35,70 +35,79 @@ package com.actorbase.driver.client
   * @return
   * @throws
   */
-sealed abstract class Method(name: String)
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case object GET extends Method("GET")
+object RestMethods {
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  sealed abstract class Method(name: String)
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case object POST extends Method("POST")
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  case object GET extends Method("GET")
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case object PUT extends Method("PUT")
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  case object POST extends Method("POST")
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case object DELETE extends Method("DELETE")
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  case object PUT extends Method("PUT")
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[String] = None)
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  case object DELETE extends Method("DELETE")
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case class Response(statusCode: Int, body: Option[String])
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[String] = None)
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-object Status {
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  case class Response(statusCode: Int, body: Option[String])
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  object Status {
     val OK = 200
     val Created = 201
     val Accepted = 202
@@ -108,3 +117,4 @@ object Status {
     val Forbidden = 403
     val NotFound = 404
   }
+}

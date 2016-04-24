@@ -28,6 +28,9 @@
 
 package com.actorbase.driver.client
 
+import scala.concurrent.Future
+import com.actorbase.driver.client.RestMethods._
+
 /**
   * Insert description here
   *
@@ -35,7 +38,9 @@ package com.actorbase.driver.client
   * @return
   * @throws
   */
-class RequestApplicant {
+class ActorbaseDriver(address: String) {
+
+  val client = new ActorbaseClient()
 
   /**
     * Insert description here
@@ -44,6 +49,10 @@ class RequestApplicant {
     * @return
     * @throws
     */
-  def createHttpRequest() : Request = Request(GET, "api")
-
+  def find(key: String) : Future[Response] = {
+    val requestBuilder = RequestBuilder()
+      .withUrl("http://" + address + ":9999/actorbase/" + key)
+      .withMethod(GET)
+    client.send(requestBuilder)
+  }
 }

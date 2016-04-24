@@ -28,6 +28,12 @@
 
 package com.actorbase.driver.client
 
+// import scala.concurrent._
+// import scala.concurrent.ExecutionContext.Implicits.global
+
+import org.scalatest._
+import org.scalatest.concurrent._
+
 /**
   * Insert description here
   *
@@ -35,7 +41,7 @@ package com.actorbase.driver.client
   * @return
   * @throws
   */
-class HTTPRequestBuilder(method: Option[Method], url: Option[String]) extends RequestBuilder(method, url, Seq(), None) {
+class ActorbaseDriverSpec extends FlatSpec with ScalaFutures with Matchers {
 
   /**
     * Insert description here
@@ -44,6 +50,15 @@ class HTTPRequestBuilder(method: Option[Method], url: Option[String]) extends Re
     * @return
     * @throws
     */
-  def buildRequest() : Request = Request(GET, "api")
+  it should "find future response" in {
+    val driver = new ActorbaseDriver("127.0.0.1")
 
+    val findResponse = driver.find("ciao")
+
+    whenReady(findResponse) { response =>
+      response.body.get should be ("""{
+  "response": "ciao"
+}""")
+    }
+  }
 }

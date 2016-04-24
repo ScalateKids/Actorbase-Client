@@ -28,6 +28,10 @@
 
 package com.actorbase.driver.client
 
+import com.actorbase.driver.client.RestMethods._
+
+import scala.concurrent.Future
+
 /**
   * Insert description here
   *
@@ -38,13 +42,13 @@ package com.actorbase.driver.client
 trait SSLClient extends Client {
 
   /**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
     */
-  abstract override def send(request: Request) {
+  abstract override def send(request: Request): Future[Response] = {
     // playWS! SSL here
     super.send(request)
   }

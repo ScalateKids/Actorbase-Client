@@ -28,6 +28,8 @@
 
 package com.actorbase.driver.client
 
+import com.actorbase.driver.client.RestMethods._
+
 /**
   * Insert description here
   *

@@ -59,4 +59,24 @@ class ActorbaseDriverSpec extends FlatSpec with ScalaFutures with Matchers {
 }""")
     }
   }
+
+  /**
+    * Basic test for https request, should be launched only with
+    * an Actorbase-Server instance listening
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  //   "find HTTPS request for a key" should "response with a future containing the requested key" in {
+  //     val driver = new ActorbaseDriver("127.0.0.1") with SSLClient
+
+  //     val findResponse = driver.find("ciao")
+
+  //     whenReady(findResponse) { response =>
+  //       response.body.get should be ("""{
+  //   "response": "ciao"
+  // }""")
+  //     }
+  //   }
 }

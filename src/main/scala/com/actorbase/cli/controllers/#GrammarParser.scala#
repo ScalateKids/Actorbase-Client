@@ -130,7 +130,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
     case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
   }
-
+  
   def commandList : Parser[Command] = {
     insertItemCommand | exportCommand | authManagementCommand | addCollaboratorCommand | findCommand |
     helpCommand | collectionManagementCommand | removeCollaboratorCommand | removeItemCommand |

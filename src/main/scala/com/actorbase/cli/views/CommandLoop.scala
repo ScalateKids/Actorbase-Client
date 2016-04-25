@@ -31,14 +31,16 @@ package com.actorbase.cli.views
 import com.actorbase.cli.controllers.GrammarParser
 import com.actorbase.cli.models._
 
+import com.typesafe.config.ConfigFactory
 import scala.tools.jline.console.ConsoleReader
 import scala.tools.jline.console.history.FileHistory
 import scala.tools.jline.console.completer._
 
 import java.io._
+import scala.collection.JavaConversions._
 
 object CommandLoop extends App {
-/* extends App */
+
   // status variable, represents do\while condition
   var loop : Boolean = true
 
@@ -55,28 +57,30 @@ object CommandLoop extends App {
   commandInvoker.attach(view)
   grammarParser.attach(view)
 
-  val reader : ConsoleReader = new ConsoleReader()
+  val reader = new ConsoleReader()
   val history = new FileHistory(new File(".history"))
-  val prompt : PromptProvider = new ActorbasePrompt
+  val prompt = new ActorbasePrompt
   val banner = new ActorbaseBanner
+  var completers : List[String] = Nil
   print(banner.getBanner())
 
   reader.setHistory(history)
   reader.setPrompt(prompt.getPrompt)
   reader.setBellEnabled(false)
-  reader.addCompleter(new StringsCompleter("addCollaborator", "changePassword", "createCollection", "deleteCollection",
-    "export", "find", "help", "insert", "listCollections", "login", "logout",
-    "removeCollaborator", "removeItem", "renameCollection", "addUser", "removeUser",
-    "resetPassword"))                    //autocompleted commands
+  ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
+    completers :+= entry.getKey
+  }
+  reader.addCompleter(new StringsCompleter(completers))
+  // reader.addCompleter(new StringsCompleter("addCollaborator", "changePassword", "createCollection", "deleteCollection",
+  //   "export", "find", "help", "insert", "listCollections", "login", "logout",
+  //   "removeCollaborator", "removeItem", "renameCollection", "addUser", "removeUser",
+  //   "resetPassword"))                    //autocompleted commands
 
   val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
 
-  // login check regex
-  val pattern = """login(\s*)(\w*)""".r
-
-  do {
+  while(loop) {
     loop = grammarParser.parseInput(reader.readLine)
     out.flush
-  } while(loop)
-    // reader.getHistory.asInstanceOf[FileHistory].flush()
+  }
+  // reader.getHistory.asInstanceOf[FileHistory].flush()
 }

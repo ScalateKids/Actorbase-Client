@@ -30,7 +30,29 @@ package com.actorbase.cli.models
 
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
+import com.actorbase.driver.client.ActorbaseDriver
+
+object CommandReceiver {
+
+  /**
+    * Driver singleton instance to send command and receive response
+    */
+  lazy val actorbaseDriver = new ActorbaseDriver("127.0.0.1")
+}
+
+/**
+  * Receiver class, process input arguments sent by the controller
+  * using a driver reference to send requests to a listening
+  * Actorbase instance
+  *
+  * @param
+  * @return
+  * @throws
+  */
 class CommandReceiver(params: Map[Any, Any]) {
 
   def insert() : String = {
@@ -65,24 +87,38 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  def logout() : String = {
-    val result : String ="[LOGOUT]\nSuccessfully logged out from actorbase"
-    result
-  }
+  def logout() : String = "[LOGOUT]\nSuccessfully logged out from actorbase"
 
+  /**
+    * Test driver, returning a String by blocking is ugly as fuck
+    * probably best to return Future[String] and demand printing
+    * to the invoker.
+    *
+    * Also try/catch is temporary, probably not the right place to
+    * handle errors
+    *
+    * @param
+    * @return
+    * @throws
+    */
   def find() : String = {
-    var result: String="[FIND]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
+    val key =
+      if (params.get("key").get == None) "None"
+      else params.get("key").get.asInstanceOf[String]
+    try {
+      val f = CommandReceiver.actorbaseDriver.find(key)
+      Await.result(f.map { response => response.body }, Duration.Inf).get
+    } catch {
+      case notConnected: java.net.ConnectException => "Not connected"
     }
-    result
   }
 
   // ugly as hell
   def help() : String = {
     var result : String = "[HELP]\n"
-    val set = ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
-      result += entry.getKey + "\t" + entry.getValue.unwrapped + "\n"
+    ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
+      // result += entry.getKey + "\t" + entry.getValue.unwrapped + "\n"
+      result += f"${entry.getKey}%-25s${entry.getValue.unwrapped}\n"
     }
     result
   }
@@ -96,10 +132,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  def listCollections() : String = {
-    var result : String = "[LIST COLLECTIONS]\n"
-    result
-  }
+  def listCollections() : String = "[LIST COLLECTIONS]\n"
 
   def renameCollection() : String = {
     var result : String = "[MODIFY COLLECT NAME]\n"

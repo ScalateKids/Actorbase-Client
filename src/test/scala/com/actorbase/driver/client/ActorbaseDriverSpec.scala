@@ -29,7 +29,9 @@
 package com.actorbase.driver.client
 
 import org.scalatest._
-import org.scalatest.concurrent._
+
+import com.actorbase.driver.DriverSpecs.DriverUnitSpec
+import com.actorbase.driver.client.RestMethods._
 
 /**
   * Insert description here
@@ -38,17 +40,17 @@ import org.scalatest.concurrent._
   * @return
   * @throws
   */
-class ActorbaseDriverSpec extends FlatSpec with ScalaFutures with Matchers {
+class ActorbaseDriverSpec extends DriverUnitSpec with Matchers {
 
   /**
-    * Basic test for http request, should be launched only with
+    * Basic test for a find command, should be launched only with
     * an Actorbase-Server instance listening
     *
     * @param
     * @return
     * @throws
     */
-  "find HTTP request for a key" should "response with a future containing the requested key" in {
+  ignore should "response with a future containing the requested key" in {
 
     val driver = new ActorbaseDriver("127.0.0.1")
 
@@ -62,6 +64,29 @@ class ActorbaseDriverSpec extends FlatSpec with ScalaFutures with Matchers {
   }
 
   /**
+    * Basic test for http request, should be launched only with
+    * an Actorbase-Server instance listening
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  ignore should "response with a future containing 'listCollections'" in {
+    val client = new ActorbaseClient
+    val requestBuilder = RequestBuilder()
+    val address = "127.0.0.1"
+    val port = 9999
+
+    val listRequest = client.send(requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/listCollections" withMethod GET)
+
+    whenReady(listRequest) { response =>
+      response.body.get should be ("""{
+    "response": "listCollections"
+  }""")
+    }
+  }
+
+  /**
     * Basic test for https request, should be launched only with
     * an Actorbase-Server instance listening
     *
@@ -69,15 +94,18 @@ class ActorbaseDriverSpec extends FlatSpec with ScalaFutures with Matchers {
     * @return
     * @throws
     */
-  //   "find HTTPS request for a key" should "response with a future containing the requested key" in {
-  //     val driver = new ActorbaseDriver("127.0.0.1") with SSLClient
+  ignore should "response with a future containing 'SSLlistCollections'" in {
+    val client = new ActorbaseClient with SSLClient
+    val requestBuilder = RequestBuilder()
+    val address = "127.0.0.1"
+    val port = 9999
 
-  //     val findResponse = driver.find("ciao")
+    val listRequest = client.send(requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/SSLlistCollections" withMethod GET)
 
-  //     whenReady(findResponse) { response =>
-  //       response.body.get should be ("""{
-  //   "response": "ciao"
-  // }""")
-  //     }
-  //   }
+    whenReady(listRequest) { response =>
+      response.body.get should be ("""{
+    "response": "SSLlistCollections"
+  }""")
+    }
+  }
 }

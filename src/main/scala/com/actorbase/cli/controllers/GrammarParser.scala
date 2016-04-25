@@ -45,7 +45,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   val listString : Parser[String] = """[\S+,\s*\S+]+""".r
   val keyString : Parser[String] = """\S+""".r
 
-
   // chained commands
 
   def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ literalString | "logout") ^^ {

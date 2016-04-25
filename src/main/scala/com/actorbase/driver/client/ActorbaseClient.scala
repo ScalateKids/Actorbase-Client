@@ -55,7 +55,7 @@ object ActorbaseClient {
   * @return
   * @throws
   */
-class ActorbaseClient {
+class ActorbaseClient extends Client {
 
   /**
     * Insert description here
@@ -64,7 +64,7 @@ class ActorbaseClient {
     * @return
     * @throws
     */
-  def send(request: Request) : Future[Response] = {
+  override def send(request: Request) : Future[Response] = {
     createResponse(request).map {
       response => Response(response.status, Some(response.body))
     }
@@ -94,5 +94,5 @@ class ActorbaseClient {
     * @return
     * @throws
     */
-  def shutdown(): Unit = ActorbaseClient.client.close
+  override def shutdown(): Unit = ActorbaseClient.client.close
 }

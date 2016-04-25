@@ -117,7 +117,6 @@ class CommandReceiver(params: Map[Any, Any]) {
   def help() : String = {
     var result : String = "[HELP]\n"
     ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
-      // result += entry.getKey + "\t" + entry.getValue.unwrapped + "\n"
       result += f"${entry.getKey}%-25s${entry.getValue.unwrapped}\n"
     }
     result

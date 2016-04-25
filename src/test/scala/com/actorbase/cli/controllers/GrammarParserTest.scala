@@ -29,11 +29,20 @@
 package com.actorbase.cli.controllers
 
 import org.scalatest.FlatSpec
+import com.actorbase.cli.CLISpecs
+
 import com.actorbase.cli.controllers
 import com.actorbase.cli.views.ResultView
 import com.actorbase.cli.models.CommandInvoker
 
-class GrammarParserSpec extends FlatSpec {
+/**
+  * Insert description here
+  *
+  * @param
+  * @return
+  * @throws
+  */
+class GrammarParserSpec extends UnitSpec {
 
   "GrammarParser.parseInput" should "parse 'listCollections' command" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)

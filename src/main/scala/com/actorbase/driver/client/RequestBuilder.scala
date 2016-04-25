@@ -28,6 +28,7 @@
 
 package com.actorbase.driver.client
 
+import scala.language.implicitConversions
 import com.actorbase.driver.client.RestMethods._
 
 /**

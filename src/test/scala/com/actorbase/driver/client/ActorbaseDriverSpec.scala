@@ -48,7 +48,8 @@ class ActorbaseDriverSpec extends FlatSpec with ScalaFutures with Matchers {
     * @return
     * @throws
     */
-  it should "find future response" in {
+  "find HTTP request for a key" should "response with a future containing the requested key" in {
+
     val driver = new ActorbaseDriver("127.0.0.1")
 
     val findResponse = driver.find("ciao")

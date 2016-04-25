@@ -40,7 +40,13 @@ import com.actorbase.driver.client.RestMethods._
   */
 class ActorbaseDriver(address: String, port: Int = 9999) {
 
-  val client = new ActorbaseClient()
+  /**
+    * ActorbaseClient instance, with stacked trait for SSL
+    * support
+    */
+  val client = new ActorbaseClient() with SSLClient
+
+  val requestBuilder = RequestBuilder()
 
   /**
     * Insert description here
@@ -49,10 +55,38 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def find(key: String) : Future[Response] = {
-    val requestBuilder = RequestBuilder()
-      .withUrl("http://" + address + ":" + port + "/actorbase/" + key)
-      .withMethod(GET)
-    client.send(requestBuilder)
+  def listCollections() : Future[Response] = client.send(
+    requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/listCollections" withMethod GET)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def find() : Future[Response] = {
+    client.send(
+      requestBuilder
+        .withUrl("http://" + address + ":" + port + "/actorbase/allDatabase")
+        .withMethod(GET))
   }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def find(key: String, collection: String = "") : Future[Response] = {
+    val path =
+      if(!collection.isEmpty) "/" + collection + "/" + key
+      else "/" + key
+    client.send(
+      requestBuilder
+        .withUrl("http://" + address + ":" + port + "/actorbase" + path)
+        .withMethod(GET))
+  }
+
 }

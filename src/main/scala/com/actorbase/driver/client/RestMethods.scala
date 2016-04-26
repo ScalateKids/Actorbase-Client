@@ -107,6 +107,17 @@ object RestMethods {
     * @return
     * @throws
     */
+  // case object Response {
+  //   implicit def toMap : Map[String, List[String]] =
+  // }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
   object Status {
     val OK = 200
     val Created = 201

@@ -28,6 +28,8 @@
 
 package com.actorbase.driver.client
 
+import scala.util.parsing.json.JSON
+
 /**
   * Insert description here
   *
@@ -101,15 +103,24 @@ object RestMethods {
   case class Response(statusCode: Int, body: Option[String])
 
   /**
-    * Insert description here
+    * Companion object of case class Response
     *
-    * @param
-    * @return
-    * @throws
     */
-  // case object Response {
-  //   implicit def toMap : Map[String, List[String]] =
-  // }
+  case object Response {
+
+    /**
+      * Implicit conversion method, return the body of a Response as a Map
+      *
+      * TODO:
+      * Basic and meaningless implementation, still need a lot of improvements
+      *
+      * @param response The Response object to convert
+      * @return a Map[String, List[String]] representing a JSON object
+      */
+    implicit def toMap(response: Response) : Map[String, List[String]] = {
+      JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
+    }
+  }
 
   /**
     * Insert description here

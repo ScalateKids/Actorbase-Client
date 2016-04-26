@@ -58,26 +58,30 @@ object ActorbaseClient {
 class ActorbaseClient extends Client {
 
   /**
-    * Insert description here
+    * Send method, send a Request object to the Actorbase server listening
+    * and return a Future[Response] containing the Response object
     *
-    * @param
-    * @return
+    * @param request a Request reference, contains all HTTP request details
+    * @return a Future of type Response, containing the status of the response
+    * and the body as Option[String]
     * @throws
     */
   override def send(request: Request) : Future[Response] = {
-    createResponse(request).map {
+    getHttpResponse(request).map {
       response => Response(response.status, Some(response.body))
     }
   }
 
   /**
-    * Insert description here
+    * Send a Request object to the Actorbase server listening and return a
+    * Future[WSResponse] (an object of the library PlayWS!)
     *
-    * @param
-    * @return
+    * @param request a Request reference, contains all HTTP request details
+    * @return a Future of type WSResponse, containing all headers, body and
+    * status of the response from the server
     * @throws
     */
-  def createResponse(request: Request): Future[WSResponse] = {
+  def getHttpResponse(request: Request): Future[WSResponse] = {
     val wsRequest: WSRequest = ActorbaseClient.client.url(request.uri).withHeaders("Cache-Control" -> "no-cache")
     request.method match {
       case GET    => wsRequest.get
@@ -88,7 +92,7 @@ class ActorbaseClient extends Client {
   }
 
   /**
-    * Insert description here
+    * Shutdown the connection with the server closing the client
     *
     * @param
     * @return

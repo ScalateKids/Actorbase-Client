@@ -32,7 +32,6 @@ import com.actorbase.cli.models._
 import com.actorbase.cli.views.ResultView
 
 import scala.tools.jline.console.ConsoleReader
-
 import scala.util.parsing.combinator._
 
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
@@ -138,8 +137,14 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   }
 
   /**
-    * Parse CommandLoop input line, sets state on observable view
-    * and notify them
+    * Parse CommandLoop input line, sets state on observable view and notify them
+    * It also check for special cases input such as login or renamePassword, in
+    * these cases it prompt for additional input required by these operations;
+    * in case of quit or exit it call for an eventual logout and close the loop
+    *
+    * @param input a String representing the user input on the CLI
+    * @return a Boolean representing the loop condition, all commands return
+    * true except for keywords 'quit' or 'exit'
     */
   def parseInput(input: String) : Boolean = {
     val os = System.getProperty("os.name")

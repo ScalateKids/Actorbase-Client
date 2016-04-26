@@ -87,6 +87,9 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
+  /**
+    * Logout the active connection with the server instance of Actorbase
+    */
   def logout() : String = {
     CommandReceiver.actorbaseDriver.logout
     "[LOGOUT]\nSuccessfully logged out from actorbase"
@@ -101,7 +104,8 @@ class CommandReceiver(params: Map[Any, Any]) {
     * handle errors
     *
     * @param
-    * @return
+    * @return a String representing the output from the server instance
+    * of Actorbase
     * @throws
     */
   def find() : String = {

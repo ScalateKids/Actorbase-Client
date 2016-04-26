@@ -145,8 +145,10 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     val os = System.getProperty("os.name")
     var status : Boolean = true
     val reader : ConsoleReader = new ConsoleReader()
-    if(input matches("(quit|exit)\\s*"))
+    if(input matches("(quit|exit)\\s*")) {
+      commandInvoker.storeAndExecute(new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None))))
       status = false
+    }
     else {
       val pattern = """login(\s*)(\w*)""".r
       var line : String = input

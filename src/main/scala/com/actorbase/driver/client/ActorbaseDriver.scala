@@ -89,4 +89,9 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
         .withMethod(GET))
   }
 
+  /**
+    * Shutdown the connection with the server
+    */
+  def logout() : Unit = client.shutdown
+
 }

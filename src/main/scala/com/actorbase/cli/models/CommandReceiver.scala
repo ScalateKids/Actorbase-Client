@@ -87,7 +87,10 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  def logout() : String = "[LOGOUT]\nSuccessfully logged out from actorbase"
+  def logout() : String = {
+    CommandReceiver.actorbaseDriver.logout
+    "[LOGOUT]\nSuccessfully logged out from actorbase"
+  }
 
   /**
     * Test driver, returning a String by blocking is ugly as fuck

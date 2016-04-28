@@ -28,8 +28,9 @@
 
 package com.actorbase.driver.client
 
+import play.api.libs.ws.WSResponse
 import scala.util.parsing.json.JSON
-
+import scala.language.implicitConversions
 /**
   * Insert description here
   *
@@ -120,6 +121,15 @@ object RestMethods {
     // implicit def toMap(response: Response) : Map[String, List[String]] = {
     //   JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
     // }
+
+    /**
+      * Implicit conversion method, return a Response from a WSResponse (playWS! response type)
+      *
+      *
+      * @param wsResponse The WSResponse object to convert
+      * @return a Response object containing statusCode and body of the WSResponse
+      */
+    implicit def toResponse(wsResponse: WSResponse) : Response = Response(wsResponse.status, Some(wsResponse.body.asInstanceOf[Array[Byte]]))
   }
 
   /**

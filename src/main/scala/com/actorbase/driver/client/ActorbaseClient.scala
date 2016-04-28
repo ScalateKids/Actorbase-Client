@@ -28,8 +28,12 @@
 
 package com.actorbase.driver.client
 
+import play.api.libs.ws._
+import play.api.libs.ws.ning._
+
 import play.api.libs.ws.ning.NingWSClient
 import play.api.libs.ws.{WSResponse, WSRequest}
+
 import com.ning.http.client.AsyncHttpClientConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -44,8 +48,10 @@ import com.actorbase.driver.client.RestMethods._
   * @return
   * @throws
   */
-object ActorbaseClient {
-  lazy val client = new NingWSClient(new AsyncHttpClientConfig.Builder().build)
+object ActorbaseClient extends ActorbaseClient {
+
+  lazy val client = initClient()
+
 }
 
 /**
@@ -58,6 +64,19 @@ object ActorbaseClient {
 class ActorbaseClient extends Client {
 
   /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  override def initClient() : NingWSClient  = {
+    val builder = new AsyncHttpClientConfig.Builder()
+    val client = new NingWSClient(builder.build)
+    client
+  }
+
+  /**
     * Send method, send a Request object to the Actorbase server listening
     * and return a Future[Response] containing the Response object
     *
@@ -68,7 +87,7 @@ class ActorbaseClient extends Client {
     */
   override def send(request: Request) : Future[Response] = {
     getHttpResponse(request).map {
-      response => Response(response.status, Some(response.body))
+      response => Response(response.status, Some(response.body.asInstanceOf[Array[Byte]]))
     }
   }
 

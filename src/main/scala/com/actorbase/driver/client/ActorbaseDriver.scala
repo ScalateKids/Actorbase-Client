@@ -85,9 +85,23 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
       else "/" + key
     client.send(
       requestBuilder
-        .withUrl("http://" + address + ":" + port + "/actorbase" + path)
+        .withUrl("https://" + address + ":" + port + "/collections/dummy" + path)
         .withMethod(GET))
   }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  // def insert: Future[Response] {
+  //   client.send(
+  //     requestBuilder
+  //       .withUrl("http)
+  //   )
+  // }
 
   /**
     * Shutdown the connection with the server

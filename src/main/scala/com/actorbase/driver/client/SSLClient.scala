@@ -28,9 +28,14 @@
 
 package com.actorbase.driver.client
 
-import com.actorbase.driver.client.RestMethods._
 
+import play.api.{Configuration, Environment, Mode}
+import play.api.libs.ws.WSConfigParser
+import play.api.libs.ws.ning.{NingAsyncHttpClientConfigBuilder, NingWSClient, NingWSClientConfigParser}
+import com.typesafe.config.ConfigFactory
 import scala.concurrent.Future
+
+import com.actorbase.driver.client.RestMethods._
 
 /**
   * Insert description here
@@ -48,8 +53,27 @@ trait SSLClient extends Client {
     * @return
     * @throws
     */
+  abstract override def initClient : NingWSClient  = {
+    val configuration = Configuration(ConfigFactory.load("application.conf"))
+    val environment = Environment.simple(new java.io.File("/home/codep/actorbase/Actorbase-Client/src/main/resources"), Mode.Dev)
+    val parser = new WSConfigParser(configuration, environment)
+    val clientConfig = parser.parse()
+    val ningParser = new NingWSClientConfigParser(clientConfig, configuration, environment)
+    val ningClientConfig = ningParser.parse()
+    val builder = new NingAsyncHttpClientConfigBuilder(ningClientConfig)
+    val asyncHttpClientConfig = builder.build()
+    val client = new NingWSClient(asyncHttpClientConfig)
+    client
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
   abstract override def send(request: Request): Future[Response] = {
-    // playWS! SSL here
     super.send(request)
   }
 

@@ -28,9 +28,11 @@
 
 package com.actorbase.driver.client
 
-import com.actorbase.driver.client.RestMethods._
+import play.api.libs.ws.ning.NingWSClient
 
 import scala.concurrent.Future
+
+import com.actorbase.driver.client.RestMethods._
 
 /**
   * Insert description here
@@ -40,6 +42,15 @@ import scala.concurrent.Future
   * @throws
   */
 trait Client {
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def initClient : NingWSClient
 
   /**
     * Insert description here

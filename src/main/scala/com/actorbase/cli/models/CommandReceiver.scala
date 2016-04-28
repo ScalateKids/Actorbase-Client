@@ -110,12 +110,13 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def find() : String = {
     val key = params.get("key").getOrElse("None").asInstanceOf[String]
-    try {
+    // try {
       val f = CommandReceiver.actorbaseDriver.find(key)
-      Await.result(f.map { response => response.body }, Duration.Inf).getOrElse("No results")
-    } catch {
-      case notConnected: java.net.ConnectException => "Not connected"
-    }
+      Await.result(f.map { response => response.body }, Duration.Inf).getOrElse("No results").asInstanceOf[String]
+    // } catch {
+      // case notConnected: java.net.ConnectException => "Not connected"
+    // }
+    // "stub"
   }
 
   // ugly as hell

@@ -91,7 +91,7 @@ object RestMethods {
     * @return
     * @throws
     */
-  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[String] = None)
+  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[Array[Byte]] = None)
 
   /**
     * Insert description here
@@ -100,7 +100,7 @@ object RestMethods {
     * @return
     * @throws
     */
-  case class Response(statusCode: Int, body: Option[String])
+  case class Response(statusCode: Int, body: Option[Array[Byte]])
 
   /**
     * Companion object of case class Response
@@ -117,9 +117,9 @@ object RestMethods {
       * @param response The Response object to convert
       * @return a Map[String, List[String]] representing a JSON object
       */
-    implicit def toMap(response: Response) : Map[String, List[String]] = {
-      JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
-    }
+    // implicit def toMap(response: Response) : Map[String, List[String]] = {
+    //   JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
+    // }
   }
 
   /**

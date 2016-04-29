@@ -28,7 +28,7 @@
 
 package com.actorbase.driver.client
 
-import play.api.libs.ws.WSResponse
+// import play.api.libs.ws.WSResponse
 import scala.util.parsing.json.JSON
 import scala.language.implicitConversions
 /**

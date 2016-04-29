@@ -6,11 +6,11 @@ export PW=`cat password`
 keytool -genkeypair -v \
   -alias clientca \
   -keystore client.jks \
-  -dname "CN=clientca, OU=Dev, O=ScalateKids, L=Padua, ST=Italy, C=IT" \
+  -dname "CN=clientca, OU=Actorbase-Dev, O=ScalateKids, L=Padua, ST=Italy, C=IT" \
   -keypass:env PW \
   -storepass:env PW \
-  -keyalg EC \
-  -keysize 256 \
+  -keyalg RSA \
+  -keysize 2048 \
   -ext KeyUsage:critical="keyCertSign" \
   -ext BasicConstraints:critical="ca:true" \
   -validity 365
@@ -19,11 +19,11 @@ keytool -genkeypair -v \
 keytool -genkeypair -v \
   -alias client \
   -keystore client.jks \
-  -dname "CN=client, OU=Dev, O=ScalateKids, L=Padua, ST=Italy, C=IT" \
+  -dname "CN=client, OU=Actorbase-Dev, O=ScalateKids, L=Padua, ST=Italy, C=IT" \
   -keypass:env PW \
   -storepass:env PW \
-  -keyalg EC \
-  -keysize 256 \
+  -keyalg RSA \
+  -keysize 2048 \
 
 # Create a certificate signing request from the client certificate.
 keytool -certreq -v \

@@ -7,5 +7,4 @@ echo ${PW} > ${DIR}/password
 
 ${DIR}/genca
 ${DIR}/genclient
-${DIR}/genserver
 ${DIR}/gentrustanchor

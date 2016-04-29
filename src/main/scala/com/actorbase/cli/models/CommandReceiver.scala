@@ -60,13 +60,15 @@ class CommandReceiver(params: Map[Any, Any]) {
     for ((k, v) <- params) {
       result += s"$k -> $v\n"
     }
-    result
+    CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
   }
 
   def removeItem() : String = {
     var result : String = "[REMOVE ITEM]\n"
     for ((k, v) <- params) {
-      result += s"$k -> $v\n"
+      result += CommandReceiver.actorbaseDriver.delete(
+        params.get("key").get.asInstanceOf[String],
+        params.get("collection").get.asInstanceOf[String]).body.getOrElse("Nonnne")
     }
     result
   }
@@ -91,7 +93,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     * Logout the active connection with the server instance of Actorbase
     */
   def logout() : String = {
-    CommandReceiver.actorbaseDriver.logout
+    // CommandReceiver.actorbaseDriver.logout
     "[LOGOUT]\nSuccessfully logged out from actorbase"
   }
 
@@ -110,13 +112,8 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def find() : String = {
     val key = params.get("key").getOrElse("None").asInstanceOf[String]
-    // try {
-      val f = CommandReceiver.actorbaseDriver.find(key)
-      Await.result(f.map { response => response.body }, Duration.Inf).getOrElse("No results").asInstanceOf[String]
-    // } catch {
-      // case notConnected: java.net.ConnectException => "Not connected"
-    // }
-    // "stub"
+    val f = CommandReceiver.actorbaseDriver.find(key)
+    f.body.getOrElse("Nonnne")
   }
 
   // ugly as hell

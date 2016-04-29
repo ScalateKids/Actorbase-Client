@@ -92,7 +92,7 @@ object RestMethods {
     * @return
     * @throws
     */
-  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[Array[Byte]] = None)
+  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[String] = None)
 
   /**
     * Insert description here
@@ -101,7 +101,7 @@ object RestMethods {
     * @return
     * @throws
     */
-  case class Response(statusCode: Int, body: Option[Array[Byte]])
+  case class Response(statusCode: Int, body: Option[String])
 
   /**
     * Companion object of case class Response
@@ -118,9 +118,9 @@ object RestMethods {
       * @param response The Response object to convert
       * @return a Map[String, List[String]] representing a JSON object
       */
-    // implicit def toMap(response: Response) : Map[String, List[String]] = {
-    //   JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
-    // }
+    implicit def toMap(response: Response) : Map[String, List[String]] = {
+      JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
+    }
 
     /**
       * Implicit conversion method, return a Response from a WSResponse (playWS! response type)
@@ -129,7 +129,7 @@ object RestMethods {
       * @param wsResponse The WSResponse object to convert
       * @return a Response object containing statusCode and body of the WSResponse
       */
-    implicit def toResponse(wsResponse: WSResponse) : Response = Response(wsResponse.status, Some(wsResponse.body.asInstanceOf[Array[Byte]]))
+    // implicit def toResponse(Http: WSResponse) : Response = Response(wsResponse.status, Some(wsResponse.body.asInstanceOf[String]))
   }
 
   /**

@@ -28,7 +28,6 @@
 
 package com.actorbase.driver.client
 
-import scala.concurrent.Future
 import com.actorbase.driver.client.RestMethods._
 
 /**
@@ -55,8 +54,8 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def listCollections() : Future[Response] = client.send(
-    requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/listCollections" withMethod GET)
+  def listCollections : Response = client.send(
+    requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET)
 
   /**
     * Insert description here
@@ -65,10 +64,10 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def find() : Future[Response] = {
+  def find : Response = {
     client.send(
       requestBuilder
-        .withUrl("http://" + address + ":" + port + "/actorbase/allDatabase")
+        .withUrl("https://" + address + ":" + port + "/collections")
         .withMethod(GET))
   }
 
@@ -79,7 +78,7 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def find(key: String, collection: String = "") : Future[Response] = {
+  def find(key: String, collection: String = "") : Response = {
     val path =
       if(!collection.isEmpty) "/" + collection + "/" + key
       else "/" + key
@@ -96,16 +95,38 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  // def insert: Future[Response] {
-  //   client.send(
-  //     requestBuilder
-  //       .withUrl("http)
-  //   )
-  // }
+  def insert(key: String, collection: String = "", json: String) : Response = {
+    val path =
+      if(!collection.isEmpty) "/" + collection + "/" + key
+      else "/" + key
+    client.send(
+      requestBuilder
+        .withUrl("https://" + address + ":" + port + "/collections/dummy" + path)
+        .withBody(json)
+        .withMethod(POST)
+    )
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def delete(key: String, collection: String = ""): Response = {
+    val path =
+      if(!collection.isEmpty) "/" + collection + "/" + key
+      else "/" + key
+    client.send(
+      requestBuilder
+        .withUrl("https://" + address + ":" + port + "/collections" + path)
+        .withMethod(DELETE))
+  }
 
   /**
     * Shutdown the connection with the server
     */
-  def logout() : Unit = client.shutdown
+  def logout() : Unit = println("logout")
 
 }

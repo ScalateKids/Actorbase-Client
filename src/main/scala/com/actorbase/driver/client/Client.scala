@@ -28,9 +28,7 @@
 
 package com.actorbase.driver.client
 
-import play.api.libs.ws.ning.NingWSClient
-
-import scala.concurrent.Future
+import scalaj.http._
 
 import com.actorbase.driver.client.RestMethods._
 
@@ -50,16 +48,7 @@ trait Client {
     * @return
     * @throws
     */
-  def initClient : NingWSClient
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def send(request: Request) : Future[Response]
+  def send(request: Request): Response
 
   /**
     * Insert description here

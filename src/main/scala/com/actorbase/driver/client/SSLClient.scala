@@ -28,12 +28,7 @@
 
 package com.actorbase.driver.client
 
-
-import play.api.{Configuration, Environment, Mode}
-import play.api.libs.ws.WSConfigParser
-import play.api.libs.ws.ning.{NingAsyncHttpClientConfigBuilder, NingWSClient, NingWSClientConfigParser}
-import com.typesafe.config.ConfigFactory
-import scala.concurrent.Future
+import scalaj.http._
 
 import com.actorbase.driver.client.RestMethods._
 
@@ -53,29 +48,14 @@ trait SSLClient extends Client {
     * @return
     * @throws
     */
-  abstract override def initClient : NingWSClient  = {
-    val configuration = Configuration(ConfigFactory.load("application.conf"))
-    // val environment = Environment.simple(new java.io.File("/home/codep/actorbase/Actorbase-Client/src/main/resources"), Mode.Dev)
-    val environment = Environment.simple(new java.io.File("./src/main/resources"), Mode.Dev)
-    val parser = new WSConfigParser(configuration, environment)
-    val clientConfig = parser.parse()
-    val ningParser = new NingWSClientConfigParser(clientConfig, configuration, environment)
-    val ningClientConfig = ningParser.parse()
-    val builder = new NingAsyncHttpClientConfigBuilder(ningClientConfig)
-    val asyncHttpClientConfig = builder.build()
-    val client = new NingWSClient(asyncHttpClientConfig)
-    client
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  abstract override def send(request: Request): Future[Response] = {
-    super.send(request)
+  abstract override def send(request: Request): Response = {
+    val response = request.method match {
+      case GET    => Http(request.uri).option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
+      case POST   => Http(request.uri).postData(request.body.get).option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
+      case PUT    => Http(request.uri).postData(request.body.get).method("PUT").option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
+      case DELETE => Http(request.uri).method("DELETE").option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
+    }
+    Response(response.code, Some(response.body.asInstanceOf[String]))
   }
 
 }

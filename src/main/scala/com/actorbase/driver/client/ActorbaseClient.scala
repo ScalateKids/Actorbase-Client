@@ -28,16 +28,7 @@
 
 package com.actorbase.driver.client
 
-import play.api.libs.ws._
-import play.api.libs.ws.ning._
-
-import play.api.libs.ws.ning.NingWSClient
-import play.api.libs.ws.{WSResponse, WSRequest}
-
-import com.ning.http.client.AsyncHttpClientConfig
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scalaj.http._
 
 import com.actorbase.driver.client.RestMethods._
 
@@ -48,68 +39,25 @@ import com.actorbase.driver.client.RestMethods._
   * @return
   * @throws
   */
-// object ActorbaseClient extends ActorbaseClient {
-
-//   lazy val client = initClient
-
-// }
-
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
 class ActorbaseClient extends Client {
-
-  lazy val client = initClient
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  override def initClient() : NingWSClient  = {
-    val builder = new AsyncHttpClientConfig.Builder()
-    val client = new NingWSClient(builder.build)
-    client
-  }
 
   /**
     * Send method, send a Request object to the Actorbase server listening
-    * and return a Future[Response] containing the Response object
+    * and return a Response object
     *
     * @param request a Request reference, contains all HTTP request details
-    * @return a Future of type Response, containing the status of the response
+    * @return an object of type Response, containing the status of the response
     * and the body as Option[String]
     * @throws
     */
-  override def send(request: Request) : Future[Response] = {
-    getHttpResponse(request).map {
-      response => Response(response.status, Some(response.body.asInstanceOf[Array[Byte]]))
+  override def send(request: Request): Response = {
+    val response = request.method match {
+      case GET    => Http(request.uri).option(HttpOptions.readTimeout(5000)).asString
+      case POST   => Http(request.uri).postData(request.body.get).option(HttpOptions.readTimeout(5000)).asString
+      case PUT    => Http(request.uri).postData(request.body.get).method("PUT").option(HttpOptions.readTimeout(5000)).asString
+      case DELETE => Http(request.uri).method("DELETE").option(HttpOptions.readTimeout(5000)).asString
     }
-  }
-
-  /**
-    * Send a Request object to the Actorbase server listening and return a
-    * Future[WSResponse] (an object of the library PlayWS!)
-    *
-    * @param request a Request reference, contains all HTTP request details
-    * @return a Future of type WSResponse, containing all headers, body and
-    * status of the response from the server
-    * @throws
-    */
-  def getHttpResponse(request: Request): Future[WSResponse] = {
-    val wsRequest: WSRequest = client.url(request.uri).withHeaders("Cache-Control" -> "no-cache")
-    request.method match {
-      case GET    => wsRequest.get
-      case POST   => wsRequest.post(request.body.get)
-      case PUT    => wsRequest.put(request.body.get)
-      case DELETE => wsRequest.delete
-    }
+    Response(response.code, Some(response.body.asInstanceOf[String]))
   }
 
   /**
@@ -119,5 +67,5 @@ class ActorbaseClient extends Client {
     * @return
     * @throws
     */
-  override def shutdown(): Unit = client.close
+  override def shutdown(): Unit = println("Shutdown")
 }

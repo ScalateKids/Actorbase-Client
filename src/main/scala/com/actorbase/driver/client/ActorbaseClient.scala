@@ -48,11 +48,11 @@ import com.actorbase.driver.client.RestMethods._
   * @return
   * @throws
   */
-object ActorbaseClient extends ActorbaseClient {
+// object ActorbaseClient extends ActorbaseClient {
 
-  lazy val client = initClient()
+//   lazy val client = initClient
 
-}
+// }
 
 /**
   * Insert description here
@@ -62,6 +62,8 @@ object ActorbaseClient extends ActorbaseClient {
   * @throws
   */
 class ActorbaseClient extends Client {
+
+  lazy val client = initClient
 
   /**
     * Insert description here
@@ -101,7 +103,7 @@ class ActorbaseClient extends Client {
     * @throws
     */
   def getHttpResponse(request: Request): Future[WSResponse] = {
-    val wsRequest: WSRequest = ActorbaseClient.client.url(request.uri).withHeaders("Cache-Control" -> "no-cache")
+    val wsRequest: WSRequest = client.url(request.uri).withHeaders("Cache-Control" -> "no-cache")
     request.method match {
       case GET    => wsRequest.get
       case POST   => wsRequest.post(request.body.get)
@@ -117,5 +119,5 @@ class ActorbaseClient extends Client {
     * @return
     * @throws
     */
-  override def shutdown(): Unit = ActorbaseClient.client.close
+  override def shutdown(): Unit = client.close
 }

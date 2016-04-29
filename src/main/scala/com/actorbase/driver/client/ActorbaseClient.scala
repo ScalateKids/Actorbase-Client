@@ -28,7 +28,7 @@
 
 package com.actorbase.driver.client
 
-import scalaj.http._
+import scalaj.http.{Http, HttpOptions}
 
 import com.actorbase.driver.client.RestMethods._
 

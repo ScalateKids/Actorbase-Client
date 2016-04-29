@@ -28,7 +28,7 @@
 
 package com.actorbase.driver.client
 
-import scalaj.http._
+import scalaj.http.{Http, HttpOptions}
 
 import com.actorbase.driver.client.RestMethods._
 
@@ -42,7 +42,12 @@ import com.actorbase.driver.client.RestMethods._
 trait SSLClient extends Client {
 
   /**
-    * Insert description here
+    * Send method, send a Request object to the Actorbase server listening
+    * and return a Response object with SSL encryption
+    *
+    * @param request a Request reference, contains all HTTPS request details
+    * @return an object of type Response, containing the status of the response
+    * and the body as Option[String]
     *
     * @param
     * @return

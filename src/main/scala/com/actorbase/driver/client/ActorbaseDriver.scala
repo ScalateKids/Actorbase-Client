@@ -95,13 +95,13 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def insert(key: String, collection: String = "", json: String) : Response = {
+  def insert(key: String, collection: String = "", json: String = "") : Response = {
     val path =
       if(!collection.isEmpty) "/" + collection + "/" + key
       else "/" + key
     client.send(
       requestBuilder
-        .withUrl("https://" + address + ":" + port + "/collections/dummy" + path)
+        .withUrl("https://" + address + ":" + port + "/collections" + path)
         .withBody(json)
         .withMethod(POST)
     )

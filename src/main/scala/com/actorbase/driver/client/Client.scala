@@ -28,8 +28,6 @@
 
 package com.actorbase.driver.client
 
-import scalaj.http._
-
 import com.actorbase.driver.client.RestMethods._
 
 /**
@@ -57,6 +55,6 @@ trait Client {
     * @return
     * @throws
     */
-  def shutdown(): Unit
+  def shutdown: Unit
 
 }

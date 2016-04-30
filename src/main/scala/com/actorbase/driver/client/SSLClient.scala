@@ -30,7 +30,7 @@ package com.actorbase.driver.client
 
 import scalaj.http.{Http, HttpOptions}
 
-import com.actorbase.driver.client.RestMethods._
+import com.actorbase.driver.client.api.RestMethods._
 
 /**
   * Insert description here

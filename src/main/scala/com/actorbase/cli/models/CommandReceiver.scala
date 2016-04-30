@@ -34,7 +34,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import com.actorbase.driver.client.ActorbaseDriver
+import com.actorbase.driver.ActorbaseDriver
 
 object CommandReceiver {
 

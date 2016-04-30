@@ -55,7 +55,6 @@ trait SSLClient extends Client {
     */
   abstract override def initClient : NingWSClient  = {
     val configuration = Configuration(ConfigFactory.load("application.conf"))
-    // val environment = Environment.simple(new java.io.File("/home/codep/actorbase/Actorbase-Client/src/main/resources"), Mode.Dev)
     val environment = Environment.simple(new java.io.File("./src/main/resources"), Mode.Dev)
     val parser = new WSConfigParser(configuration, environment)
     val clientConfig = parser.parse()

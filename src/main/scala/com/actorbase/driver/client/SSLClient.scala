@@ -28,7 +28,7 @@
 
 package com.actorbase.driver.client
 
-import scalaj.http.{Http, HttpOptions}
+import scalaj.http.HttpOptions
 
 import com.actorbase.driver.client.api.RestMethods._
 
@@ -40,6 +40,16 @@ import com.actorbase.driver.client.api.RestMethods._
   * @throws
   */
 trait SSLClient extends Client {
+
+  /**
+    * Add ssl option to the scalaj-http client Object
+    *
+    * @param
+    * @return a sequence of HttpOption representing options to be applied to the
+    * connection object
+    * @throws
+    */
+  abstract override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.allowUnsafeSSL, HttpOptions.readTimeout(5000))
 
   /**
     * Send method, send a Request object to the Actorbase server listening
@@ -54,13 +64,6 @@ trait SSLClient extends Client {
     * @throws
     */
   abstract override def send(request: Request): Response = {
-    val response = request.method match {
-      case GET    => Http(request.uri).option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
-      case POST   => Http(request.uri).postData(request.body.get).option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
-      case PUT    => Http(request.uri).postData(request.body.get).method("PUT").option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
-      case DELETE => Http(request.uri).method("DELETE").option(HttpOptions.allowUnsafeSSL).option(HttpOptions.readTimeout(5000)).asString
-    }
-    Response(response.code, Some(response.body.asInstanceOf[String]))
+    super.send(request)
   }
-
 }

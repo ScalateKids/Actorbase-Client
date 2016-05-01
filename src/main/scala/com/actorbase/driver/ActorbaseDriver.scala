@@ -31,6 +31,7 @@ package com.actorbase.driver
 import com.actorbase.driver.client.{ActorbaseClient, SSLClient}
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RequestBuilder
+import com.actorbase.driver.data.ActorbaseCollection
 
 /**
   * Insert description here
@@ -58,6 +59,8 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     */
   def listCollections : Response = client.send(
     requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET)
+
+  /** TEST METHODS */
 
   /**
     * Insert description here
@@ -125,6 +128,63 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
         .withUrl("https://" + address + ":" + port + "/collections" + path)
         .withMethod(DELETE))
   }
+
+  /** ALTERNATIVE */
+
+  /**
+    * Return a list of collections, consider an object
+    * ActorbaseList[ActorbaseCollection]
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def getCollections: List[ActorbaseCollection] = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def getCollection(collectionName: String): ActorbaseCollection = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def addCollection(collectionName: String): ActorbaseCollection = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def addCollection(collection: ActorbaseCollection): ActorbaseCollection = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def dropCollections: Unit = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def dropCollection(collectionName: String): Unit = ???
 
   /**
     * Shutdown the connection with the server

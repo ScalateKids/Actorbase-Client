@@ -26,11 +26,11 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.client
+package com.actorbase.driver.data
 
-import scalaj.http.HttpOptions
+import com.actorbase.driver.ActorbaseDriver
 
-import com.actorbase.driver.client.api.RestMethods._
+import scala.collection.mutable.ListBuffer
 
 /**
   * Insert description here
@@ -39,7 +39,10 @@ import com.actorbase.driver.client.api.RestMethods._
   * @return
   * @throws
   */
-trait Client {
+case class ActorbaseCollection private (val client: ActorbaseDriver,
+  val owner: String,
+  var collectionName: String,
+  var data: ListBuffer[ActorbaseObject]) {
 
   /**
     * Insert description here
@@ -48,7 +51,7 @@ trait Client {
     * @return
     * @throws
     */
-  def createClientOptions: Seq[HttpOptions.HttpOption]
+  def insert(kv: ActorbaseObject) = ???
 
   /**
     * Insert description here
@@ -57,7 +60,7 @@ trait Client {
     * @return
     * @throws
     */
-  def send(request: Request): Response
+  def remove(key: String) = ???
 
   /**
     * Insert description here
@@ -66,6 +69,51 @@ trait Client {
     * @return
     * @throws
     */
-  def shutdown: Unit
+  def remove(o: ActorbaseObject) = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def find = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def find(key: String) = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def drop = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def count: Int = data.size
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def foreach(f: (ActorbaseObject) => Unit): Unit = data.foreach(f)
 
 }

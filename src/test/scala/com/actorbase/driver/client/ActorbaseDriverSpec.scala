@@ -31,7 +31,9 @@ package com.actorbase.driver.client
 import org.scalatest._
 
 import com.actorbase.driver.DriverSpecs.DriverUnitSpec
-import com.actorbase.driver.client.RestMethods._
+import com.actorbase.driver.ActorbaseDriver
+import com.actorbase.driver.client.api.RequestBuilder
+import com.actorbase.driver.client.api.RestMethods._
 
 /**
   * Insert description here
@@ -56,11 +58,11 @@ class ActorbaseDriverSpec extends DriverUnitSpec with Matchers {
 
     val findResponse = driver.find("ciao")
 
-    whenReady(findResponse) { response =>
-      response.body.get should be ("""{
+    // whenReady(findResponse) { response =>
+    findResponse.body.get should be ("""{
   "response": "ciao"
 }""")
-    }
+    // }
   }
 
   /**
@@ -79,11 +81,11 @@ class ActorbaseDriverSpec extends DriverUnitSpec with Matchers {
 
     val listRequest = client.send(requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/listCollections" withMethod GET)
 
-    whenReady(listRequest) { response =>
-      response.body.get should be ("""{
+    // whenReady(listRequest) { response =>
+    listRequest.body.get should be ("""{
     "response": "listCollections"
   }""")
-    }
+    // }
   }
 
   /**
@@ -102,10 +104,10 @@ class ActorbaseDriverSpec extends DriverUnitSpec with Matchers {
 
     val listRequest = client.send(requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/SSLlistCollections" withMethod GET)
 
-    whenReady(listRequest) { response =>
-      response.body.get should be ("""{
+    // whenReady(listRequest) { response =>
+    listRequest.body.get should be ("""{
     "response": "SSLlistCollections"
   }""")
-    }
   }
+  // }
 }

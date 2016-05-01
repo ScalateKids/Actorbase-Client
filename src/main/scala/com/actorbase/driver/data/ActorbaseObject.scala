@@ -29,30 +29,14 @@
 package com.actorbase.driver.data
 
 import scala.language.implicitConversions
+import scala.pickling.Defaults._
 
-/**
-  * Base abstract class for ActorbaseParams, extends this to add custom
-  * parameter types
-  */
-sealed abstract class ActorbaseParams
-
-/**
-  * Map-like parameter type
-  */
-case class ActorbaseMap(pair: (String, Any)) extends ActorbaseParams
-
-object ActorbaseObject {
-
-  def apply(params: ActorbaseParams*): ActorbaseObject = {
-    var actorbaseMap = Map[String, Any]()
-    for (p <- params) {
-      p match {
-        case ActorbaseMap(t) => actorbaseMap += t
-      }
-    }
-    new ActorbaseObject(actorbaseMap)
+case object ActorbaseObject {
+  /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
+  implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
+    import scala.pickling.binary._
+    o.pickle.value
   }
-  implicit def pair2ActorbaseMap(t: (String, Any)) = ActorbaseMap(t)
 }
 
 /**
@@ -62,7 +46,7 @@ object ActorbaseObject {
   * @return
   * @throws
   */
-class ActorbaseObject(elems: Map[String, Any]) extends Serializer {
+case class ActorbaseObject(elems: Tuple2[String, Any]) {
 
   /**
     * Insert description here
@@ -71,7 +55,7 @@ class ActorbaseObject(elems: Map[String, Any]) extends Serializer {
     * @return
     * @throws
     */
-  def +[B1 >: Any](kv: (String, B1)): Map[String,B1] = ???
+  def getKey: String = elems._1
 
   /**
     * Insert description here
@@ -80,7 +64,7 @@ class ActorbaseObject(elems: Map[String, Any]) extends Serializer {
     * @return
     * @throws
     */
-  def -(key: String): Map[String,Any] = ???
+  def getValue: Any = elems._2
 
   /**
     * Insert description here
@@ -89,15 +73,9 @@ class ActorbaseObject(elems: Map[String, Any]) extends Serializer {
     * @return
     * @throws
     */
-  def get(key: String): Option[Any] = ???
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def iterator: Iterator[(String, Any)] = ???
+  override def toString: String = {
+    import scala.pickling.json._
+    this.pickle.value
+  }
 
 }

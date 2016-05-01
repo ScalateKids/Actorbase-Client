@@ -41,6 +41,19 @@ import com.actorbase.driver.client.api.RestMethods._
   */
 class ActorbaseClient extends Client {
 
+  val client = Http
+  val options = createClientOptions
+
+  /**
+    * Add connection options to the scalaj-http client Object
+    *
+    * @param
+    * @return a sequence of HttpOption representing options to be applied to the
+    * connection object
+    * @throws
+    */
+  override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.readTimeout(5000))
+
   /**
     * Send method, send a Request object to the Actorbase server listening
     * and return a Response object
@@ -52,10 +65,10 @@ class ActorbaseClient extends Client {
     */
   override def send(request: Request): Response = {
     val response = request.method match {
-      case GET    => Http(request.uri).option(HttpOptions.readTimeout(5000)).asString
-      case POST   => Http(request.uri).postData(request.body.get).option(HttpOptions.readTimeout(5000)).asString
-      case PUT    => Http(request.uri).postData(request.body.get).method("PUT").option(HttpOptions.readTimeout(5000)).asString
-      case DELETE => Http(request.uri).method("DELETE").option(HttpOptions.readTimeout(5000)).asString
+      case GET    => Http(request.uri).options(options).asString
+      case POST   => Http(request.uri).postData(request.body.get).options(options).asString
+      case PUT    => Http(request.uri).postData(request.body.get).method("PUT").options(options).asString
+      case DELETE => Http(request.uri).method("DELETE").options(options).asString
     }
     Response(response.code, Some(response.body.asInstanceOf[String]))
   }

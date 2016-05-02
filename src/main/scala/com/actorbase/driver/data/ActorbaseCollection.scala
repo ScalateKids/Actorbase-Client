@@ -51,7 +51,7 @@ case class ActorbaseCollection private (val owner: String,
     * @return
     * @throws
     */
-  def insert(kv: ActorbaseObject) = {
+  def insert(kv: ActorbaseObject): Unit = {
     if(!data.contains(kv)) {
       data += kv
       client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + kv.getKey withBody serialize2byteArray(kv.getValue) withMethod POST)
@@ -65,12 +65,21 @@ case class ActorbaseCollection private (val owner: String,
     * @return
     * @throws
     */
+  def insert(kv: Tuple2[String, Any]): Unit = this.insert(ActorbaseObject(kv))
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
   def remove(key: String): Unit = {
     for(k <- data)
-    if(k.getKey == key) {
-      data -= k
-      client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
-    }
+      if(k.getKey == key) {
+        data -= k
+        client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+      }
   }
 
   /**

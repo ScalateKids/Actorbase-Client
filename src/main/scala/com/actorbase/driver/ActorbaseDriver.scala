@@ -198,7 +198,7 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
   def dropCollections: Boolean = {
     val response = client.send(
       requestBuilder withUrl "https://" + address + ":" + port + "/collections" withMethod DELETE)
-    if(response != OK)
+    if(response.statusCode != OK)
       false
     else true
   }

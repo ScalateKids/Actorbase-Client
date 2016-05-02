@@ -48,11 +48,11 @@ import com.actorbase.driver.client.RestMethods._
   * @return
   * @throws
   */
-// object ActorbaseClient extends ActorbaseClient {
+//object ActorbaseClient extends ActorbaseClient {
 
-//   lazy val client = initClient
+  // lazy val client = initClient
 
-// }
+//}
 
 /**
   * Insert description here

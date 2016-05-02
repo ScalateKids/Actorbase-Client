@@ -91,7 +91,7 @@ object RestMethods {
     * @return
     * @throws
     */
-  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[String] = None)
+  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[Array[Byte]] = None)
 
   /**
     * Insert description here

@@ -42,7 +42,7 @@ case class RequestBuilder(
   method: Option[Method],
   url: Option[String],
   headers: Seq[(String, String)],
-  body: Option[String]) {
+  body: Option[Array[Byte]]) {
 
   /**
     * Insert description here
@@ -69,7 +69,7 @@ case class RequestBuilder(
     * @return
     * @throws
     */
-  def withBody(body: String): RequestBuilder = copy(body = Some(body))
+  def withBody(body: Array[Byte]): RequestBuilder = copy(body = Some(body))
 
   /**
     * Insert description here

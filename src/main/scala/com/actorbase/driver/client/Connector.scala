@@ -26,57 +26,21 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.data
+package com.actorbase.driver.client
 
-// import scala.language.implicitConversions
-// import scala.pickling.Defaults._
+import com.actorbase.driver.client.api.RequestBuilder
 
-// case object ActorbaseObject {
-//   /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
-//   implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
-//     import scala.pickling.binary._
-//     o.pickle.value
-//   }
-//   implicit def Any2Binary(a: Any): Array[Byte] = {
-//     import scala.pickling.binary._
-//     a.pickle.value
-//   }
-// }
-
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case class ActorbaseObject(elems: Tuple2[String, Any]) extends Serializer {
+trait Connector {
 
   /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
+    * ActorbaseClient instance, with stacked trait for SSL
+    * support
     */
-  def getKey: String = elems._1
+  val client = new ActorbaseClient() with SSLClient
 
   /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
+    * RequestBuilder instance to build REST request
     */
-  def getValue: Any = elems._2
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  override def toString: String = serialize2JSON(this)
+  val requestBuilder = RequestBuilder()
 
 }

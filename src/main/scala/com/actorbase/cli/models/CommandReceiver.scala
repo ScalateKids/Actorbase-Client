@@ -60,7 +60,9 @@ class CommandReceiver(params: Map[Any, Any]) {
     for ((k, v) <- params) {
       result += s"$k -> $v\n"
     }
-    CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
+    CommandReceiver.actorbaseDriver.addCollection("dummy")
+    "ok"
+    // CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
   }
 
   def removeItem() : String = {
@@ -111,9 +113,13 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @throws
     */
   def find() : String = {
+    var ret = ""
     val key = params.get("key").getOrElse("None").asInstanceOf[String]
-    val f = CommandReceiver.actorbaseDriver.find(key)
-    f.body.getOrElse("Nonnne")
+    // val f = CommandReceiver.actorbaseDriver.find(key)
+    // f.body.getOrElse("Nonnne")
+    val f = CommandReceiver.actorbaseDriver.getCollection("dummy")
+    for(v <- f) ret += v
+    ret
   }
 
   // ugly as hell

@@ -28,16 +28,58 @@
 
 package com.actorbase.driver.data
 
+import scala.pickling.Defaults._
+
 trait Serializer {
 
   /**
-    * Serialization method
+    * Serialization method. Converts an object of type Any to an array of bytes
     *
-    * @param callback A function to execute that must return an ActorbaseObject object
-    * @param obj A general reference of type AnyRef, to be serialized
-    * @return An ActorbaseObject reference containing serialized payload
+    * @param o object of type Any designated for conversion to Byte[Array]
+    * @return an Array[Byte] type
     * @throws
     */
-  def serialize(callback: (AnyRef) => ActorbaseObject, obj: AnyRef): ActorbaseObject = callback(obj)
+  def serialize2byteArray(o: Any): Array[Byte] = {
+    import scala.pickling.binary._
+    o.pickle.value
+  }
+
+  /**
+    * Serialization method. Converts an object of type Any to a JSON string
+    *
+    * @param o object of type Any designated for conversion to Byte[Array]
+    * @return a String object in JSON format
+    * @throws
+    */
+  def serialize2JSON(o: Any): String = {
+    import scala.pickling.json._
+    o.pickle.value
+  }
+
+  /**
+    * Deserialization method. Converts an object of type Array[Byte] to a
+    * refernce of type Any
+    *
+    * @param bytes an array of bytes designated for conversion
+    * @return a reference to the object deserialized
+    * @throws
+    */
+  def deserializeFromByteArray(bytes: Array[Byte]): Any = {
+    import scala.pickling.binary._
+    bytes.unpickle[Any]
+  }
+
+  /**
+    * Deserialization method. Converts an object of type Array[Byte] to a
+    * reference of type Any
+    *
+    * @param json a String object in format JSON designated for conversion
+    * @return a reference to the object deserialized
+    * @throws
+    */
+  def deserializeFromJSON(json: String): Any = {
+    import scala.pickling.json._
+    json.unpickle[Any]
+  }
 
 }

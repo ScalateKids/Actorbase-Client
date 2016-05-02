@@ -28,10 +28,13 @@
 
 package com.actorbase.driver
 
-import com.actorbase.driver.client.{ActorbaseClient, SSLClient}
+import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
-import com.actorbase.driver.client.api.RequestBuilder
-import com.actorbase.driver.data.ActorbaseCollection
+import com.actorbase.driver.client.api.RestMethods.Status._
+import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseObject, Serializer}
+
+import scala.util.parsing.json._
+import scala.collection.mutable.ListBuffer
 
 /**
   * Insert description here
@@ -40,15 +43,7 @@ import com.actorbase.driver.data.ActorbaseCollection
   * @return
   * @throws
   */
-class ActorbaseDriver(address: String, port: Int = 9999) {
-
-  /**
-    * ActorbaseClient instance, with stacked trait for SSL
-    * support
-    */
-  val client = new ActorbaseClient() with SSLClient
-
-  val requestBuilder = RequestBuilder()
+class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with Connector {
 
   /**
     * Insert description here
@@ -100,17 +95,17 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def insert(key: String, collection: String = "", json: String = "") : Response = {
-    val path =
-      if(!collection.isEmpty) "/" + collection + "/" + key
-      else "/" + key
-    client.send(
-      requestBuilder
-        .withUrl("https://" + address + ":" + port + "/collections" + path)
-        .withBody(json)
-        .withMethod(POST)
-    )
-  }
+  // def insert(key: String, collection: String = "", json: String = "") : Response = {
+  //   val path =
+  //     if(!collection.isEmpty) "/" + collection + "/" + key
+  //     else "/" + key
+  //   client.send(
+  //     requestBuilder
+  //       .withUrl("https://" + address + ":" + port + "/collections" + path)
+  //       .withBody(json)
+  //       .withMethod(POST)
+  //   )
+  // }
 
   /**
     * Insert description here
@@ -142,13 +137,34 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
   def getCollections: List[ActorbaseCollection] = ???
 
   /**
-    * Insert description here
+    * Retrieves an entire collection from server given the name. A collection is
+    * composed by an owner, a collection name and a list of key/value pairs.
+    * Keys are represented as String, value can be anything, from primitive
+    * types to custom objects. This tuples are stored inside the server as array
+    * of bytes; sending a getCollection request call for a marshaller on server
+    * side that convert to JSON string all contents of the collection requested,
+    * then, the value as Array[Byte] stream is deserialized to the original
+    * object stored inside the database.
     *
-    * @param
-    * @return
+    * @param collectionName a String representing the collection to fetch
+    * @return an object of type ActorbaseCollection, traversable with foreach,
+    * containing a list of ActorbaseObject, representing key/value type object
+    * of Actorbase
     * @throws
     */
-  def getCollection(collectionName: String): ActorbaseCollection = ???
+  def getCollection(collectionName: String): ActorbaseCollection = {
+    var buffer: ListBuffer[ActorbaseObject] = new ListBuffer[ActorbaseObject]()
+    val response = client.send(requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET)
+    if(response.statusCode == OK) {
+      val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
+      val collectionName = mapObject.get("collection").getOrElse("NoName")
+      for((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
+        val byteArray = v.map(_.toByte).toArray
+        buffer += ActorbaseObject(k -> deserializeFromByteArray(byteArray))
+      }
+    }
+    ActorbaseCollection("owner", collectionName, buffer)
+  }
 
   /**
     * Insert description here
@@ -157,7 +173,11 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def addCollection(collectionName: String): ActorbaseCollection = ???
+  def addCollection(collectionName: String): ActorbaseCollection = {
+    val collection = ActorbaseCollection("owner", collectionName)
+    collection.insert(ActorbaseObject("ciao" -> ActorbaseObject("ciao" -> "sono interno")))
+    collection
+  }
 
   /**
     * Insert description here
@@ -175,7 +195,13 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def dropCollections: Unit = ???
+  def dropCollections: Boolean = {
+    val response = client.send(
+      requestBuilder withUrl "https://" + address + ":" + port + "/collections" withMethod DELETE)
+    if(response != OK)
+      false
+    else true
+  }
 
   /**
     * Insert description here
@@ -184,7 +210,13 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def dropCollection(collectionName: String): Unit = ???
+  def dropCollection(collectionName: String): Boolean = {
+    val response = client.send(
+      requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod DELETE)
+    if(response.statusCode != OK)
+      false
+    else true
+  }
 
   /**
     * Shutdown the connection with the server

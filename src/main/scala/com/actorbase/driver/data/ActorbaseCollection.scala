@@ -28,7 +28,8 @@
 
 package com.actorbase.driver.data
 
-import com.actorbase.driver.ActorbaseDriver
+import com.actorbase.driver.client.Connector
+import com.actorbase.driver.client.api.RestMethods._
 
 import scala.collection.mutable.ListBuffer
 
@@ -39,10 +40,9 @@ import scala.collection.mutable.ListBuffer
   * @return
   * @throws
   */
-case class ActorbaseCollection private (val client: ActorbaseDriver,
-  val owner: String,
+case class ActorbaseCollection private (val owner: String,
   var collectionName: String,
-  var data: ListBuffer[ActorbaseObject]) {
+  var data: ListBuffer[ActorbaseObject] = new ListBuffer[ActorbaseObject]()) extends Serializer with Connector {
 
   /**
     * Insert description here
@@ -51,7 +51,12 @@ case class ActorbaseCollection private (val client: ActorbaseDriver,
     * @return
     * @throws
     */
-  def insert(kv: ActorbaseObject) = ???
+  def insert(kv: ActorbaseObject) = {
+    if(!data.contains(kv)) {
+      data += kv
+      client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + kv.getKey withBody serialize2byteArray(kv.getValue) withMethod POST)
+    }
+  }
 
   /**
     * Insert description here
@@ -60,7 +65,13 @@ case class ActorbaseCollection private (val client: ActorbaseDriver,
     * @return
     * @throws
     */
-  def remove(key: String) = ???
+  def remove(key: String): Unit = {
+    for(k <- data)
+    if(k.getKey == key) {
+      data -= k
+      client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+    }
+  }
 
   /**
     * Insert description here
@@ -69,7 +80,7 @@ case class ActorbaseCollection private (val client: ActorbaseDriver,
     * @return
     * @throws
     */
-  def remove(o: ActorbaseObject) = ???
+  def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
 
   /**
     * Insert description here

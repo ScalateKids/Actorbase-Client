@@ -33,9 +33,9 @@ import scala.pickling.Defaults._
 import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization._
-import org.json4s.native.Json
-import org.json4s.native.JsonMethods._
-// import org.json4s.jackson.JsonMethods._
+// import org.json4s.native.Json
+// import org.json4s.native.JsonMethods._
+import org.json4s.jackson.JsonMethods._
 
 trait Serializer {
 
@@ -72,7 +72,7 @@ trait Serializer {
     */
   def serialize2JSON4s(o: AnyRef): String = {
     implicit val formats = Serialization.formats(NoTypeHints)
-    write(o)
+    pretty(parse(write(o)))
   }
 
   /**

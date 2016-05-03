@@ -36,7 +36,7 @@ trait Connector {
     * ActorbaseClient instance, with stacked trait for SSL
     * support
     */
-  val client = new ActorbaseClient() with SSLClient
+  implicit val client = new ActorbaseClient() with SSLClient
 
   /**
     * RequestBuilder instance to build REST request

@@ -29,7 +29,9 @@
 package com.actorbase.driver.client.api
 
 import scala.language.implicitConversions
+
 import com.actorbase.driver.client.api.RestMethods._
+import com.actorbase.driver.client.ActorbaseClient
 
 /**
   * Insert description here
@@ -151,5 +153,15 @@ object RequestBuilder {
     * @throws
     */
   implicit def toRequest(builder: RequestBuilder): Request = builder.toRequest
+
+  /**
+    * Implicit class conversion, permit the use of method send with an implicit
+    * parameter in scope
+    */
+  implicit class AutoRequestBuilder(builder: RequestBuilder) {
+    def send()(implicit client: ActorbaseClient): Response = {
+      client.send(builder)
+    }
+  }
 
 }

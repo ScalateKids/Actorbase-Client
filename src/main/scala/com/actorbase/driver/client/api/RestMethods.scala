@@ -30,6 +30,8 @@ package com.actorbase.driver.client.api
 
 import scala.util.parsing.json.JSON
 import scala.language.implicitConversions
+
+import scalaj.http.HttpResponse
 /**
   * Insert description here
   *
@@ -39,6 +41,7 @@ import scala.language.implicitConversions
   */
 
 object RestMethods {
+
   /**
     * Insert description here
     *
@@ -125,10 +128,10 @@ object RestMethods {
       * Implicit conversion method, return a Response from a WSResponse (playWS! response type)
       *
       *
-      * @param wsResponse The WSResponse object to convert
-      * @return a Response object containing statusCode and body of the WSResponse
+      * @param HttpResponse The HttpResponse[T] object to convert
+      * @return a Response object containing statusCode and body of the HttpResponse
       */
-    // implicit def toResponse(Http: WSResponse) : Response = Response(wsResponse.status, Some(wsResponse.body.asInstanceOf[String]))
+    implicit def HttpResponseToResponse(HttpResponse: HttpResponse[String]) : Response = Response(HttpResponse.statusCode, Some(HttpResponse.body.asInstanceOf[String]))
   }
 
   /**

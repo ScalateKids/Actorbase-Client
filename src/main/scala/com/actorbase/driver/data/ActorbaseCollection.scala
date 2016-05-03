@@ -31,8 +31,8 @@ package com.actorbase.driver.data
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 
-// import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.TreeMap
+import scala.collection.JavaConversions
 
 /**
   * Insert description here
@@ -46,9 +46,10 @@ case class ActorbaseCollection private (val owner: String,
   var data: TreeMap[String, Any] = new TreeMap[String, Any]()) extends Serializer with Connector {
 
   /**
-    * Insert description here
+    * Insert an arbitrary variable number of key-value tuple to the collection
+    * reflecting local changes to remote collection on server-side
     *
-    * @param
+    * @param kv a vararg Tuple2 of type (String, Any)
     * @return
     * @throws
     */
@@ -62,68 +63,84 @@ case class ActorbaseCollection private (val owner: String,
   }
 
   /**
-    * Insert description here
+    * Insert a new key-value tuple, representing an ActorbaseObject to the
+    * collection reflecting local changes to remote collection on server-side
     *
-    * @param
+    * @param kv an ActorbaseObject parameter representing a key/value pair
     * @return
     * @throws
     */
-  // def insert(kv: Tuple2[String, Any]): Unit = this.insert(ActorbaseObject(kv))
+  def insert(kv: ActorbaseObject): Unit = this.insert((kv.getKey -> kv.getValue))
 
   /**
-    * Insert description here
+    * Remove an arbitrary variable number of key-value tuple from the collection
+    * reflecting local changes to remote collection on server-side
     *
-    * @param
+    * @param keys a vararg String representing a sequence of keys to be removed
+    * from the collection
     * @return
     * @throws
     */
-  def remove(key: String): Unit = {
-    // for(k <- data)
-    //   if(k.getKey == key) {
-    //     data -= k
-    //     client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
-    //   }
-    if(data.contains(key)) {
-      data -= key
-      client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+  def remove(keys: String*): Unit = {
+    for(key <- keys) {
+      if(data.contains(key)) {
+        data -= key
+        client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+      }
     }
   }
 
   /**
-    * Insert description here
+    * Remove a key-value tuple, representing an ActorbaseObject from the
+    * collection reflecting local changes to remote collection on server-side
     *
-    * @param
+    * @param kv an ActorbaseObject parameter representing a key/value pair
     * @return
     * @throws
     */
-  // def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
+  def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
 
   /**
-    * Insert description here
+    * Find an arbitrary number of elements inside the collection, returning a
+    * new ActorbaseCollection
     *
-    * @param
-    * @return
+    * @param keys a vararg String representing a sequence of keys to be retrieved
+    * @return an object of type ActorbaseCollection
     * @throws
     */
-  def find = ???
+  def find(keys: String*): ActorbaseCollection = {
+    val collection: TreeMap[String, Any] = data filter keys.contains
+    ActorbaseCollection(owner, collectionName, collection)
+  }
 
   /**
-    * Insert description here
+    * Find an element inside the collection, returning an ActorbaseObject
+    * representing the key/value pair
     *
-    * @param
-    * @return
+    * @param keys a String representing the key associated to the value to be retrieved
+    * @return an object of type ActorbaseObject
     * @throws
     */
-  def find(key: String) = ???
+  def findOne(key: String): ActorbaseObject = {
+    val actorbaseObject =
+      if (data.contains(key))
+        ActorbaseObject(key -> data.get(key).get)
+      else ActorbaseObject(None)
+    actorbaseObject
+  }
 
   /**
-    * Insert description here
+    * Drop the entire collection, reflecting the local change to remote on
+    * server-side
     *
     * @param
     * @return
     * @throws
     */
-  def drop = ???
+  def drop = {
+    data.empty
+    client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName withMethod DELETE)
+  }
 
   /**
     * Insert description here

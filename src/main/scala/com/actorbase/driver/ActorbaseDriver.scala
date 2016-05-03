@@ -34,7 +34,6 @@ import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseObject, Serializer}
 
 import scala.util.parsing.json._
-// import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.TreeMap
 
 /**
@@ -45,16 +44,6 @@ import scala.collection.immutable.TreeMap
   * @throws
   */
 class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with Connector {
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def listCollections : Response = client.send(
-    requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET)
 
   /** TEST METHODS */
 
@@ -128,6 +117,20 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
   /** ALTERNATIVE */
 
   /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  // def listCollections : List[String] = {
+  //   val response = client.send(
+  //     requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET)
+  //   if(response == OK)
+  //     response.body
+  // }
+
+  /**
     * Return a list of collections, consider an object
     * ActorbaseList[ActorbaseCollection]
     *
@@ -154,13 +157,12 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     * @throws
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
-    // var buffer: ListBuffer[ActorbaseObject] = new ListBuffer[ActorbaseObject]()
     var buffer: TreeMap[String, Any] = new TreeMap[String, Any]
     val response = client.send(requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET)
-    if(response.statusCode == OK) {
+    if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
       val collectionName = mapObject.get("collection").getOrElse("NoName")
-      for((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
+      for ((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
         val byteArray = v.map(_.toByte).toArray
         buffer += (k -> deserializeFromByteArray(byteArray))
       }

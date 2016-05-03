@@ -31,7 +31,7 @@ package com.actorbase.driver.data
 // import scala.language.implicitConversions
 // import scala.pickling.Defaults._
 
-// case object ActorbaseObject {
+case object ActorbaseObject {
 //   /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
 //   implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
 //     import scala.pickling.binary._
@@ -41,7 +41,10 @@ package com.actorbase.driver.data
 //     import scala.pickling.binary._
 //     a.pickle.value
 //   }
-// }
+  /** Accepting key -> value format parameters */
+  def apply(kv: Tuple2[String, Any]): ActorbaseObject = new ActorbaseObject(Some(kv))
+
+}
 
 /**
   * Insert description here
@@ -50,7 +53,7 @@ package com.actorbase.driver.data
   * @return
   * @throws
   */
-case class ActorbaseObject(elems: Tuple2[String, Any]) extends Serializer {
+case class ActorbaseObject(elems: Option[Tuple2[String, Any]]) extends Serializer {
 
   /**
     * Insert description here
@@ -59,7 +62,7 @@ case class ActorbaseObject(elems: Tuple2[String, Any]) extends Serializer {
     * @return
     * @throws
     */
-  def getKey: String = elems._1
+  def getKey: String = elems.get._1
 
   /**
     * Insert description here
@@ -68,7 +71,7 @@ case class ActorbaseObject(elems: Tuple2[String, Any]) extends Serializer {
     * @return
     * @throws
     */
-  def getValue: Any = elems._2
+  def getValue: Any = elems.get._2
 
   /**
     * Insert description here

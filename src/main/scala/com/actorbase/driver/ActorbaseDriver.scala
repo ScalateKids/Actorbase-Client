@@ -34,7 +34,8 @@ import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseObject, Serializer}
 
 import scala.util.parsing.json._
-import scala.collection.mutable.ListBuffer
+// import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.TreeMap
 
 /**
   * Insert description here
@@ -153,14 +154,15 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     * @throws
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
-    var buffer: ListBuffer[ActorbaseObject] = new ListBuffer[ActorbaseObject]()
+    // var buffer: ListBuffer[ActorbaseObject] = new ListBuffer[ActorbaseObject]()
+    var buffer: TreeMap[String, Any] = new TreeMap[String, Any]
     val response = client.send(requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET)
     if(response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
       val collectionName = mapObject.get("collection").getOrElse("NoName")
       for((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
         val byteArray = v.map(_.toByte).toArray
-        buffer += ActorbaseObject(k -> deserializeFromByteArray(byteArray))
+        buffer += (k -> deserializeFromByteArray(byteArray))
       }
     }
     ActorbaseCollection("owner", collectionName, buffer)
@@ -175,7 +177,7 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
     val collection = ActorbaseCollection("owner", collectionName)
-    collection.insert(ActorbaseObject("ciao" -> ActorbaseObject("ciao" -> "sono interno")))
+    collection.insert("key0" -> ActorbaseObject("hi" -> "i'm an object"), "key1" -> "value1", "twelve" -> 12)
     collection
   }
 

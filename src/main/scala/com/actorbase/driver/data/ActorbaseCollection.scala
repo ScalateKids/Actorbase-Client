@@ -31,7 +31,8 @@ package com.actorbase.driver.data
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 
-import scala.collection.mutable.ListBuffer
+// import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.TreeMap
 
 /**
   * Insert description here
@@ -42,7 +43,7 @@ import scala.collection.mutable.ListBuffer
   */
 case class ActorbaseCollection private (val owner: String,
   var collectionName: String,
-  var data: ListBuffer[ActorbaseObject] = new ListBuffer[ActorbaseObject]()) extends Serializer with Connector {
+  var data: TreeMap[String, Any] = new TreeMap[String, Any]()) extends Serializer with Connector {
 
   /**
     * Insert description here
@@ -51,10 +52,12 @@ case class ActorbaseCollection private (val owner: String,
     * @return
     * @throws
     */
-  def insert(kv: ActorbaseObject): Unit = {
-    if(!data.contains(kv)) {
-      data += kv
-      client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + kv.getKey withBody serialize2byteArray(kv.getValue) withMethod POST)
+  def insert(kv: Tuple2[String, Any]*): Unit = {
+    for((k, v) <- kv) {
+      if(!data.contains(k)) {
+        data += (k -> v)
+        client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST)
+      }
     }
   }
 
@@ -65,7 +68,7 @@ case class ActorbaseCollection private (val owner: String,
     * @return
     * @throws
     */
-  def insert(kv: Tuple2[String, Any]): Unit = this.insert(ActorbaseObject(kv))
+  // def insert(kv: Tuple2[String, Any]): Unit = this.insert(ActorbaseObject(kv))
 
   /**
     * Insert description here
@@ -75,11 +78,15 @@ case class ActorbaseCollection private (val owner: String,
     * @throws
     */
   def remove(key: String): Unit = {
-    for(k <- data)
-      if(k.getKey == key) {
-        data -= k
-        client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
-      }
+    // for(k <- data)
+    //   if(k.getKey == key) {
+    //     data -= k
+    //     client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+    //   }
+    if(data.contains(key)) {
+      data -= key
+      client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+    }
   }
 
   /**
@@ -89,7 +96,7 @@ case class ActorbaseCollection private (val owner: String,
     * @return
     * @throws
     */
-  def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
+  // def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
 
   /**
     * Insert description here
@@ -134,6 +141,15 @@ case class ActorbaseCollection private (val owner: String,
     * @return
     * @throws
     */
-  def foreach(f: (ActorbaseObject) => Unit): Unit = data.foreach(f)
+  def foreach(f: ((String, Any)) => Unit): Unit = data.foreach(f)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  override def toString: String = serialize2JSON4s(this)
 
 }

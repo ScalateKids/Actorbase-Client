@@ -118,8 +118,9 @@ class CommandReceiver(params: Map[Any, Any]) {
     // val f = CommandReceiver.actorbaseDriver.find(key)
     // f.body.getOrElse("Nonnne")
     val f = CommandReceiver.actorbaseDriver.getCollection("dummy")
-    for(v <- f) ret += v
-    ret
+    // for(v <- f) ret += v
+    // ret
+    f.toString
   }
 
   // ugly as hell

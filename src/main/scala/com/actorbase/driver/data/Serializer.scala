@@ -29,6 +29,11 @@
 package com.actorbase.driver.data
 
 import scala.pickling.Defaults._
+import org.json4s._
+import org.json4s.native.Serialization
+import org.json4s.native.Json
+import org.json4s.JsonDSL._
+import org.json4s.jackson.JsonMethods._
 
 trait Serializer {
 
@@ -54,6 +59,18 @@ trait Serializer {
   def serialize2JSON(o: Any): String = {
     import scala.pickling.json._
     o.pickle.value
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def serialize2JSON4s(o: AnyRef): String = {
+    implicit val formats = Serialization.formats(NoTypeHints)
+    pretty((Json(DefaultFormats).write(o)))
   }
 
   /**

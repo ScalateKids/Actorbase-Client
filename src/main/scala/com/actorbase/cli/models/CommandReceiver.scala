@@ -60,9 +60,9 @@ class CommandReceiver(params: Map[Any, Any]) {
     for ((k, v) <- params) {
       result += s"$k -> $v\n"
     }
-    result
-    // CommandReceiver.actorbaseDriver.addCollection("dummy")
-    // "ok"
+    // result
+    CommandReceiver.actorbaseDriver.addCollection("dummy")
+    "ok"
     // CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
   }
 

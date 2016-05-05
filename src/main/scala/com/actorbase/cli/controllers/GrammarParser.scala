@@ -106,7 +106,12 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   def insertItemCommand : Parser[Command] = "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ literalString ^^ {
     case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~  args_3 =>
-      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "value" -> args_2, "collection" -> args_3)))
+      val value = args_2 match {
+        case integer if integer matches("""^\d+$""") => integer.toInt
+        case double if double matches("""^\d+\.\d+""") => double.toDouble
+        case _ => args_2
+      }
+      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "value" -> value, "collection" -> args_3)))
   }
 
   // TODO insert item da file?

@@ -58,10 +58,12 @@ class CommandReceiver(params: Map[Any, Any]) {
   def insert() : String = {
     var result : String = "[INSERT]\n"
     for ((k, v) <- params) {
+      println(v.getClass)
       result += s"$k -> $v\n"
     }
-    CommandReceiver.actorbaseDriver.addCollection("dummy")
-    "ok"
+    result
+    // CommandReceiver.actorbaseDriver.addCollection("dummy")
+    // "ok"
     // CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
   }
 

@@ -51,7 +51,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
   }
 
-  def changePasswordCommand : Parser[Command] = "changePassword " ~ keyString ~ keyString ~ keyString ^^ {
+  def changePasswordCommand : Parser[Command] = "changePassword" ~ keyString ~ keyString ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 =>
       new ChangePasswordCommand(new CommandReceiver(Map[Any, Any]("oldPsw" -> args_1, "newPsw" -> args_2, "repeatedPsw" -> args_3)))
   }
@@ -99,9 +99,19 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // TODO flag sovrascrittura
   // TODO inserimento item con creazione nuova collezione
-  def insertItemCommand : Parser[Command] = "insert " ~ keyString ~ types ~ quotedString ~ "to " ~ literalString ^^ {
-    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 =>
-      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "quotedString" -> args_3, cmd_part_2 -> args_4)))
+  // def insertItemCommand : Parser[Command] = "insert " ~ keyString ~ types ~ quotedString ~ "to " ~ literalString ^^ {
+  //   case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 =>
+  //     new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "quotedString" -> args_3, cmd_part_2 -> args_4)))
+  // }
+
+  def insertItemCommand : Parser[Command] = "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ literalString ^^ {
+    case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~  args_3 =>
+      val value = args_2 match {
+        case integer if integer matches("""^\d+$""") => integer.toInt
+        case double if double matches("""^\d+\.\d+""") => double.toDouble
+        case _ => args_2
+      }
+      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "value" -> value, "collection" -> args_3)))
   }
 
   // TODO insert item da file?

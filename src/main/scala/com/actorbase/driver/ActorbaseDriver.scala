@@ -131,10 +131,10 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
   /** ALTERNATIVE */
 
   /**
-    * Insert description here
+    * Return a list of collection name stored remotely on the server
     *
     * @param
-    * @return
+    * @return a List[String] contained the collection names
     * @throws
     */
   def listCollections : List[String] = {
@@ -149,7 +149,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * Return a list of collections, consider an object ActorbaseCollectionMap
     *
     * @param
-    * @return
+    * @return an ActorbaseCollectionMap containing a map of collections
     * @throws
     */
   def getCollections: ActorbaseCollectionMap = ???
@@ -185,10 +185,10 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
   }
 
   /**
-    * Insert description here
+    * Add a collection on server side of Actorbase
     *
-    * @param
-    * @return
+    * @param collectionName a String representing the collection name to be retrieved from the server
+    * @return an ActorbaseCollection representing a collection stored on Actorbase
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {

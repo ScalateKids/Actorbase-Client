@@ -64,10 +64,10 @@ trait Serializer {
   }
 
   /**
-    * Insert description here
+    * Serialization method. Converts an object of type Any to a JSON string
     *
-    * @param
-    * @return
+    * @param o object of type AnyRef designated for conversion to Byte[Array]
+    * @return a String object in JSON format
     * @throws
     */
   def serialize2JSON4s(o: AnyRef): String = {

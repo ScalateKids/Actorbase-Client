@@ -31,10 +31,22 @@ package com.actorbase.driver
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
-import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseObject, Serializer}
+import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap, ActorbaseObject, Serializer}
 
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
+
+object ActorbaseDriver {
+
+  def apply(): ActorbaseDriver = new ActorbaseDriver("127.0.0.1", 9999)
+
+  def apply(address: String): ActorbaseDriver = new ActorbaseDriver(address, 9999)
+
+  def apply(address: String, port: Int): ActorbaseDriver = new ActorbaseDriver(address, port)
+
+  case class Connection(address: String, port: Int)
+
+}
 
 /**
   * Insert description here
@@ -43,7 +55,9 @@ import scala.collection.immutable.TreeMap
   * @return
   * @throws
   */
-class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with Connector {
+class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends Serializer with Connector {
+
+  implicit val connection = ActorbaseDriver.Connection(address, port)
 
   /** TEST METHODS */
 
@@ -123,22 +137,22 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     * @return
     * @throws
     */
-  // def listCollections : List[String] = {
-  //   val response = client.send(
-  //     requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET)
-  //   if(response == OK)
-  //     response.body
-  // }
+  def listCollections : List[String] = {
+    val response =
+      requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET send()
+    if(response.statusCode == OK)
+      JSON.parseFull(response.body.get).get.asInstanceOf[List[String]]
+    else List()
+  }
 
   /**
-    * Return a list of collections, consider an object
-    * ActorbaseList[ActorbaseCollection]
+    * Return a list of collections, consider an object ActorbaseCollectionMap
     *
     * @param
     * @return
     * @throws
     */
-  def getCollections: List[ActorbaseCollection] = ???
+  def getCollections: ActorbaseCollectionMap = ???
 
   /**
     * Retrieves an entire collection from server given the name. A collection is
@@ -178,8 +192,20 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
-    val collection = ActorbaseCollection("owner", collectionName)
-    collection.insert("key0" -> ActorbaseObject("hi" -> "i'm an object"), "key1" -> "value1", "twelve" -> 12)
+    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod POST send() // control response
+    ActorbaseCollection("owner", collectionName) // stub owner
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
+    val response =
+      requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
     collection
   }
 
@@ -190,18 +216,8 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     * @return
     * @throws
     */
-  def addCollection(collection: ActorbaseCollection): ActorbaseCollection = ???
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
   def dropCollections: Boolean = {
-    val response = client.send(
-      requestBuilder withUrl "https://" + address + ":" + port + "/collections" withMethod DELETE)
+    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections" withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true
@@ -215,8 +231,7 @@ class ActorbaseDriver(address: String, port: Int = 9999) extends Serializer with
     * @throws
     */
   def dropCollection(collectionName: String): Boolean = {
-    val response = client.send(
-      requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod DELETE)
+    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true

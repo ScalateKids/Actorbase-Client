@@ -41,7 +41,7 @@ object CommandReceiver {
   /**
     * Driver singleton instance to send command and receive response
     */
-  lazy val actorbaseDriver = new ActorbaseDriver("127.0.0.1")
+  lazy val actorbaseDriver = new ActorbaseDriver()
 }
 
 /**

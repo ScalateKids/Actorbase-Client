@@ -28,6 +28,7 @@
 
 package com.actorbase.driver.data
 
+import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 
@@ -41,9 +42,10 @@ import scala.collection.JavaConversions
   * @return
   * @throws
   */
-case class ActorbaseCollection private (val owner: String,
-  var collectionName: String,
-  var data: TreeMap[String, Any] = new TreeMap[String, Any]()) extends Serializer with Connector {
+case class ActorbaseCollection private
+  (val owner: String, var collectionName: String,
+    var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection)
+    extends Serializer with Connector {
 
   /**
     * Insert an arbitrary variable number of key-value tuple to the collection
@@ -57,7 +59,7 @@ case class ActorbaseCollection private (val owner: String,
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST)
+        requestBuilder withUrl "https://" + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
       }
     }
   }
@@ -85,7 +87,7 @@ case class ActorbaseCollection private (val owner: String,
     for(key <- keys) {
       if(data.contains(key)) {
         data -= key
-        client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName + "/" + key withMethod DELETE)
+        requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       }
     }
   }
@@ -139,7 +141,7 @@ case class ActorbaseCollection private (val owner: String,
     */
   def drop = {
     data.empty
-    client.send(requestBuilder withUrl "https://127.0.0.1:9999/collections/" + collectionName withMethod DELETE)
+    requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
   }
 
   /**

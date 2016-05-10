@@ -41,8 +41,8 @@ import com.actorbase.driver.client.api.RestMethods._
   */
 class ActorbaseClient extends Client {
 
-  val client = Http
-  val options = createClientOptions
+  private val client = Http
+  private val options = createClientOptions
 
   /**
     * Add connection options to the scalaj-http client Object

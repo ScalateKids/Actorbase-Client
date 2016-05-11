@@ -12,4 +12,5 @@ libraryDependencies ++= Seq(
   "org.scalaj" %% "scalaj-http" % "2.3.0",
   "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
   "org.json4s" %% "json4s-native" % "3.3.0",
-  "org.json4s" %% "json4s-jackson" % "3.3.0")
+  "org.json4s" %% "json4s-jackson" % "3.3.0",
+  "io.spray" %%  "spray-json" % "1.3.2")

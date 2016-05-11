@@ -171,7 +171,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * @throws
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
-    var buffer: TreeMap[String, Any] = new TreeMap[String, Any]
+    var buffer: TreeMap[String, Any] = new TreeMap[String, Any]()
     val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET send()
     if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
@@ -181,7 +181,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
         buffer += (k -> deserializeFromByteArray(byteArray))
       }
     }
-    ActorbaseCollection("owner", collectionName, buffer)
+    ActorbaseCollection("user", collectionName, buffer)
   }
 
   /**
@@ -192,8 +192,11 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod POST send() // control response
-    ActorbaseCollection("owner", collectionName) // stub owner
+    var buffer: TreeMap[String, Any] = new TreeMap[String, Any]()
+    buffer += ("ciao" -> "laspdplsadlaspdlpa")
+    buffer += ("ke" -> ActorbaseObject("test" -> "testvalue"))
+    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/chiave5" withBody serialize2byteArray(buffer) withMethod POST send() // control response
+    ActorbaseCollection("user", collectionName, buffer) // stub owner
   }
 
   /**

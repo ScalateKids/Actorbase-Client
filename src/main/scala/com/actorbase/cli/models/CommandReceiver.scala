@@ -61,9 +61,9 @@ class CommandReceiver(params: Map[Any, Any]) {
       println(v.getClass)
       result += s"$k -> $v\n"
     }
-    result
-    // CommandReceiver.actorbaseDriver.addCollection("dummy")
-    // "ok"
+    // result
+    CommandReceiver.actorbaseDriver.addCollection("customers")
+    "ok"
     // CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
   }
 
@@ -119,7 +119,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     val key = params.get("key").getOrElse("None").asInstanceOf[String]
     // val f = CommandReceiver.actorbaseDriver.find(key)
     // f.body.getOrElse("Nonnne")
-    val f = CommandReceiver.actorbaseDriver.getCollection("dummy")
+    val f = CommandReceiver.actorbaseDriver.getCollection("customers")
     // for(v <- f) ret += v
     // ret
     f.toString

@@ -31,9 +31,18 @@ package com.actorbase.driver.data
 import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
+import com.actorbase.driver.ActorbaseDriver
 
 import scala.collection.immutable.TreeMap
 import scala.collection.JavaConversions
+
+// import spray.json._
+// import DefaultJsonProtocol._
+
+// object MyJsonProtocol extends DefaultJsonProtocol {
+//   implicit val connection = ActorbaseDriver.Connection("127.0.0.1", 9999)
+//   implicit val actorbaseCollectionFormat = jsonFormat3(ActorbaseCollection.apply)
+// }
 
 /**
   * Insert description here
@@ -42,7 +51,7 @@ import scala.collection.JavaConversions
   * @return
   * @throws
   */
-case class ActorbaseCollection private
+case class ActorbaseCollection
   (val owner: String, var collectionName: String,
     var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection)
     extends Serializer with Connector {
@@ -130,6 +139,24 @@ case class ActorbaseCollection private
       else ActorbaseObject(None)
     actorbaseObject
   }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def addContributor(username: String): Boolean = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def removeContributor(username: String): Boolean = ???
 
   /**
     * Drop the entire collection, reflecting the local change to remote on

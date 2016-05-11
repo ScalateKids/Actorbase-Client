@@ -37,6 +37,9 @@ import org.json4s.native.Serialization._
 // import org.json4s.native.JsonMethods._
 import org.json4s.jackson.JsonMethods._
 
+// import spray.json._
+// import MyJsonProtocol._
+
 trait Serializer {
 
   /**
@@ -75,6 +78,10 @@ trait Serializer {
     pretty(parse(write(o)))
   }
 
+  // def serialize2JSONSpray(o: AnyRef): String = {
+  //   o.toJson.prettyPrint
+  // }
+
   /**
     * Deserialization method. Converts an object of type Array[Byte] to a
     * refernce of type Any
@@ -88,6 +95,11 @@ trait Serializer {
     bytes.unpickle[Any]
   }
 
+  def deserializeDebugger(bytes: Array[Byte]): Any = {
+    import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+    val in = new ObjectInputStream(new ByteArrayInputStream(bytes))
+    in.readObject().asInstanceOf[Any]
+  }
   /**
     * Deserialization method. Converts an object of type Array[Byte] to a
     * reference of type Any

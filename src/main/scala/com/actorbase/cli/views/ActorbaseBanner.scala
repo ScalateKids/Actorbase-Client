@@ -30,12 +30,21 @@ package com.actorbase.cli.views
 
 class ActorbaseBanner() {
   def getBanner() : String = {
-    val banner = """    ___   ________________  ____  ____  ___   _____ ______
+    var banner = """
+                   #    ___   ________________  ____  ____  ___   _____ ______
                    #   /   | / ____/_  __/ __ \/ __ \/ __ )/   | / ___// ____/
                    #  / /| |/ /     / / / / / / /_/ / __  / /| | \__ \/ __/
                    # / ___ / /___  / / / /_/ / _, _/ /_/ / ___ |___/ / /___
                    #/_/  |_\____/ /_/  \____/_/ |_/_____/_/  |_/____/_____/
                    #""".stripMargin('#')
+
+    val version = "version: 1.0.0"
+    val un = System.getProperty("user.name")
+    val os = System.getProperty("os.name")
+    val ov = System.getProperty("os.version")
+    val ar = System.getProperty("os.arch")
+    val jv = System.getProperty("java.version")
+    banner += s"\nActorbase CLI $version\n$un@$os $ov on $ar, Java version: $jv\n"
     banner.toString() + "\n"
   }
 }

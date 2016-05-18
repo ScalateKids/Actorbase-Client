@@ -14,3 +14,9 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.3.0",
   "org.json4s" %% "json4s-jackson" % "3.3.0",
   "io.spray" %%  "spray-json" % "1.3.2")
+
+initialCommands in console += """
+import com.actorbase.driver.ActorbaseDriver
+import com.actorbase.driver.client.api._
+import com.actorbase.driver.data._
+"""

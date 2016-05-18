@@ -30,8 +30,11 @@ package com.actorbase.driver.data
 
 import com.actorbase.driver.client.Connector
 
+import scala.collection.immutable.TreeMap
+import scala.collection.generic.FilterMonadic
+
 case class ActorbaseCollectionMap private
-  (val data: Map[String, ActorbaseCollection]) extends Serializer with Connector {
+  (val data: TreeMap[String, ActorbaseCollection]) extends Serializer with Connector {
 
   /**
     * Insert description here
@@ -67,7 +70,16 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  def foreach(f: ((String, Any)) => Unit): Unit = data.foreach(f)
+  def foreach(f: ((String, ActorbaseCollection)) => Unit): Unit = data.foreach(f)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def withFilter(f: ((String, ActorbaseCollection)) => Boolean): FilterMonadic[(String, ActorbaseCollection), TreeMap[String, ActorbaseCollection]] = data.withFilter(f)
 
   /**
     * Insert description here
@@ -77,4 +89,5 @@ case class ActorbaseCollectionMap private
     * @throws
     */
   override def toString: String = serialize2JSON4s(this)
+
 }

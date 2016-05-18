@@ -32,15 +32,15 @@ package com.actorbase.driver.data
 // import scala.pickling.Defaults._
 
 case object ActorbaseObject {
-//   /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
-//   implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
-//     import scala.pickling.binary._
-//     o.pickle.value
-//   }
-//   implicit def Any2Binary(a: Any): Array[Byte] = {
-//     import scala.pickling.binary._
-//     a.pickle.value
-//   }
+  //   /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
+  //   implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
+  //     import scala.pickling.binary._
+  //     o.pickle.value
+  //   }
+  //   implicit def Any2Binary(a: Any): Array[Byte] = {
+  //     import scala.pickling.binary._
+  //     a.pickle.value
+  //   }
   /** Accepting key -> value format parameters */
   def apply(kv: Tuple2[String, Any]): ActorbaseObject = new ActorbaseObject(Some(kv))
 
@@ -80,6 +80,6 @@ case class ActorbaseObject(elems: Option[Tuple2[String, Any]]) extends Serialize
     * @return
     * @throws
     */
-  override def toString: String = serialize2JSON(this)
+  override def toString: String = serialize2JSON4s(this)
 
 }

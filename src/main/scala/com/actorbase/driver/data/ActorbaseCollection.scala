@@ -31,10 +31,9 @@ package com.actorbase.driver.data
 import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
-import com.actorbase.driver.ActorbaseDriver
 
 import scala.collection.immutable.TreeMap
-import scala.collection.JavaConversions
+import scala.collection.generic.FilterMonadic
 
 // import spray.json._
 // import DefaultJsonProtocol._
@@ -121,8 +120,9 @@ case class ActorbaseCollection
     * @throws
     */
   def find(keys: String*): ActorbaseCollection = {
-    val collection: TreeMap[String, Any] = data filter keys.contains
-    ActorbaseCollection(owner, collectionName, collection)
+    var coll: TreeMap[String, Any] = TreeMap[String, Any]()
+    keys.foreach(key => coll += data.filterKeys(_ == key).head)
+    ActorbaseCollection(owner, collectionName, coll)
   }
 
   /**
@@ -134,11 +134,9 @@ case class ActorbaseCollection
     * @throws
     */
   def findOne(key: String): ActorbaseObject = {
-    val actorbaseObject =
-      if (data.contains(key))
-        ActorbaseObject(key -> data.get(key).get)
-      else ActorbaseObject(None)
-    actorbaseObject
+    if (data.contains(key))
+      ActorbaseObject(key -> data.get(key).get)
+    else ActorbaseObject(None)
   }
 
   /**
@@ -189,6 +187,15 @@ case class ActorbaseCollection
     * @throws
     */
   def foreach(f: ((String, Any)) => Unit): Unit = data.foreach(f)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def withFilter(f: ((String, Any)) => Boolean): FilterMonadic[(String, Any), TreeMap[String, Any]] = data.withFilter(f)
 
   /**
     * Insert description here

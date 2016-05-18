@@ -192,11 +192,8 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
-    var buffer: TreeMap[String, Any] = new TreeMap[String, Any]()
-    buffer += ("ciao" -> "laspdplsadlaspdlpa")
-    buffer += ("ke" -> ActorbaseObject("test" -> "testvalue"))
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/chiave5" withBody serialize2byteArray(buffer) withMethod POST send() // control response
-    ActorbaseCollection("user", collectionName, buffer) // stub owner
+    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod POST send() // control response
+    ActorbaseCollection("user", collectionName) // stub owner
   }
 
   /**

@@ -64,13 +64,14 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def insert(kv: Tuple2[String, Any]*): Unit = {
+  def insert(kv: Tuple2[String, Any]*): ActorbaseCollection = {
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
         requestBuilder withUrl "https://" + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
       }
     }
+    ActorbaseCollection(owner, collectionName, data)
   }
 
   /**
@@ -81,7 +82,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def insert(kv: ActorbaseObject): Unit = this.insert((kv.getKey -> kv.getValue))
+  def insert(kv: ActorbaseObject): ActorbaseCollection = this.insert((kv.getKey -> kv.getValue))
 
   /**
     * Remove an arbitrary variable number of key-value tuple from the collection
@@ -196,6 +197,10 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  override def toString: String = serialize2JSON4s(this)
+  override def toString: String = {
+    data += ("collection" -> collectionName)
+    data += ("owner" -> owner)
+    serialize2JSON4s(data)
+  }
 
 }

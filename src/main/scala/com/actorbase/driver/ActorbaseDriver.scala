@@ -31,7 +31,7 @@ package com.actorbase.driver
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
-import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap, ActorbaseObject, Serializer}
+import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap, Serializer}
 
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
@@ -59,8 +59,6 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
 
   implicit val connection = ActorbaseDriver.Connection(address, port)
 
-  /** TEST METHODS */
-
   /**
     * Insert description here
     *
@@ -68,67 +66,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * @return
     * @throws
     */
-  def find : Response = {
-    client.send(
-      requestBuilder
-        .withUrl("https://" + address + ":" + port + "/collections")
-        .withMethod(GET))
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def find(key: String, collection: String = "") : Response = {
-    val path =
-      if(!collection.isEmpty) "/" + collection + "/" + key
-      else "/" + key
-    client.send(
-      requestBuilder
-        .withUrl("https://" + address + ":" + port + "/collections/dummy" + path)
-        .withMethod(GET))
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  // def insert(key: String, collection: String = "", json: String = "") : Response = {
-  //   val path =
-  //     if(!collection.isEmpty) "/" + collection + "/" + key
-  //     else "/" + key
-  //   client.send(
-  //     requestBuilder
-  //       .withUrl("https://" + address + ":" + port + "/collections" + path)
-  //       .withBody(json)
-  //       .withMethod(POST)
-  //   )
-  // }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def delete(key: String, collection: String = ""): Response = {
-    val path =
-      if(!collection.isEmpty) "/" + collection + "/" + key
-      else "/" + key
-    client.send(
-      requestBuilder
-        .withUrl("https://" + address + ":" + port + "/collections" + path)
-        .withMethod(DELETE))
-  }
-
-  /** ALTERNATIVE */
+  def changePassword(newpassword: String): Boolean
 
   /**
     * Return a list of collection name stored remotely on the server
@@ -236,6 +174,24 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
       false
     else true
   }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def importFromFile(path: String): Boolean = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def exportToFile(path: String): Boolean = ???
 
   /**
     * Shutdown the connection with the server

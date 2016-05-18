@@ -56,6 +56,15 @@ case class ActorbaseCollection
     extends Serializer with Connector {
 
   /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def rename(newName: String): Boolean = ???
+
+  /**
     * Insert an arbitrary variable number of key-value tuple to the collection
     * reflecting local changes to remote collection on server-side
     *
@@ -82,6 +91,24 @@ case class ActorbaseCollection
     * @throws
     */
   def insert(kv: ActorbaseObject): ActorbaseCollection = this.insert((kv.getKey -> kv.getValue))
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def update(kv: Tuple2[String, Any]*): ActorbaseCollection = {
+    for ((k, v) <- kv) {
+      if(!data.contains(k)) {
+        data -= k
+        data += (k -> v)
+        requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+      }
+    }
+    ActorbaseCollection(owner, collectionName, data)
+  }
 
   /**
     * Remove an arbitrary variable number of key-value tuple from the collection
@@ -178,6 +205,15 @@ case class ActorbaseCollection
     * @throws
     */
   def count: Int = data.size
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def export(path: String): Boolean = ???
 
   /**
     * Insert description here

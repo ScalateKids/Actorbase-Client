@@ -71,7 +71,7 @@ class CommandReceiver(params: Map[Any, Any]) {
 
     actColl.insert((key, value))
 
-    //"Item inserted" //stub
+    "Item inserted" //stub
   }
 
   /**
@@ -86,7 +86,7 @@ class CommandReceiver(params: Map[Any, Any]) {
 
     actColl.remove( key )
 
-    //"Item removed" //stub
+    "Item removed" //stub
   }
 
 

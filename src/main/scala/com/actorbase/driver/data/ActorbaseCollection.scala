@@ -249,9 +249,11 @@ case class ActorbaseCollection
     * @throws
     */
   override def toString: String = {
-    data += ("collection" -> collectionName)
-    data += ("owner" -> owner)
-    serialize2JSON4s(data)
+    var headers = new TreeMap[String, Any]()
+    headers += ("collection" -> collectionName)
+    headers += ("owner" -> owner)
+    headers += ("items" -> data)
+    serialize2JSON4s(headers)
   }
 
 }

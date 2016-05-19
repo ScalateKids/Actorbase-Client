@@ -31,10 +31,10 @@ package com.actorbase.driver.data
 import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
-import com.actorbase.driver.ActorbaseDriver
+import java.io.{File, PrintWriter}
 
 import scala.collection.immutable.TreeMap
-import scala.collection.JavaConversions
+import scala.collection.generic.FilterMonadic
 
 // import spray.json._
 // import DefaultJsonProtocol._
@@ -55,6 +55,15 @@ case class ActorbaseCollection
   (val owner: String, var collectionName: String,
     var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection)
     extends Serializer with Connector {
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def rename(newName: String): Boolean = ???
 
   /**
     * Insert an arbitrary variable number of key-value tuple to the collection
@@ -85,6 +94,24 @@ case class ActorbaseCollection
   def insert(kv: ActorbaseObject): ActorbaseCollection = this.insert((kv.getKey -> kv.getValue))
 
   /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def update(kv: Tuple2[String, Any]*): ActorbaseCollection = {
+    for ((k, v) <- kv) {
+      if(!data.contains(k)) {
+        data -= k
+        data += (k -> v)
+        requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+      }
+    }
+    ActorbaseCollection(owner, collectionName, data)
+  }
+
+  /**
     * Remove an arbitrary variable number of key-value tuple from the collection
     * reflecting local changes to remote collection on server-side
     *
@@ -93,13 +120,14 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def remove(keys: String*): Unit = {
+  def remove(keys: String*): ActorbaseCollection = {
     for(key <- keys) {
       if(data.contains(key)) {
         data -= key
         requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       }
     }
+    ActorbaseCollection(owner, collectionName, data)
   }
 
   /**
@@ -110,7 +138,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
+  def remove(kv: ActorbaseObject): ActorbaseCollection = this.remove(kv.getKey)
 
   /**
     * Find an arbitrary number of elements inside the collection, returning a
@@ -121,8 +149,9 @@ case class ActorbaseCollection
     * @throws
     */
   def find(keys: String*): ActorbaseCollection = {
-    val collection: TreeMap[String, Any] = data filter keys.contains
-    ActorbaseCollection(owner, collectionName, collection)
+    var coll: TreeMap[String, Any] = TreeMap[String, Any]()
+    keys.foreach(key => coll += data.filterKeys(_ == key).head)
+    ActorbaseCollection(owner, collectionName, coll)
   }
 
   /**
@@ -134,11 +163,9 @@ case class ActorbaseCollection
     * @throws
     */
   def findOne(key: String): ActorbaseObject = {
-    val actorbaseObject =
-      if (data.contains(key))
-        ActorbaseObject(key -> data.get(key).get)
-      else ActorbaseObject(None)
-    actorbaseObject
+    if (data.contains(key))
+      ActorbaseObject(key -> data.get(key).get)
+    else ActorbaseObject(None)
   }
 
   /**
@@ -167,9 +194,11 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def drop = {
-    data.empty
-    requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
+  def drop: Boolean = {
+    data = data.empty
+    val response = requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
+    if (response.statusCode == 200) true
+    else false
   }
 
   /**
@@ -188,7 +217,29 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
+  def export(path: String): Unit = {
+    val printWriter = new PrintWriter(new File(path))
+    printWriter.write(serialize2JSON(this))
+    printWriter.close
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
   def foreach(f: ((String, Any)) => Unit): Unit = data.foreach(f)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def withFilter(f: ((String, Any)) => Boolean): FilterMonadic[(String, Any), TreeMap[String, Any]] = data.withFilter(f)
 
   /**
     * Insert description here

@@ -26,29 +26,21 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.data
+package com.actorbase.driver
 
 import com.actorbase.driver.client.Connector
-import com.actorbase.driver.ActorbaseDriver.Connection
+import com.actorbase.driver.client.api.RestMethods._
+import com.actorbase.driver.client.api.RestMethods.Status._
+import com.actorbase.driver.data.Serializer
 
-import scala.collection.immutable.TreeMap
-import scala.collection.generic.FilterMonadic
-
-case class ActorbaseCollectionMap private
-  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection) extends Serializer with Connector {
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def find(keys: String*): ActorbaseCollection = {
-    var coll = new TreeMap[String, Any]()
-    data map {collection => collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))}
-    ActorbaseCollection("anonymous", "findResults", coll)
-  }
+/**
+  * Insert description here
+  *
+  * @param
+  * @return
+  * @throws
+  */
+trait ActorbaseAdminServices extends Serializer with Connector {
 
   /**
     * Insert description here
@@ -57,13 +49,7 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  def drop(collections: String*): Unit = {
-    // TODO: exceptions check
-    collections.foreach { collection =>
-      data.get(collection).get.drop
-      data -= collection
-    }
-  }
+  def addUser(username: String): Boolean = ???
 
   /**
     * Insert description here
@@ -72,7 +58,7 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  def count: Int = data.size
+  def removeUser(username: String): Boolean = ???
 
   /**
     * Insert description here
@@ -81,24 +67,6 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  def foreach(f: ((String, ActorbaseCollection)) => Unit): Unit = data.foreach(f)
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def withFilter(f: ((String, ActorbaseCollection)) => Boolean): FilterMonadic[(String, ActorbaseCollection), TreeMap[String, ActorbaseCollection]] = data.withFilter(f)
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  override def toString: String = data.mkString
+  def resetPassword(username: String): Boolean = ???
 
 }

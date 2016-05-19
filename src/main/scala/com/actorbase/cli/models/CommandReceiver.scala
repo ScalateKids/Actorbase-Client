@@ -70,11 +70,11 @@ class CommandReceiver(params: Map[Any, Any]) {
 
   def removeItem() : String = {
     var result : String = "[REMOVE ITEM]\n"
-    for ((k, v) <- params) {
-      result += CommandReceiver.actorbaseDriver.delete(
-        params.get("key").get.asInstanceOf[String],
-        params.get("collection").get.asInstanceOf[String]).body.getOrElse("None")
-    }
+    // for ((k, v) <- params) {
+      // result += CommandReceiver.actorbaseDriver.delete(
+      //   params.get("key").get.asInstanceOf[String],
+      //   params.get("collection").get.asInstanceOf[String]).body.getOrElse("Nonnne")
+    // }
     result
   }
 
@@ -138,8 +138,9 @@ class CommandReceiver(params: Map[Any, Any]) {
             //TODO find key from all database
             println("no collection")
           case Some(c) =>
-            response = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]](0)).toString
-            println("collection is "+c.asInstanceOf[List[String]](0))
+            println("should call a find, still to be implemented into the driver")
+            //response = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]](0)).toString
+            //println("collection is "+c.asInstanceOf[List[String]](0))
         }
     }
 

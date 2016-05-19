@@ -61,16 +61,11 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return
     */
   def insert() : String = {
-    /*var result = ""
-    for ((k, v) <- params) {
-      result += k+" "+v+"\n"
-    }
-    println(result)*/
     val key = params.get("key").get.asInstanceOf[String]
     val value = params.get("value").get
     val collection = params.get("collection").get.asInstanceOf[String]
 
-    println(key+" "+value+" "+collection)
+    //println(key+" "+value+" "+collection)
 
     val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
 

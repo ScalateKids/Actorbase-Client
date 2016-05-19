@@ -111,7 +111,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
         case double if double matches("""^\d+\.\d+""") => double.toDouble
         case _ => args_2
       }
-      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "value" -> value, "collection" -> args_3)))
+      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "value" -> value, "collection" -> args_3)))
   }
 
   // TODO insert item da file?

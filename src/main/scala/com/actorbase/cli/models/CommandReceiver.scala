@@ -61,15 +61,22 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return
     */
   def insert() : String = {
-    var result : String = "[INSERT]\n"
+    /*var result = ""
     for ((k, v) <- params) {
-      println(v.getClass)
-      result += s"$k -> $v\n"
+      result += k+" "+v+"\n"
     }
-    // result
-    CommandReceiver.actorbaseDriver.addCollection("customers") // stub
-    "ok"
-    // CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
+    println(result)*/
+    val key = params.get("key").get.asInstanceOf[String]
+    val value = params.get("value").get
+    val collection = params.get("collection").get.asInstanceOf[String]
+
+    println(key+" "+value+" "+collection)
+
+    val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
+
+    val res = actColl.insert((key, value))
+
+    "Item inserted" //stub
   }
 
   /**
@@ -86,17 +93,6 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  /**
-    *
-    * @return
-    */
-  def export() : String = {
-    var result : String = "[EXPORT]\n"
-    for ((k, v) <- params) {
-      result += s"$k -> $v\n"
-    }
-    result
-  }
 
   /**
     *
@@ -294,4 +290,28 @@ class CommandReceiver(params: Map[Any, Any]) {
     }
     result
   }
+
+  /**
+    *
+    * @return
+    */
+  def export() : String = { //TODO to be done
+    //val list = params.get("p_list").asInstanceOf[List[String]]
+    //val path = params.get("f_path").asInstanceOf[String]
+
+    "Exported into "//+path
+  }
+
+  /**
+    *
+    * @return
+    */
+  /* TODO to be done
+  def import() : String = {
+    var result : String = "[EXPORT]\n"
+    for ((k, v) <- params) {
+      result += s"$k -> $v\n"
+    }
+    result
+  }*/
 }

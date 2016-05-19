@@ -158,7 +158,7 @@ case class ActorbaseCollection
     * Find an element inside the collection, returning an ActorbaseObject
     * representing the key/value pair
     *
-    * @param keys a String representing the key associated to the value to be retrieved
+    * @param key a String representing the key associated to the value to be retrieved
     * @return an object of type ActorbaseObject
     * @throws
     */

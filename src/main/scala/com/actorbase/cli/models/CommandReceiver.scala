@@ -69,9 +69,9 @@ class CommandReceiver(params: Map[Any, Any]) {
 
     val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
 
-    val res = actColl.insert((key, value))
+    actColl.insert((key, value))
 
-    "Item inserted" //stub
+    //"Item inserted" //stub
   }
 
   /**
@@ -79,13 +79,14 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return
     */
   def removeItem() : String = {
-    var result : String = "[REMOVE ITEM]\n"
-    // for ((k, v) <- params) {
-      // result += CommandReceiver.actorbaseDriver.delete(
-      //   params.get("key").get.asInstanceOf[String],
-      //   params.get("collection").get.asInstanceOf[String]).body.getOrElse("Nonnne")
-    // }
-    result
+    val key = params.get("key").get.asInstanceOf[String]
+    val collection = params.get("collection").get.asInstanceOf[String]
+
+    val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
+
+    actColl.remove( key )
+
+    //"Item removed" //stub
   }
 
 

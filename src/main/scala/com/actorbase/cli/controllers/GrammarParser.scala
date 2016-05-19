@@ -123,9 +123,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // meh
   def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
-    case "find" => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> None, "collection" -> None)))
+    case "find" => new FindCommand(new CommandReceiver(Map[Any, Any](/*"key" -> None, "collection" -> None*/)))
     case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
-    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> None, "collection" -> args_1.asInstanceOf[String].split(",").toList)))
+    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any](/*"key" -> None, */"collection" -> args_1.asInstanceOf[String].split(",").toList)))
     case "find" ~ args_1 ~ "from"  ~ args_2 =>
       new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2.asInstanceOf[String].split(",").toList)))
   }

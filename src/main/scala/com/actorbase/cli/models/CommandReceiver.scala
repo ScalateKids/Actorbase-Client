@@ -21,6 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
+  *
   * @author Scalatekids TODO DA CAMBIARE
   * @version 1.0
   * @since 1.0
@@ -115,14 +116,35 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @throws
     */
   def find() : String = {
-    var ret = ""
-    val key = params.get("key").getOrElse("None").asInstanceOf[String]
-    // val f = CommandReceiver.actorbaseDriver.find(key)
-    // f.body.getOrElse("Nonnne")
-    val f = CommandReceiver.actorbaseDriver.getCollection("customers")
-    // for(v <- f) ret += v
-    // ret
-    f.toString
+    /*val key = params.get("key").getOrElse("None").asInstanceOf[String]
+    val collectionList = params.get("collection").get.asInstanceOf[List[String]]
+    val collection = collectionList(0)*/
+
+    var response = ""
+    params.get("key") match{
+      case None =>
+        params.get("collection") match{
+          case None =>
+            //TODO get all database?
+            println("no collection")
+          case Some(c) =>
+            //TODO if its a list should call another method
+            response = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) ).toString
+        }
+      case Some(k) =>
+        println("key is " + k)
+        params.get("collection") match{
+          case None =>
+            //TODO find key from all database
+            println("no collection")
+          case Some(c) =>
+            println("should call a find, still to be implemented into the driver")
+            //response = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]](0)).toString
+            //println("collection is "+c.asInstanceOf[List[String]](0))
+        }
+    }
+
+    response
   }
 
   // ugly as hell

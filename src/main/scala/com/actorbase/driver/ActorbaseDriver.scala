@@ -79,7 +79,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     val response =
       requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET send()
     if(response.statusCode == OK)
-      JSON.parseFull(response.body.get).get.asInstanceOf[List[String]]
+      JSON.parseFull(response.body.get).getOrElse(List()).asInstanceOf[List[String]]
     else List()
   }
 
@@ -119,7 +119,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
         buffer += (k -> deserializeFromByteArray(byteArray))
       }
     }
-    ActorbaseCollection("user", collectionName, buffer)
+    ActorbaseCollection("anonymous", collectionName, buffer)
   }
 
   /**
@@ -131,7 +131,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
     val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod POST send() // control response
-    ActorbaseCollection("user", collectionName) // stub owner
+    ActorbaseCollection("anonymous", collectionName) // stub owner
   }
 
   /**

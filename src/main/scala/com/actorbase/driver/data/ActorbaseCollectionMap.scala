@@ -29,12 +29,13 @@
 package com.actorbase.driver.data
 
 import com.actorbase.driver.client.Connector
+import com.actorbase.driver.ActorbaseDriver.Connection
 
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
 
 case class ActorbaseCollectionMap private
-  (val data: TreeMap[String, ActorbaseCollection]) extends Serializer with Connector {
+  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection) extends Serializer with Connector {
 
   /**
     * Insert description here
@@ -43,7 +44,11 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  def find(keys: String*): ActorbaseCollection = ???
+  def find(keys: String*): ActorbaseCollection = {
+    var coll = new TreeMap[String, Any]()
+    data map {collection => collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))}
+    ActorbaseCollection("anonymous", "findResults", coll)
+  }
 
   /**
     * Insert description here
@@ -52,7 +57,13 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  def drop(collections: String*): Unit = ???
+  def drop(collections: String*): Unit = {
+    // TODO: exceptions check
+    collections.foreach { collection =>
+      data.get(collection).get.drop
+      data -= collection
+    }
+  }
 
   /**
     * Insert description here
@@ -88,6 +99,6 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  override def toString: String = serialize2JSON4s(this)
+  override def toString: String = data.mkString
 
 }

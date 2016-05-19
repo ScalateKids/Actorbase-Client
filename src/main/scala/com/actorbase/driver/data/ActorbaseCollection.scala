@@ -31,6 +31,7 @@ package com.actorbase.driver.data
 import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
+import java.io.{File, PrintWriter}
 
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
@@ -119,13 +120,14 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def remove(keys: String*): Unit = {
+  def remove(keys: String*): ActorbaseCollection = {
     for(key <- keys) {
       if(data.contains(key)) {
         data -= key
         requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       }
     }
+    ActorbaseCollection(owner, collectionName, data)
   }
 
   /**
@@ -136,7 +138,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def remove(kv: ActorbaseObject): Unit = this.remove(kv.getKey)
+  def remove(kv: ActorbaseObject): ActorbaseCollection = this.remove(kv.getKey)
 
   /**
     * Find an arbitrary number of elements inside the collection, returning a
@@ -192,9 +194,11 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def drop = {
-    data.empty
-    requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
+  def drop: Boolean = {
+    data = data.empty
+    val response = requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
+    if (response == 200) true
+    else false
   }
 
   /**
@@ -213,7 +217,11 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def export(path: String): Boolean = ???
+  def export(path: String): Unit = {
+    val printWriter = new PrintWriter(new File(path))
+    printWriter.write(serialize2JSON(this))
+    printWriter.close
+  }
 
   /**
     * Insert description here

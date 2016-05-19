@@ -69,11 +69,11 @@ class CommandReceiver(params: Map[Any, Any]) {
 
   def removeItem() : String = {
     var result : String = "[REMOVE ITEM]\n"
-    for ((k, v) <- params) {
-      result += CommandReceiver.actorbaseDriver.delete(
-        params.get("key").get.asInstanceOf[String],
-        params.get("collection").get.asInstanceOf[String]).body.getOrElse("Nonnne")
-    }
+    // for ((k, v) <- params) {
+      // result += CommandReceiver.actorbaseDriver.delete(
+      //   params.get("key").get.asInstanceOf[String],
+      //   params.get("collection").get.asInstanceOf[String]).body.getOrElse("Nonnne")
+    // }
     result
   }
 

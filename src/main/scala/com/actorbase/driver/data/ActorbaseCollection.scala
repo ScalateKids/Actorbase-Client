@@ -197,7 +197,7 @@ case class ActorbaseCollection
   def drop: Boolean = {
     data = data.empty
     val response = requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
-    if (response == 200) true
+    if (response.statusCode == 200) true
     else false
   }
 

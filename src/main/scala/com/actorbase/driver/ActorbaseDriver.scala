@@ -66,7 +66,7 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * @return
     * @throws
     */
-  def changePassword(newpassword: String): Boolean
+  def changePassword(newpassword: String): Boolean = ???
 
   /**
     * Return a list of collection name stored remotely on the server

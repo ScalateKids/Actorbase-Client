@@ -56,36 +56,44 @@ object CommandReceiver {
   */
 class CommandReceiver(params: Map[Any, Any]) {
 
+  /**
+    *
+    * @return
+    */
   def insert() : String = {
-    var result : String = "[INSERT]\n"
-    for ((k, v) <- params) {
-      println(v.getClass)
-      result += s"$k -> $v\n"
-    }
-    // result
-    CommandReceiver.actorbaseDriver.addCollection("customers")
-    "ok"
-    // CommandReceiver.actorbaseDriver.insert("chiave10", "dummy", result).body.getOrElse("Nonnne")
+    val key = params.get("key").get.asInstanceOf[String]
+    val value = params.get("value").get
+    val collection = params.get("collection").get.asInstanceOf[String]
+
+    //println(key+" "+value+" "+collection)
+
+    val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
+
+    actColl.insert((key, value))
+
+    "Item inserted" //stub
   }
 
+  /**
+    *
+    * @return
+    */
   def removeItem() : String = {
-    var result : String = "[REMOVE ITEM]\n"
-    // for ((k, v) <- params) {
-      // result += CommandReceiver.actorbaseDriver.delete(
-      //   params.get("key").get.asInstanceOf[String],
-      //   params.get("collection").get.asInstanceOf[String]).body.getOrElse("Nonnne")
-    // }
-    result
+    val key = params.get("key").get.asInstanceOf[String]
+    val collection = params.get("collection").get.asInstanceOf[String]
+
+    val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
+
+    actColl.remove( key )
+
+    "Item removed" //stub
   }
 
-  def export() : String = {
-    var result : String = "[EXPORT]\n"
-    for ((k, v) <- params) {
-      result += s"$k -> $v\n"
-    }
-    result
-  }
 
+  /**
+    *
+    * @return
+    */
   def login() : String = {
     var result : String ="[LOGIN]\n"
     for((k,v) <- params) {
@@ -126,9 +134,10 @@ class CommandReceiver(params: Map[Any, Any]) {
         params.get("collection") match{
           case None =>
             //TODO get all database?
-            println("no collection")
+            println("should call a get database or something like this")
           case Some(c) =>
-            //TODO if its a list should call another method
+            //TODO if its a list should call another method, or change this in the driver
+            println("asking for "+c.asInstanceOf[List[String]](0))
             response = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) ).toString
         }
       case Some(k) =>
@@ -136,7 +145,7 @@ class CommandReceiver(params: Map[Any, Any]) {
         params.get("collection") match{
           case None =>
             //TODO find key from all database
-            println("no collection")
+            println("should call a find key into all the database")
           case Some(c) =>
             println("should call a find, still to be implemented into the driver")
             //response = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]](0)).toString
@@ -147,6 +156,10 @@ class CommandReceiver(params: Map[Any, Any]) {
     response
   }
 
+  /**
+    *
+    * @return
+    */
   // ugly as hell
   def help() : String = {
     var result : String = "[HELP]\n"
@@ -156,33 +169,56 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  /*  collection operations */
+  /**
+    *
+    * @return
+    */
   def createCollection() : String = {
-    var result : String = "[CREATE COLLECTION]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
-    }
-    result
+    val name = params.get("name").get.asInstanceOf[String]
+    CommandReceiver.actorbaseDriver.addCollection(name)
+
+    //TODO check if everything was ok?
+
+    "collection "+name+" created" // stub
   }
 
-  def listCollections() : String = "[LIST COLLECTIONS]\n"
+  /**
+    *
+    * @return
+    */
+  def listCollections() : String = {  //TODO need test when the server will implement this feature
+    val collectionList = CommandReceiver.actorbaseDriver.listCollections
 
-  def renameCollection() : String = {
-    var result : String = "[MODIFY COLLECT NAME]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
-    }
-    result
+    collectionList.foreach(println)
+
+    var list = ""
+    collectionList.foreach(c => list = list+c+"\n")
+    list
   }
 
-  def deleteCollection() : String = {
-    var result : String = "[DELETE COLLECTION]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
-    }
-    result
+  /**
+    *
+    * @return
+    */
+  def renameCollection() : String = { //TODO
+    "to be implemented soon"
   }
 
+  /**
+    *
+    * @return
+    */
+  def deleteCollection() : String = { //TODO need test when the server will implement this feature
+    val name = params.get("Collection").get.asInstanceOf[String]
+    val done = CommandReceiver.actorbaseDriver.dropCollection(name)
+
+    if (done) name+" deleted" else "there was an error deleting "+name
+  }
+
+  /**
+    *
+    * @return
+    */
   def addCollaborator() : String = {
     var result: String="[ADD CONTRIBUTOR]\n"
     for((k,v) <- params){
@@ -191,6 +227,10 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
+  /**
+    *
+    * @return
+    */
   def removeCollaborator() : String = {
     var result: String="[REMOVE COLLABORATOR]\n"
     for((k,v) <- params){
@@ -199,14 +239,22 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
-  def changePassword() : String = {
-    var result: String="[CHANGE PASSWORD]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
-    }
-    result
+  /**
+    *
+    * @return
+    */
+  def changePassword() : String = { //TODO checks on psw?
+    val oldPsw = params.get("oldPsw").asInstanceOf[String]
+    val newPsw = params.get("newPsw").asInstanceOf[String]
+    val done = CommandReceiver.actorbaseDriver.changePassword(/*oldPsw, */newPsw)
+
+    if (done) "Password changed correctly" else "Something went wrong during the oepration"
   }
 
+  /**
+    *
+    * @return
+    */
   def addUser() : String = {
     var result: String="[ADD USER]\n"
     for((k,v) <- params){
@@ -215,6 +263,10 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
+  /**
+    *
+    * @return
+    */
   def removeUser() : String = {
     var result: String="[REMOVE USER]\n"
     for((k,v) <- params){
@@ -223,6 +275,10 @@ class CommandReceiver(params: Map[Any, Any]) {
     result
   }
 
+  /**
+    *
+    * @return
+    */
   def resetPassword() : String = {
     var result: String="[RESET PASSWORD]\n"
     for((k,v) <- params){
@@ -230,4 +286,28 @@ class CommandReceiver(params: Map[Any, Any]) {
     }
     result
   }
+
+  /**
+    *
+    * @return
+    */
+  def export() : String = { //TODO to be done
+    //val list = params.get("p_list").asInstanceOf[List[String]]
+    //val path = params.get("f_path").asInstanceOf[String]
+
+    "Exported into "//+path
+  }
+
+  /**
+    *
+    * @return
+    */
+  /* TODO to be done
+  def import() : String = {
+    var result : String = "[EXPORT]\n"
+    for ((k, v) <- params) {
+      result += s"$k -> $v\n"
+    }
+    result
+  }*/
 }

@@ -26,61 +26,17 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.client
+package com.actorbase.driver
 
-import org.scalatest._
+import _root_.akka.dispatch._
+import org.scalatra.FutureSupport
 
-import com.actorbase.driver.DriverSpecs.DriverUnitSpec
-import com.actorbase.driver.ActorbaseDriver
-import com.actorbase.driver.client.api.RequestBuilder
-import com.actorbase.driver.client.api.RestMethods._
-
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-class ActorbaseDriverSpec extends DriverUnitSpec with Matchers {
-
-  /**
-    * Basic test for a find command, should be launched only with
-    * an Actorbase-Server instance listening
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  ignore should "response with a future containing the requested key" in {
-
-    val driver = new ActorbaseDriver("127.0.0.1")
-
-
+class MyAppServlet extends ScalatraServlet with FutureSupport {
+  get("/collections/:name"){
+    new AsyncResult { val is =
+      Future {
+        """{ collection: customers }"""
+      }
+    }
   }
-
-  /**
-    * Basic test for http request, should be launched only with
-    * an Actorbase-Server instance listening
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  ignore should "response with a future containing 'listCollections'" in {
-
-  }
-
-  /**
-    * Basic test for https request, should be launched only with
-    * an Actorbase-Server instance listening
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  ignore should "response with a future containing 'SSLlistCollections'" in {
-
-  }
-
 }

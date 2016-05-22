@@ -151,8 +151,8 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   // ugly as hell
   def help() : String = {
-    var result : String = "[HELP]\n"
-    params.get("command") match {
+    var result : String = ""//"[HELP]\n"
+    params.get("command").get match {
       case None =>
         ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
         entry =>
@@ -172,10 +172,10 @@ class CommandReceiver(params: Map[Any, Any]) {
                 entry.getValue.unwrapped
               }\n"
             }
-            else
-              result += "command not found, to have a list of commands available type <help>"
         }
     }
+    if(result == "")
+      result += "Command not found, to have a list of commands available type <help>"
     result
   }
 

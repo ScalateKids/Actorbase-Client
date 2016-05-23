@@ -65,8 +65,6 @@ class CommandReceiver(params: Map[Any, Any]) {
     val value = params.get("value").get
     val collection = params.get("collection").get.asInstanceOf[String]
 
-    //println(key+" "+value+" "+collection)
-
     val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
 
     actColl.insert((key, value))
@@ -124,32 +122,23 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @throws
     */
   def find() : String = {
-    /*val key = params.get("key").getOrElse("None").asInstanceOf[String]
-    val collectionList = params.get("collection").get.asInstanceOf[List[String]]
-    val collection = collectionList(0)*/
-
     var response = ""
     params.get("key") match{
       case None =>
         params.get("collection") match{
           case None =>
             //TODO get all database?
-            println("should call a get database or something like this")
           case Some(c) =>
             //TODO if its a list should call another method, or change this in the driver
-            println("asking for "+c.asInstanceOf[List[String]](0))
             response = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) ).toString
         }
       case Some(k) =>
-        println("key is " + k)
         params.get("collection") match{
           case None =>
             //TODO find key from all database
-            println("should call a find key into all the database")
           case Some(c) =>
-            println("should call a find, still to be implemented into the driver")
-            //response = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]](0)).toString
-            //println("collection is "+c.asInstanceOf[List[String]](0))
+            val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
+            response = actColl.findOne( k.toString ).toString
         }
     }
 
@@ -162,10 +151,31 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   // ugly as hell
   def help() : String = {
-    var result : String = "[HELP]\n"
-    ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
-      result += f"${entry.getKey}%-25s${entry.getValue.unwrapped}\n"
+    var result : String = ""//"[HELP]\n"
+    params.get("command").get match {
+      case None =>
+        ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
+        entry =>
+        result += f"${
+        entry.getKey
+        }%-25s${
+        entry.getValue.unwrapped
+        }\n"
+        }
+      case Some(c) =>
+        ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
+          entry =>
+            if(entry.getKey == c.toString) {
+              result += f"${
+                entry.getKey
+              }%-25s${
+                entry.getValue.unwrapped
+              }\n"
+            }
+        }
     }
+    if(result == "")
+      result += "Command not found, to have a list of commands available type <help>"
     result
   }
 

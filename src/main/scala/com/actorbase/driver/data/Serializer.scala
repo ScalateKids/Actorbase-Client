@@ -33,12 +33,7 @@ import scala.pickling.Defaults._
 import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization._
-// import org.json4s.native.Json
-// import org.json4s.native.JsonMethods._
 import org.json4s.jackson.JsonMethods._
-
-// import spray.json._
-// import MyJsonProtocol._
 
 trait Serializer {
 
@@ -90,9 +85,9 @@ trait Serializer {
     * @return a reference to the object deserialized
     * @throws
     */
-  def deserializeFromByteArray(bytes: Array[Byte]): Any = {
+  def deserializeFromByteArray(bytes: Array[Byte]): AnyVal = {
     import scala.pickling.binary._
-    bytes.unpickle[Any]
+    bytes.unpickle[AnyVal]
   }
 
   def deserializeDebugger(bytes: Array[Byte]): Any = {
@@ -100,6 +95,7 @@ trait Serializer {
     val in = new ObjectInputStream(new ByteArrayInputStream(bytes))
     in.readObject().asInstanceOf[Any]
   }
+
   /**
     * Deserialization method. Converts an object of type Array[Byte] to a
     * reference of type Any

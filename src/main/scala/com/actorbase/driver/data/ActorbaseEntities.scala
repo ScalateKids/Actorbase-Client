@@ -28,59 +28,24 @@
 
 package com.actorbase.driver.data
 
-// import scala.language.implicitConversions
-// import scala.pickling.Defaults._
+object ActorbaseEntities {
 
-case object ActorbaseObject {
-  //   /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
-  //   implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
-  //     import scala.pickling.binary._
-  //     o.pickle.value
-  //   }
-  //   implicit def Any2Binary(a: Any): Array[Byte] = {
-  //     import scala.pickling.binary._
-  //     a.pickle.value
-  //   }
-  /** Accepting key -> value format parameters */
-  def apply(kv: Tuple2[String, Any]): ActorbaseObject = new ActorbaseObject(Some(kv))
+  sealed trait ActorbaseEntity
 
-  def anyToInt(kv: Tuple2[String, Any]): ActorbaseObject = new ActorbaseObject(Some(kv._1 -> kv._2.asInstanceOf[Int]))
-}
+  case class IntegerEntity(v: Int) extends ActorbaseEntity
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-case class ActorbaseObject(elems: Option[Tuple2[String, Any]]) extends Serializer {
+  case class DoubleEntity(v: Double) extends ActorbaseEntity
 
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def getKey: String = elems.get._1
+  case class FloatEntity(v: Float) extends ActorbaseEntity
 
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def getValue: Any = elems.get._2
+  case class BoolEntity(v: Boolean) extends ActorbaseEntity
 
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  override def toString: String = serialize2JSON4s(this)
+  case class StringEntity(v: String) extends ActorbaseEntity
+
+  case class MapEntity(v: Map[String, ActorbaseEntity]) extends ActorbaseEntity
+
+  case class ArrayEntity(v: Seq[ActorbaseEntity]) extends ActorbaseEntity
+
+  case class Bin(v: Array[Byte]) extends ActorbaseEntity
 
 }

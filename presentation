@@ -1,0 +1,12 @@
+val client = new ActorbaseDriver
+var demoCol = client.addCollection("demoCollection")
+demoCol.insert("key" -> "value")
+for(i <- 1 to 5) demoCol.insert(s"key$i" -> s"value$i")
+println(demoCol)
+demoCol.foreach(println)
+for((k, v) <- demoCol) println(s"Contents: $k -> $v")
+client.addCollection("demoColl2").insert("intKey" -> 5, "doubleKey" -> 29.0).find("intKey")
+println(res5)
+case class Person(name: String, age: Int)
+println(demoCol)
+demoCol.insert("personItem" -> Person("noname", 42))

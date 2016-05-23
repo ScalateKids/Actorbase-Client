@@ -32,6 +32,7 @@ import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap, Serializer}
+import com.actorbase.driver.data.ActorbaseEntities._
 
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
@@ -109,15 +110,22 @@ class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends S
     * @throws
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
-    var buffer: TreeMap[String, Any] = new TreeMap[String, Any]()
+    var buffer: TreeMap[String, Any] = TreeMap[String, Any]().empty
     val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET send()
     if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
-      val collectionName = mapObject.get("collection").getOrElse("NoName")
-      for ((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
-        val byteArray = v.map(_.toByte).toArray
-        buffer += (k -> deserializeFromByteArray(byteArray))
-      }
+      // val collectionName = mapObject.get("collection").getOrElse("NoName")
+      buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+      // for ((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
+      //   val byteArray = v.map(_.toByte).toArray
+      //   deserializeFromByteArray(byteArray) match {
+      //     case int: Int =>
+      //       println("integer")
+      //       buffer += (k -> int)
+      //     case double: Double => buffer += (k -> double)
+      //   }
+      //   // buffer += (k -> deserializeFromByteArray(byteArray))
+      // }
     }
     ActorbaseCollection("anonymous", collectionName, buffer)
   }

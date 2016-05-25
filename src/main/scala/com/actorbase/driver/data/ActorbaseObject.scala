@@ -28,6 +28,7 @@
 
 package com.actorbase.driver.data
 
+import com.actorbase.driver.client.Serializer
 // import scala.language.implicitConversions
 // import scala.pickling.Defaults._
 

@@ -30,7 +30,7 @@ package com.actorbase.driver.client
 
 import com.actorbase.driver.client.api.RequestBuilder
 
-trait Connector {
+trait Connector extends Serializer {
 
   /**
     * ActorbaseClient instance, with stacked trait for SSL

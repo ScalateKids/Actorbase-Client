@@ -26,46 +26,24 @@
   * @since 1.0
   */
 
-package com.actorbase.driver
+package com.actorbase.driver.exceptions
 
-import com.actorbase.driver.client.Connector
-import com.actorbase.driver.client.api.RestMethods._
-import com.actorbase.driver.client.api.RestMethods.Status._
+case class WrongCredentialsExc(msg: String) extends Exception(msg)
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-trait ActorbaseAdminServices extends Connector {
+case class WrongPasswordExc(msg: String) extends Exception(msg)
 
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def addUser(username: String): Boolean = ???
+case class WrongNewPasswordExc(msg: String) extends Exception(msg)
 
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def removeUser(username: String): Boolean = ???
+case class CollectionAlreadyExistsExc(msg: String) extends Exception(msg)
 
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def resetPassword(username: String): Boolean = ???
+case class UndefinedCollectionExc(msg: String) extends Exception(msg)
 
-}
+case class UndefinedFileExc(msg: String) extends Exception(msg)
+
+case class DuplicateKeyExc(msg: String) extends Exception(msg)
+
+case class MalformedFileExc(msg: String) extends Exception(msg)
+
+case class UsernameAlreadyExistsExc(msg: String) extends Exception(msg)
+
+case class UndefinedUsernameExc(msg: String) extends Exception

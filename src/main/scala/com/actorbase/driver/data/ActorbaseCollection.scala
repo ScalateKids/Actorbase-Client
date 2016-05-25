@@ -54,7 +54,7 @@ import scala.collection.generic.FilterMonadic
 case class ActorbaseCollection
   (val owner: String, var collectionName: String,
     var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection)
-    extends Serializer with Connector {
+    extends Connector {
 
   /**
     * Insert description here

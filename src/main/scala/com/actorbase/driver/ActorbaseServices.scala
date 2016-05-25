@@ -37,15 +37,13 @@ import com.actorbase.driver.data.ActorbaseEntities._
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
 
-object ActorbaseDriver {
+object ActorbaseServices {
 
-  def apply(): ActorbaseDriver = new ActorbaseDriver("127.0.0.1", 9999)
+  def apply(): ActorbaseServices = new ActorbaseServices("127.0.0.1", 9999) with Connector
 
-  def apply(address: String): ActorbaseDriver = new ActorbaseDriver(address, 9999)
+  def apply(address: String): ActorbaseServices = new ActorbaseServices(address, 9999) with Connector
 
-  def apply(address: String, port: Int): ActorbaseDriver = new ActorbaseDriver(address, port)
-
-  case class Connection(address: String, port: Int)
+  def apply(address: String, port: Int): ActorbaseServices = new ActorbaseServices(address, port) with Connector
 
 }
 
@@ -56,7 +54,9 @@ object ActorbaseDriver {
   * @return
   * @throws
   */
-class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends Connector {
+class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
+
+  this: Connector =>
 
   implicit val connection = ActorbaseDriver.Connection(address, port)
 

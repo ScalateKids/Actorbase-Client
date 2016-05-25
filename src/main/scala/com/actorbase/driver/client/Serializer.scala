@@ -26,7 +26,7 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.data
+package com.actorbase.driver.client
 
 import scala.pickling.Defaults._
 

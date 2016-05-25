@@ -35,7 +35,7 @@ import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
 
 case class ActorbaseCollectionMap private
-  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection) extends Serializer with Connector {
+  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection) extends Connector {
 
   /**
     * Insert description here

@@ -121,7 +121,7 @@ case class ActorbaseCollection
     * @throws
     */
   def remove(keys: String*): ActorbaseCollection = {
-    for(key <- keys) {
+    keys.foreach { key =>
       if(data.contains(key)) {
         data -= key
         requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + key withMethod DELETE send()
@@ -141,17 +141,28 @@ case class ActorbaseCollection
   def remove[A >: Any](kv: ActorbaseObject[A]): ActorbaseCollection = this.remove(kv.keys.toSeq:_*)
 
   /**
-    * Find an arbitrary number of elements inside the collection, returning a
-    * new ActorbaseCollection
+    * Return all the contents of the collection in an ActorbaseObject
+    *
+    * @return an object of type ActorbaseObject
+    * @throws
+    */
+  def find[A >: Any]:ActorbaseObject[A] = ActorbaseObject(data)
+
+  /**
+    * Find an arbitrary number of elements inside the collection, returning an
+    * ActorbaseObject
+    *
     *
     * @param keys a vararg String representing a sequence of keys to be retrieved
-    * @return an object of type ActorbaseCollection
+    * @return an object of type ActorbaseObject
     * @throws
     */
   def find[A >: Any](keys: String*): ActorbaseObject[A] = {
-    var coll: TreeMap[String, Any] = TreeMap[String, Any]()
-    keys.foreach(key => coll += data.filterKeys(_ == key).head)
-    // ActorbaseCollection(owner, collectionName, coll)
+    var coll = TreeMap[String, Any]().empty
+    keys.foreach { key =>
+      if (data.contains(key))
+        coll += data.filterKeys(_ == key).head
+    }
     ActorbaseObject(coll.toMap)
   }
 

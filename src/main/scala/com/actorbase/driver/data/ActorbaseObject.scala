@@ -29,57 +29,96 @@
 package com.actorbase.driver.data
 
 import com.actorbase.driver.client.Serializer
-// import scala.language.implicitConversions
-// import scala.pickling.Defaults._
 
 case object ActorbaseObject {
-  //   /** Implicit conversion to Array[Byte], using BinaryPickle.PickleType object */
-  //   implicit def ActorbaseObject2Binary(o: ActorbaseObject): Array[Byte] = {
-  //     import scala.pickling.binary._
-  //     o.pickle.value
-  //   }
-  //   implicit def Any2Binary(a: Any): Array[Byte] = {
-  //     import scala.pickling.binary._
-  //     a.pickle.value
-  //   }
-  /** Accepting key -> value format parameters */
-  def apply(kv: Tuple2[String, Any]): ActorbaseObject = new ActorbaseObject(Some(kv))
-
-  def anyToInt(kv: Tuple2[String, Any]): ActorbaseObject = new ActorbaseObject(Some(kv._1 -> kv._2.asInstanceOf[Int]))
+  def apply[B >: Any](kv: (String, B)*): ActorbaseObject[B] = ActorbaseObject(kv.toMap)
 }
 
 /**
-  * Insert description here
+  * Map Scala class for ActorbaseObject - proxies an existing ActorbaseObject on
+  * the server. Allow to navigate and modify contents to be added to the system.
   *
-  * @param
-  * @return
-  * @throws
   */
-case class ActorbaseObject(elems: Option[Tuple2[String, Any]]) extends Serializer {
+case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, B] with Serializer {
 
   /**
-    * Insert description here
+    * Get an Option[A], used to retrieve a value inside the object by specifying
+    * its type
     *
-    * @param
-    * @return
+    * @param key a String representing the key associated to the value to be retrieved
+    * @return Option[A] an Option containing the value of type A
     * @throws
     */
-  def getKey: String = elems.get._1
+  def as[A](key: String): Option[A] = elems.get(key) map (x => Some(x.asInstanceOf[A])) getOrElse None
 
   /**
-    * Insert description here
+    * Override of the method + of the Map trait for Scala, add a key-value to
+    * the ActorbaseObject
     *
-    * @param
-    * @return
+    * @param kv a key-value pair of type String - Any
+    * @return an object of type ActorbaseObject, representing a proxy object of the system
     * @throws
     */
-  def getValue: Any = elems.get._2
+  override def +[B1 >: B](kv: (String, B1)): ActorbaseObject[B1] = ActorbaseObject[B1](elems + (kv._1 -> kv._2))
 
   /**
-    * Insert description here
+    * Override of the method + of the Map trait for Scala, add key-values from
+    * the ActorbaseObject
     *
-    * @param
-    * @return
+    * @param elem1 a String-Any pair
+    * @param elem2 a String-Any pair
+    * @param elemss multiple String-Any pairs
+    * @return an object of type ActorbaseObject representing a proxy of an object to be added to the system
+    * @throws
+    */
+  override def +[B1 >: B](elem1: (String, B1), elem2: (String, B1), elemss: (String, B1)*): ActorbaseObject[B1] =
+    ActorbaseObject[B1](elems + (elem1._1 -> elem1._2) + (elem2._1 -> elem2._2) ++ elemss.toMap)
+
+  /**
+    * Override of the method - of the Map trait for Scala, remove a key-value to
+    * the ActorbaseObject
+    *
+    * @param key a String representing a key associated to the value of the item designed for removal
+    * @return an object of type ActobaseObject representing a proxy of an existing object desgned for removal from the system
+    * @throws
+    */
+  override def -(key: String): ActorbaseObject[Any] = ActorbaseObject(elems - key)
+
+  /**
+    * Override of the method - of the Map trait for Scala, remove multiple key-values from
+    * the ActorbaseObject
+    *
+    * @param key1 a String representing a key associated to the value of the item designed for removal
+    * @param key2 a String representing a key associated to the value of the item designed for removal
+    * @param keys a sequence of String representing multiple keys associated to the values of the items designed for removal
+    * @return an object of type ActobaseObject representing a proxy of an existing object desgned for removal from the system
+    * @throws
+    */
+  override def -(key1: String, key2: String, keys: String*): ActorbaseObject[Any] = ActorbaseObject(elems - key1 - key2 -- keys.toSeq)
+
+  /**
+    * Override of the method get of the trait Map for Scala, retrieve an
+    * Option[Any] containing the value associated to the given key
+    *
+    * @param key a String representing a key associated to a value inside the system
+    * @return an Option[Any] containing the value associated to the given key
+    * @throws
+    */
+  override def get(key: String): Option[Any] = elems.get(key)
+
+  /**
+    * Override of the method iterator of the trait Map for Scala, get an
+    * iterator instance
+    *
+    * @return an instance of Iterator[String, Any], allow to iterate thorugh the elements of the object
+    * @throws
+    */
+  override def iterator: Iterator[(String, Any)] = elems.iterator
+
+  /**
+    * Override of the method toString, give a JSON representation of the ActorbaseObject
+    *
+    * @return a String representing the ActorbaseObject JSON formatted
     * @throws
     */
   override def toString: String = serialize2JSON4s(this)

@@ -73,7 +73,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def insert(kv: Tuple2[String, Any]*): ActorbaseCollection = {
+  def insert(kv: (String, Any)*): ActorbaseCollection = {
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
@@ -91,7 +91,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def insert(kv: ActorbaseObject): ActorbaseCollection = this.insert((kv.getKey -> kv.getValue))
+  def insert[A >: Any](kv: ActorbaseObject[A]): ActorbaseCollection = this.insert(kv.toSeq:_*)
 
   /**
     * Insert description here
@@ -100,7 +100,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def update(kv: Tuple2[String, Any]*): ActorbaseCollection = {
+  def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
       if(!data.contains(k)) {
         data -= k
@@ -138,7 +138,7 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def remove(kv: ActorbaseObject): ActorbaseCollection = this.remove(kv.getKey)
+  def remove[A >: Any](kv: ActorbaseObject[A]): ActorbaseCollection = this.remove(kv.keys.toSeq:_*)
 
   /**
     * Find an arbitrary number of elements inside the collection, returning a
@@ -148,10 +148,11 @@ case class ActorbaseCollection
     * @return an object of type ActorbaseCollection
     * @throws
     */
-  def find(keys: String*): ActorbaseCollection = {
+  def find[A >: Any](keys: String*): ActorbaseObject[A] = {
     var coll: TreeMap[String, Any] = TreeMap[String, Any]()
     keys.foreach(key => coll += data.filterKeys(_ == key).head)
-    ActorbaseCollection(owner, collectionName, coll)
+    // ActorbaseCollection(owner, collectionName, coll)
+    ActorbaseObject(coll.toMap)
   }
 
   /**
@@ -162,10 +163,10 @@ case class ActorbaseCollection
     * @return an object of type ActorbaseObject
     * @throws
     */
-  def findOne(key: String): ActorbaseObject = {
+  def findOne[A >: Any](key: String): Option[ActorbaseObject[A]] = {
     if (data.contains(key))
-      ActorbaseObject(key -> data.get(key).get)
-    else ActorbaseObject(None)
+      Some(ActorbaseObject(key -> data.get(key).get))
+    else None
   }
 
   /**

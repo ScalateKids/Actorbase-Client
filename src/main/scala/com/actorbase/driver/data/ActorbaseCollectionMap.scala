@@ -35,7 +35,7 @@ import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
 
 case class ActorbaseCollectionMap private
-  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection) extends Connector {
+  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection, implicit val scheme: String = "http://") extends Connector {
 
   /**
     * Insert description here
@@ -47,7 +47,7 @@ case class ActorbaseCollectionMap private
   def find(keys: String*): ActorbaseCollection = {
     var coll = new TreeMap[String, Any]()
     data map {collection => collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))}
-    ActorbaseCollection("anonymous", "findResults", coll)
+    ActorbaseCollection("anonymous", "findResults", coll)(conn, scheme)
   }
 
   /**

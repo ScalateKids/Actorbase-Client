@@ -31,179 +31,48 @@ package com.actorbase.driver
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
-import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap}
-import com.actorbase.driver.data.ActorbaseEntities._
 
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
 
-object ActorbaseDriver {
+object ActorbaseDriver extends Connector {
 
-  def apply(): ActorbaseDriver = new ActorbaseDriver("127.0.0.1", 9999)
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def apply: ActorbaseServices = new ActorbaseServices() with Connector
 
-  def apply(address: String): ActorbaseDriver = new ActorbaseDriver(address, 9999)
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def apply(address: String = "127.0.0.1", port: Int = 9999, ssl: Boolean = false): ActorbaseServices = new ActorbaseServices(address, port) with Connector
 
-  def apply(address: String, port: Int): ActorbaseDriver = new ActorbaseDriver(address, port)
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def authenticate(username: String, password: String, address: String = "127.0.0.1", port: Int = 9999, ssl: Boolean = false): ActorbaseServices  = ???
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def authenticate(uri: String): ActorbaseServices = ???
 
   case class Connection(address: String, port: Int)
-
-}
-
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-class ActorbaseDriver(address: String = "127.0.0.1", port: Int = 9999) extends Connector {
-
-  implicit val connection = ActorbaseDriver.Connection(address, port)
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def changePassword(newpassword: String): Boolean = ???
-
-  /**
-    * Return a list of collection name stored remotely on the server
-    *
-    * @param
-    * @return a List[String] contained the collection names
-    * @throws
-    */
-  def listCollections : List[String] = {
-    val response =
-      requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET send()
-    if(response.statusCode == OK)
-      JSON.parseFull(response.body.get).getOrElse(List()).asInstanceOf[List[String]]
-    else List()
-  }
-
-  /**
-    * Return a list of collections, consider an object ActorbaseCollectionMap
-    *
-    * @param
-    * @return an ActorbaseCollectionMap containing a map of collections
-    * @throws
-    */
-  def getCollections: ActorbaseCollectionMap = ???
-
-  /**
-    * Retrieves an entire collection from server given the name. A collection is
-    * composed by an owner, a collection name and a list of key/value pairs.
-    * Keys are represented as String, value can be anything, from primitive
-    * types to custom objects. This tuples are stored inside the server as array
-    * of bytes; sending a getCollection request call for a marshaller on server
-    * side that convert to JSON string all contents of the collection requested,
-    * then, the value as Array[Byte] stream is deserialized to the original
-    * object stored inside the database.
-    *
-    * @param collectionName a String representing the collection to fetch
-    * @return an object of type ActorbaseCollection, traversable with foreach,
-    * containing a list of ActorbaseObject, representing key/value type object
-    * of Actorbase
-    * @throws
-    */
-  def getCollection(collectionName: String): ActorbaseCollection = {
-    var buffer: TreeMap[String, Any] = TreeMap[String, Any]().empty
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET send()
-    if (response.statusCode == OK) {
-      val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
-      // val collectionName = mapObject.get("collection").getOrElse("NoName")
-      buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
-      // for ((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
-      //   val byteArray = v.map(_.toByte).toArray
-      //   deserializeFromByteArray(byteArray) match {
-      //     case int: Int =>
-      //       println("integer")
-      //       buffer += (k -> int)
-      //     case double: Double => buffer += (k -> double)
-      //   }
-      //   // buffer += (k -> deserializeFromByteArray(byteArray))
-      // }
-    }
-    ActorbaseCollection("anonymous", collectionName, buffer)
-  }
-
-  /**
-    * Add a collection on server side of Actorbase
-    *
-    * @param collectionName a String representing the collection name to be retrieved from the server
-    * @return an ActorbaseCollection representing a collection stored on Actorbase
-    * @throws
-    */
-  def addCollection(collectionName: String): ActorbaseCollection = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod POST send() // control response
-    ActorbaseCollection("anonymous", collectionName) // stub owner
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
-    val response =
-      requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
-    collection
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def dropCollections: Boolean = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections" withMethod DELETE send()
-    if(response.statusCode != OK)
-      false
-    else true
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def dropCollection(collectionName: String): Boolean = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod DELETE send()
-    if(response.statusCode != OK)
-      false
-    else true
-  }
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def importFromFile(path: String): Boolean = ???
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def exportToFile(path: String): Boolean = ???
-
-  /**
-    * Shutdown the connection with the server
-    */
-  def logout() : Unit = println("logout")
 
 }

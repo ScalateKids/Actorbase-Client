@@ -32,18 +32,17 @@ import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap}
-import com.actorbase.driver.data.ActorbaseEntities._
 
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
 
 object ActorbaseServices {
 
-  def apply(): ActorbaseServices = new ActorbaseServices("127.0.0.1", 9999) with Connector
+  // def apply(): ActorbaseServices = new ActorbaseServices("127.0.0.1", 9999) with Connector
 
-  def apply(address: String): ActorbaseServices = new ActorbaseServices(address, 9999) with Connector
+  // def apply(address: String): ActorbaseServices = new ActorbaseServices(address, 9999) with Connector
 
-  def apply(address: String, port: Int): ActorbaseServices = new ActorbaseServices(address, port) with Connector
+  // def apply(address: String, port: Int): ActorbaseServices = new ActorbaseServices(address, port) with Connector
 
 }
 
@@ -54,9 +53,11 @@ object ActorbaseServices {
   * @return
   * @throws
   */
-class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
+class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (implicit val scheme: String = "http://") {
 
   this: Connector =>
+
+  val uri: String = scheme + address + ":" + port
 
   implicit val connection = ActorbaseDriver.Connection(address, port)
 
@@ -78,7 +79,7 @@ class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
     */
   def listCollections : List[String] = {
     val response =
-      requestBuilder withUrl "https://" + address + ":" + port + "/collectionlist" withMethod GET send()
+      requestBuilder withUrl uri + "/collectionlist" withMethod GET send()
     if(response.statusCode == OK)
       JSON.parseFull(response.body.get).getOrElse(List()).asInstanceOf[List[String]]
     else List()
@@ -111,23 +112,12 @@ class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
     var buffer: TreeMap[String, Any] = TreeMap[String, Any]().empty
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName + "/" withMethod GET send()
+    val response = requestBuilder withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
     if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
-      // val collectionName = mapObject.get("collection").getOrElse("NoName")
       buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
-      // for ((k, v) <- mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]]) {
-      //   val byteArray = v.map(_.toByte).toArray
-      //   deserializeFromByteArray(byteArray) match {
-      //     case int: Int =>
-      //       println("integer")
-      //       buffer += (k -> int)
-      //     case double: Double => buffer += (k -> double)
-      //   }
-      //   // buffer += (k -> deserializeFromByteArray(byteArray))
-      // }
     }
-    ActorbaseCollection("anonymous", collectionName, buffer)
+    ActorbaseCollection("anonymous", collectionName, buffer)(connection, scheme)
   }
 
   /**
@@ -138,8 +128,8 @@ class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod POST send() // control response
-    ActorbaseCollection("anonymous", collectionName) // stub owner
+    val response = requestBuilder withUrl uri + "/collections/" + collectionName withMethod POST send() // control response
+    ActorbaseCollection("anonymous", collectionName)(connection, scheme) // stub owner
   }
 
   /**
@@ -151,7 +141,7 @@ class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
     */
   def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
     val response =
-      requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
+      requestBuilder withUrl uri + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
     collection
   }
 
@@ -163,7 +153,7 @@ class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
     * @throws
     */
   def dropCollections: Boolean = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections" withMethod DELETE send()
+    val response = requestBuilder withUrl uri + "/collections" withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true
@@ -177,7 +167,7 @@ class ActorbaseServices(address: String = "127.0.0.1", port: Int = 9999) {
     * @throws
     */
   def dropCollection(collectionName: String): Boolean = {
-    val response = requestBuilder withUrl "https://" + address + ":" + port + "/collections/" + collectionName withMethod DELETE send()
+    val response = requestBuilder withUrl uri + "/collections/" + collectionName withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true

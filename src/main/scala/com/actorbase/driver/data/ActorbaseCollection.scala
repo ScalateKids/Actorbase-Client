@@ -53,8 +53,10 @@ import scala.collection.generic.FilterMonadic
   */
 case class ActorbaseCollection
   (val owner: String, var collectionName: String,
-    var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection)
+    var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection, implicit val scheme: String)
     extends Connector {
+
+  val uri: String = scheme + conn.address + ":" + conn.port
 
   /**
     * Insert description here
@@ -77,7 +79,7 @@ case class ActorbaseCollection
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        requestBuilder withUrl "https://" + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        requestBuilder withUrl scheme + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -105,7 +107,7 @@ case class ActorbaseCollection
       if(!data.contains(k)) {
         data -= k
         data += (k -> v)
-        requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+        requestBuilder withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -124,7 +126,7 @@ case class ActorbaseCollection
     keys.foreach { key =>
       if(data.contains(key)) {
         data -= key
-        requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+        requestBuilder withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -208,7 +210,7 @@ case class ActorbaseCollection
     */
   def drop: Boolean = {
     data = data.empty
-    val response = requestBuilder withUrl "https://" + conn.address + ":" + conn.port + "/collections/" + collectionName withMethod DELETE send()
+    val response = requestBuilder withUrl uri + "/collections/" + collectionName withMethod DELETE send()
     if (response.statusCode == 200) true
     else false
   }

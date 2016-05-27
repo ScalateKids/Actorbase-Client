@@ -85,9 +85,9 @@ trait Serializer {
     * @return a reference to the object deserialized
     * @throws
     */
-  def deserializeFromByteArray(bytes: Array[Byte]): AnyVal = {
+  def deserializeFromByteArray(bytes: Array[Byte]): Any = {
     import scala.pickling.binary._
-    bytes.unpickle[AnyVal]
+    bytes.unpickle[Any]
   }
 
   def deserializeDebugger(bytes: Array[Byte]): Any = {

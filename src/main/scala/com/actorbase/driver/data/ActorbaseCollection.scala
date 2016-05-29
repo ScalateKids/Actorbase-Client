@@ -28,7 +28,7 @@
 
 package com.actorbase.driver.data
 
-import com.actorbase.driver.ActorbaseDriver.Connection
+import com.actorbase.driver.ActorbaseServices.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import java.io.{File, PrintWriter}

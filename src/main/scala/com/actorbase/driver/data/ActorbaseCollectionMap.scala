@@ -29,7 +29,7 @@
 package com.actorbase.driver.data
 
 import com.actorbase.driver.client.Connector
-import com.actorbase.driver.ActorbaseDriver.Connection
+import com.actorbase.driver.ActorbaseServices.Connection
 
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic

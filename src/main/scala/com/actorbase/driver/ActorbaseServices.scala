@@ -44,6 +44,8 @@ object ActorbaseServices {
 
   // def apply(address: String, port: Int): ActorbaseServices = new ActorbaseServices(address, port) with Connector
 
+  case class Connection(username: String, password: String, address: String, port: Int)
+
 }
 
 /**
@@ -59,7 +61,16 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
 
   val uri: String = scheme + address + ":" + port
 
-  implicit val connection = ActorbaseDriver.Connection(address, port)
+  implicit val connection = ActorbaseServices.Connection("admin", "actorbase", address, port)
+
+  /**
+  * Insert description here
+  *
+  * @param
+  * @return
+  * @throws
+    */
+  // def getConnectionInfos: ActorbaseServices.Connection = connection
 
   /**
     * Insert description here

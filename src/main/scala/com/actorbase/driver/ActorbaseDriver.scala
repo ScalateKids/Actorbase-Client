@@ -73,6 +73,4 @@ object ActorbaseDriver extends Connector {
     */
   def authenticate(uri: String): ActorbaseServices = ???
 
-  case class Connection(address: String, port: Int)
-
 }

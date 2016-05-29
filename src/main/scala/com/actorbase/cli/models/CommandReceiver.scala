@@ -128,7 +128,7 @@ class CommandReceiver(params: Map[Any, Any]) {
       case None =>
         params.get("collection") match{
           case None =>
-            //TODO get all database?
+          //TODO get all database?
           case Some(c) =>
             //TODO if its a list should call another method, or change this in the driver
             response = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) ).toString
@@ -136,7 +136,7 @@ class CommandReceiver(params: Map[Any, Any]) {
       case Some(k) =>
         params.get("collection") match{
           case None =>
-            //TODO find key from all database
+          //TODO find key from all database
           case Some(c) =>
             val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
             response = actColl.findOne( k.toString ).toString
@@ -152,27 +152,27 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   // ugly as hell
   def help() : String = {
-    var result : String = ""//"[HELP]\n"
+    var result : String = "\n"//"[HELP]\n"
     params.get("command").get match {
       case None =>
         ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
-        entry =>
-        result += f"${
-        entry.getKey
-        }%-25s${
-        entry.getValue.unwrapped
-        }\n"
+          entry =>
+          result += f"  ${
+            entry.getKey
+          }%-25s${
+            entry.getValue.unwrapped
+          }\n"
         }
       case Some(c) =>
         ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
           entry =>
-            if(entry.getKey == c.toString) {
-              result += f"${
-                entry.getKey
-              }%-25s${
-                entry.getValue.unwrapped
-              }\n"
-            }
+          if(entry.getKey == c.toString) {
+            result += f"  ${
+              entry.getKey
+            }%-25s${
+              entry.getValue.unwrapped
+            }\n"
+          }
         }
     }
     if(result == "")
@@ -303,8 +303,8 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return
     */
   def export() : String = { //TODO to be done
-    //val list = params.get("p_list").asInstanceOf[List[String]]
-    //val path = params.get("f_path").asInstanceOf[String]
+                            //val list = params.get("p_list").asInstanceOf[List[String]]
+                            //val path = params.get("f_path").asInstanceOf[String]
 
     "Exported into "//+path
   }
@@ -314,11 +314,11 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return
     */
   /* TODO to be done
-  def import() : String = {
-    var result : String = "[EXPORT]\n"
-    for ((k, v) <- params) {
-      result += s"$k -> $v\n"
-    }
-    result
-  }*/
+   def import() : String = {
+   var result : String = "[EXPORT]\n"
+   for ((k, v) <- params) {
+   result += s"$k -> $v\n"
+   }
+   result
+   }*/
 }

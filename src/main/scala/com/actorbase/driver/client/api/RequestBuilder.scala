@@ -43,6 +43,8 @@ import com.actorbase.driver.client.ActorbaseClient
 case class RequestBuilder(
   method: Option[Method],
   url: Option[String],
+  user: Option[String],
+  password: Option[String],
   headers: Seq[(String, String)],
   body: Option[Array[Byte]]) {
 
@@ -63,6 +65,15 @@ case class RequestBuilder(
     * @throws
     */
   def withUrl(url: String): RequestBuilder = copy(url = Some(url))
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def withCredentials(uname: String, pass: String): RequestBuilder = copy(user = Some(uname), password = Some(pass))
 
   /**
     * Insert description here
@@ -103,7 +114,7 @@ case class RequestBuilder(
     * @throws
     */
   def toRequest: Request = {
-    Request(method.get, url.get, toHeaders(headers: _*), body)
+    Request(method.get, url.get, user.get, password.get, toHeaders(headers: _*), body)
   }
 
   /**
@@ -132,7 +143,7 @@ case class RequestBuilder(
   */
 object RequestBuilder {
 
-  val emptyBuilder = RequestBuilder(None, None, Seq(), None)
+  val emptyBuilder = RequestBuilder(None, None, None, None, Seq(), None)
 
   /**
     * Insert description here

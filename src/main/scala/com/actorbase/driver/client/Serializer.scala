@@ -93,7 +93,7 @@ trait Serializer {
   def deserializeDebugger(bytes: Array[Byte]): Any = {
     import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
     val in = new ObjectInputStream(new ByteArrayInputStream(bytes))
-    in.readObject().asInstanceOf[Any]
+    in.readUnshared().asInstanceOf[Any]
   }
 
   /**

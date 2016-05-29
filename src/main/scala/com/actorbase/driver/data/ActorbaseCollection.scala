@@ -79,7 +79,7 @@ case class ActorbaseCollection
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        requestBuilder withUrl scheme + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        requestBuilder withCredentials("admin", "actorbase") withUrl scheme + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -107,7 +107,7 @@ case class ActorbaseCollection
       if(!data.contains(k)) {
         data -= k
         data += (k -> v)
-        requestBuilder withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+        requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -126,7 +126,7 @@ case class ActorbaseCollection
     keys.foreach { key =>
       if(data.contains(key)) {
         data -= key
-        requestBuilder withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+        requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -210,7 +210,7 @@ case class ActorbaseCollection
     */
   def drop: Boolean = {
     data = data.empty
-    val response = requestBuilder withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
     if (response.statusCode == 200) true
     else false
   }

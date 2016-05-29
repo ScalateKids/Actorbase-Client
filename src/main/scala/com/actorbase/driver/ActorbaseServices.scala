@@ -79,7 +79,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def listCollections : List[String] = {
     val response =
-      requestBuilder withUrl uri + "/collectionlist" withMethod GET send()
+      requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collectionlist" withMethod GET send()
     if(response.statusCode == OK)
       JSON.parseFull(response.body.get).getOrElse(List()).asInstanceOf[List[String]]
     else List()
@@ -112,7 +112,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
     var buffer: TreeMap[String, Any] = TreeMap[String, Any]().empty
-    val response = requestBuilder withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
     if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
       buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
@@ -128,7 +128,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
-    val response = requestBuilder withUrl uri + "/collections/" + collectionName withMethod POST send() // control response
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod POST send() // control response
     ActorbaseCollection("anonymous", collectionName)(connection, scheme) // stub owner
   }
 
@@ -141,7 +141,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
     val response =
-      requestBuilder withUrl uri + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
+      requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
     collection
   }
 
@@ -153,7 +153,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @throws
     */
   def dropCollections: Boolean = {
-    val response = requestBuilder withUrl uri + "/collections" withMethod DELETE send()
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections" withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true
@@ -167,7 +167,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @throws
     */
   def dropCollection(collectionName: String): Boolean = {
-    val response = requestBuilder withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true

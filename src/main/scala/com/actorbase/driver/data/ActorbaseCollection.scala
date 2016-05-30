@@ -148,7 +148,7 @@ case class ActorbaseCollection
     * @return an object of type ActorbaseObject
     * @throws
     */
-  def find[A >: Any]:ActorbaseObject[A] = ActorbaseObject(data)
+  def find[A >: Any]: ActorbaseObject[A] = ActorbaseObject(data)
 
   /**
     * Find an arbitrary number of elements inside the collection, returning an

@@ -28,7 +28,8 @@
 
 package com.actorbase.driver.client
 
-import scala.pickling.Defaults._
+import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
+import scala.pickling._, Defaults._, json._
 
 import org.json4s._
 import org.json4s.native.Serialization
@@ -45,8 +46,15 @@ trait Serializer {
     * @throws
     */
   def serialize2byteArray(o: Any): Array[Byte] = {
-    import scala.pickling.binary._
-    o.pickle.value
+    // import scala.pickling.binary._
+    // o.pickle.value
+    val bos = new ByteArrayOutputStream()
+    var out = new ObjectOutputStream(bos)
+    out.writeObject(o);
+    val bytes = bos.toByteArray()
+    out.close();
+    bos.close();
+    bytes
   }
 
   /**
@@ -86,8 +94,21 @@ trait Serializer {
     * @throws
     */
   def deserializeFromByteArray(bytes: Array[Byte]): Any = {
-    import scala.pickling.binary._
-    bytes.unpickle[Any]
+    // import scala.pickling.binary._
+    // bytes.unpickle[Any]
+    import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+    val in = new ObjectInputStream(new ByteArrayInputStream(bytes))
+    in.readUnshared().asInstanceOf[Any]
+  }
+
+  def serializeDebugger(o: Any): Array[Byte] = {
+    val bos = new ByteArrayOutputStream()
+    var out = new ObjectOutputStream(bos)
+    out.writeObject(o);
+    val bytes = bos.toByteArray()
+    out.close();
+    bos.close();
+    bytes
   }
 
   def deserializeDebugger(bytes: Array[Byte]): Any = {

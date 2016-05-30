@@ -32,6 +32,7 @@ import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap}
+import scala.io.Source
 
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
@@ -182,7 +183,15 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @return
     * @throws
     */
-  def importFromFile(path: String): Boolean = ???
+  def importFromFile(path: String): Boolean = {
+    val json = Source.fromFile(path).getLines.mkString
+    val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
+    // println(mapObject)
+    val collectionName = mapObject.get("collection").getOrElse("NoName")
+    val buffer = mapObject.get("map").get.asInstanceOf[Map[String, Any]]
+    buffer map (x => requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + x._1 withBody serialize2byteArray(x._2) withMethod POST send() )
+    true
+  }
 
   /**
     * Insert description here

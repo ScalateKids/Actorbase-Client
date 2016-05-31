@@ -138,8 +138,10 @@ class CommandReceiver(params: Map[Any, Any]) {
           case None =>
           //TODO find key from all database
           case Some(c) =>
-            val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
-            response = actColl.findOne( k.toString ).toString
+            // val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
+            // response = actColl.findOne( k.toString ).toString
+            val actColl = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq:_*)
+            response = actColl.toString
         }
     }
 
@@ -221,7 +223,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def deleteCollection() : String = { //TODO need test when the server will implement this feature
     val name = params.get("Collection").get.asInstanceOf[String]
-    val done = CommandReceiver.actorbaseDriver.dropCollection(name)
+    val done = CommandReceiver.actorbaseDriver.dropCollections(name)
 
     if (done) name+" deleted" else "there was an error deleting "+name
   }

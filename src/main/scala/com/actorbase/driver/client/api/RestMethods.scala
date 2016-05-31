@@ -147,7 +147,6 @@ object RestMethods {
     val Accepted = 202
     val BadRequest = 400
     val Unauthorized = 401
-    val PaymentRequired = 402
     val Forbidden = 403
     val NotFound = 404
   }

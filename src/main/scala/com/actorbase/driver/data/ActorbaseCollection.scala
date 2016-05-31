@@ -79,7 +79,7 @@ case class ActorbaseCollection
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        requestBuilder withCredentials("admin", "actorbase") withUrl scheme + conn.address  + ":" + conn.port + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)

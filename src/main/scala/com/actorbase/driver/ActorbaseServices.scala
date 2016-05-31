@@ -31,7 +31,8 @@ package com.actorbase.driver
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
-import com.actorbase.driver.data.{ActorbaseCollection, ActorbaseCollectionMap}
+import com.actorbase.driver.data.{ ActorbaseCollection, ActorbaseCollectionMap, ActorbaseObject }
+import com.actorbase.driver.exceptions.{ MalformedFileExc, WrongCredentialsExc }
 import scala.io.Source
 
 import scala.util.parsing.json._
@@ -63,6 +64,65 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
   val uri: String = scheme + address + ":" + port
 
   implicit val connection = ActorbaseServices.Connection("admin", "actorbase", address, port)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def insertTo(collection: String, update: Boolean, kv: (String, Any)*): Unit = {
+    kv.foreach {
+      case (k, v) =>
+        if (!update)
+          requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        else
+          requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+    }
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def insertTo[A >: Any](collection: String, update: Boolean, kv: ActorbaseObject[A]): Unit = this.insertTo(collection, update, kv.toSeq:_*)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def removeFrom(collection: String, keys: String*): Boolean = {
+    keys.foreach { key =>
+      requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection + "/" + key withMethod DELETE send()
+    }
+    true // must be checked / exceptions
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def find[A >: Any](key: String, collections: String*): ActorbaseObject[A] = {
+    var buffer: Map[String, Any] = Map[String, Any]().empty
+    collections.foreach { collectionName =>
+      val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + key withMethod GET send()
+      if (response.statusCode == OK)
+        response.body map { content =>
+          buffer ++= Map(JSON.parseFull(content).get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+        } getOrElse (Map[String, Any]().empty)
+    }
+    ActorbaseObject(buffer)
+  }
 
   /**
     * Insert description here
@@ -149,7 +209,8 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
   }
 
   /**
-    * Insert description here
+    * Wipe out the entire database by dropping every collection inside the
+    * system
     *
     * @param
     * @return
@@ -163,17 +224,23 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
   }
 
   /**
-    * Insert description here
+    * Drop one or more specified collections from the database, silently fail in
+    * case of no match of the specified collections
     *
-    * @param
-    * @return
-    * @throws
+    * @param collections a vararg of String, represents a sequence of collections to be removed from the system
+    * @return Unit, no return value
+    * @throws WrongCredentialsExc in case of unathorized section reply from the system
     */
-  def dropCollection(collectionName: String): Boolean = {
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
-    if(response.statusCode != OK)
-      false
-    else true
+  @throws(classOf[WrongCredentialsExc])
+  def dropCollections(collections: String*): Boolean = {
+    collections.foreach { collectionName =>
+      val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+      response.statusCode match {
+        case 401 | 403 => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
+        case _ => // all ok
+      }
+    }
+    true // to be checked / exc
   }
 
   /**
@@ -183,13 +250,25 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @return
     * @throws
     */
+  @throws(classOf[MalformedFileExc])
   def importFromFile(path: String): Boolean = {
-    val json = Source.fromFile(path).getLines.mkString
-    val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
-    // println(mapObject)
-    val collectionName = mapObject.get("collection").getOrElse("NoName")
-    val buffer = mapObject.get("map").get.asInstanceOf[Map[String, Any]]
-    buffer map (x => requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + x._1 withBody serialize2byteArray(x._2) withMethod POST send() )
+    try {
+      val json = Source.fromFile(path).getLines.mkString
+      val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
+      val collectionName = mapObject.get("collection").getOrElse("NoName")
+      val buffer = mapObject.get("map").get.asInstanceOf[Map[String, Any]]
+      buffer map { x =>
+        val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + x._1 withBody serialize2byteArray(x._2) withMethod POST send()
+        response.statusCode match {
+          case 401 | 403 => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
+          case _ => // all ok
+        }
+      } //getOrElse throw MalformedFileExc("Malformed json file")
+    } catch {
+      case nse: NoSuchElementException => throw MalformedFileExc("Malformed json file")
+      case wce: WrongCredentialsExc => throw wce
+      case mfe: MalformedFileExc => throw mfe
+    }
     true
   }
 

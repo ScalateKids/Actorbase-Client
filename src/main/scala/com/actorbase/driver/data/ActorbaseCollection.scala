@@ -189,7 +189,11 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def addContributor(username: String): Boolean = ???
+  def addContributor(username: String): Boolean = {
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod POST send()
+    if (response.statusCode == 200) true
+    else false
+  }
 
   /**
     * Insert description here
@@ -198,7 +202,11 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def removeContributor(username: String): Boolean = ???
+  def removeContributor(username: String): Boolean = {
+    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod DELETE send()
+    if (response.statusCode == 200) true
+    else false
+  }
 
   /**
     * Drop the entire collection, reflecting the local change to remote on

@@ -63,7 +63,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
 
   val uri: String = scheme + address + ":" + port
 
-  implicit val connection = ActorbaseServices.Connection("admin", "actorbase", address, port)
+  implicit val connection = ActorbaseServices.Connection("admin", "Actorb4se", address, port)
 
   /**
     * Insert description here
@@ -76,9 +76,9 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     kv.foreach {
       case (k, v) =>
         if (!update)
-          requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+          requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collection + "/" + k withBody serialize2byteArray(v) withMethod POST send()
         else
-          requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+          requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collection + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
     }
   }
 
@@ -100,7 +100,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def removeFrom(collection: String, keys: String*): Boolean = {
     keys.foreach { key =>
-      requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection + "/" + key withMethod DELETE send()
+      requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collection + "/" + key withMethod DELETE send()
     }
     true // must be checked / exceptions
   }
@@ -115,7 +115,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
   def find[A >: Any](key: String, collections: String*): ActorbaseObject[A] = {
     var buffer: Map[String, Any] = Map[String, Any]().empty
     collections.foreach { collectionName =>
-      val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + key withMethod GET send()
+      val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + key withMethod GET send()
       if (response.statusCode == OK)
         response.body map { content =>
           buffer ++= Map(JSON.parseFull(content).get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
@@ -142,7 +142,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def listCollections : List[String] = {
     val response =
-      requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collectionlist" withMethod GET send()
+      requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/listcollection" withMethod GET send()
     if(response.statusCode == OK)
       JSON.parseFull(response.body.get).getOrElse(List()).asInstanceOf[List[String]]
     else List()
@@ -175,7 +175,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def getCollection(collectionName: String): ActorbaseCollection = {
     var buffer: TreeMap[String, Any] = TreeMap[String, Any]().empty
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
+    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
     if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
       buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
@@ -191,8 +191,8 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @throws
     */
   def addCollection(collectionName: String): ActorbaseCollection = {
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod POST send() // control response
-    ActorbaseCollection("anonymous", collectionName)(connection, scheme) // stub owner
+    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName withMethod POST send() // control response
+    ActorbaseCollection("admin", collectionName)(connection, scheme) // stub owner
   }
 
   /**
@@ -204,7 +204,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     */
   def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
     val response =
-      requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
+      requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
     collection
   }
 
@@ -217,7 +217,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @throws
     */
   def dropCollections: Boolean = {
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections" withMethod DELETE send()
+    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections" withMethod DELETE send()
     if(response.statusCode != OK)
       false
     else true
@@ -234,7 +234,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
   @throws(classOf[WrongCredentialsExc])
   def dropCollections(collections: String*): Boolean = {
     collections.foreach { collectionName =>
-      val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+      val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
       response.statusCode match {
         case 401 | 403 => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
         case _ => // all ok
@@ -258,7 +258,7 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
       val collectionName = mapObject.get("collection").getOrElse("NoName")
       val buffer = mapObject.get("map").get.asInstanceOf[Map[String, Any]]
       buffer map { x =>
-        val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + x._1 withBody serialize2byteArray(x._2) withMethod POST send()
+        val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + x._1 withBody serialize2byteArray(x._2) withMethod POST send()
         response.statusCode match {
           case 401 | 403 => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
           case _ => // all ok
@@ -279,7 +279,10 @@ class ActorbaseServices (address: String = "127.0.0.1", port: Int = 9999) (impli
     * @return
     * @throws
     */
-  def exportToFile(path: String): Boolean = ???
+  def exportToFile(path: String): Boolean = {
+    listCollections map (getCollection(_).export(path))
+    true
+  }
 
   /**
     * Shutdown the connection with the server

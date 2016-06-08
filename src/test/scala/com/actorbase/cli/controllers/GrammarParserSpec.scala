@@ -47,6 +47,56 @@ class GrammarParserSpec extends CLIUnitSpec {
     assert(grammarParser.parseInput("listCollections") === true)
   }
 
+  it should "parse 'addCollaborator user to collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("addCollaborator testUser to testCOllection") === true)
+  }
+
+  it should "parse 'removeCollaborator user from collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("removeCollaborator testUser from testCOllection") === true)
+  }
+
+  it should "parse 'createCollection collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("createCollection testCollection") === true)
+  }
+
+  it should "parse 'renameCollection collection to newname'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("createCollection testCollection to testName") === true)
+  }
+
+  it should "parse 'insert (key -> value ) to collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("insert (key -> value ) to testCollection") === true)
+  }
+
+  it should "parse 'remove key from collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("remove key from testCollection") === true)
+  }
+
+  it should "parse 'find key from collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("find key from testCollection") === true)
+  }
+
+  it should "parse 'find key'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("find key from") === true)
+  }
+
+  it should "parse 'find from collection'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("find from testCollection") === true)
+  }
+
+  it should "parse 'find from'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("find from ") === true)
+  }
+
   it should "parse 'logout' command" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
     assert(grammarParser.parseInput("logout") === true)
@@ -62,29 +112,29 @@ class GrammarParserSpec extends CLIUnitSpec {
     assert(grammarParser.parseInput("export key1,key2,key3 to path") === true)
   }
 
-  it should "parse 'createCollection customer'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
-    assert(grammarParser.parseInput("createCollection customer") === true)
-  }
-
   it should "parse 'help'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
     assert(grammarParser.parseInput("help") === true)
   }
 
-  it should "parse 'addUser Michelino'" in {
+  it should "parse a single command in the help command 'help command'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
-    assert(grammarParser.parseInput("addUser Michelino") === true)
+    assert(grammarParser.parseInput("help test") === true)
   }
 
-  it should "parse 'removeUser Michelino'" in {
+  it should "parse 'addUser user'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
-    assert(grammarParser.parseInput("removeUser Michelino") === true)
+    assert(grammarParser.parseInput("addUser testUser") === true)
   }
 
-  it should "parse 'resetPassword Michelino'" in {
+  it should "parse 'removeUser user'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
-    assert(grammarParser.parseInput("resetPassword Michelino") === true)
+    assert(grammarParser.parseInput("removeUser testUser") === true)
+  }
+
+  it should "parse 'resetPassword user'" in {
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    assert(grammarParser.parseInput("resetPassword testUser") === true)
   }
 
   it should "parse 'exit'" in {

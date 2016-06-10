@@ -52,7 +52,7 @@ class ActorbaseClient extends Client {
     * connection object
     * @throws
     */
-  override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.readTimeout(5000))
+  override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.readTimeout(60000))
 
   /**
     * Send method, send a Request object to the Actorbase server listening

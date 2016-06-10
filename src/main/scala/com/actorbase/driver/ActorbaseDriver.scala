@@ -33,7 +33,7 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 
 import scala.util.parsing.json._
-import scala.collection.immutable.TreeMap
+import java.net.URI
 
 object ActorbaseDriver extends Connector {
 
@@ -54,6 +54,26 @@ object ActorbaseDriver extends Connector {
     * @throws
     */
   def apply(address: String = "127.0.0.1", port: Int = 9999, ssl: Boolean = false): ActorbaseServices = new ActorbaseServices(address, port) with Connector
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def apply(url: String): ActorbaseServices = {
+    val uri = new URI(url)
+    implicit val scheme = uri.getScheme
+    val credentials = uri.getUserInfo.split(":")
+    val request = requestBuilder withCredentials(credentials(0), credentials(1)) withUrl uri.getHost + uri.getPort + "/auth" withMethod GET send()
+    // request.statusCode match {
+
+    // }
+    if (request.body == "admin")
+      new ActorbaseServices(uri.getHost, uri.getPort) with ActorbaseAdminServices
+    else new ActorbaseServices(uri.getHost, uri.getPort) with Connector
+  }
 
   /**
     * Insert description here

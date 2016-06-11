@@ -70,7 +70,13 @@ object ActorbaseDriver extends Connector {
     // request.statusCode match {
 
     // }
-    if (request.body == "admin")
+    JSON.parseFull(request.body.get).getOrElse(List()).asInstanceOf[List[String]]
+    var response = ""
+    request.body map (JSON.parseFull(_) map { x =>
+      val serverPayload = x.asInstanceOf[Map[String, String]]
+      serverPayload map (r => response = r._2)
+    }) getOrElse "None" // throw exc
+    if (response == "admin")
       new ActorbaseServices(uri.getHost, uri.getPort) with ActorbaseAdminServices
     else new ActorbaseServices(uri.getHost, uri.getPort) with Connector
   }

@@ -48,7 +48,7 @@ trait ActorbaseAdminServices extends Connector {
     * @return
     * @throws
     */
-  def addUser(username: String): Boolean = ???
+  def addUser(username: String): Boolean = true
 
   /**
     * Insert description here

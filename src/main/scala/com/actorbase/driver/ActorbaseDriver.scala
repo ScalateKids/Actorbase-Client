@@ -53,7 +53,11 @@ object ActorbaseDriver extends Connector {
     * @return
     * @throws
     */
-  def apply(address: String = "127.0.0.1", port: Int = 9999, ssl: Boolean = false): ActorbaseServices = new ActorbaseServices(address, port) with Connector
+  def apply(username: String = "anonymous",
+    password: String = "Actorb4se",
+    address: String = "127.0.0.1",
+    port: Int = 9999,
+    ssl: Boolean = false): ActorbaseServices = new ActorbaseServices(address, port) with Connector
 
   /**
     * Insert description here
@@ -62,21 +66,18 @@ object ActorbaseDriver extends Connector {
     * @return
     * @throws
     */
-  def apply(url: String): ActorbaseServices = {
+  def apply(url: String): ActorbaseServices with Connector = {
     val uri = new URI(url)
     implicit val scheme = uri.getScheme
     val credentials = uri.getUserInfo.split(":")
-    val request = requestBuilder withCredentials(credentials(0), credentials(1)) withUrl uri.getHost + uri.getPort + "/auth" withMethod GET send()
+    val request = requestBuilder withCredentials(credentials(0), credentials(1)) withUrl scheme + "://" + uri.getHost + ":" + uri.getPort + "/auth/" + credentials(0) withBody credentials(1).getBytes withMethod POST send()
     // request.statusCode match {
 
     // }
-    JSON.parseFull(request.body.get).getOrElse(List()).asInstanceOf[List[String]]
     var response = ""
-    request.body map (JSON.parseFull(_) map { x =>
-      val serverPayload = x.asInstanceOf[Map[String, String]]
-      serverPayload map (r => response = r._2)
-    }) getOrElse "None" // throw exc
-    if (response == "admin")
+    request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None1")
+    println(response)
+    if (response == "Admin")
       new ActorbaseServices(uri.getHost, uri.getPort) with ActorbaseAdminServices
     else new ActorbaseServices(uri.getHost, uri.getPort) with Connector
   }

@@ -39,7 +39,7 @@ import com.actorbase.driver.client.api.RestMethods.Status._
   * @return
   * @throws
   */
-trait ActorbaseAdminServices extends Connector {
+trait AdminServices extends Connector {
 
   /**
     * Insert description here

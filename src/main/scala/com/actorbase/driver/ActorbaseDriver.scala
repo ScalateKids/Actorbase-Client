@@ -154,12 +154,15 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws
     */
   def find[A >: Any](key: String, collections: String*): ActorbaseObject[A] = {
-    var buffer: Map[String, Any] = Map[String, Any]().empty
+    var buffer = Map.empty[String, Any]
     collections.foreach { collectionName =>
       val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod GET send()
       if (response.statusCode == OK)
         response.body map { content =>
-          buffer ++= Map(JSON.parseFull(content).get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+          JSON.parseFull(content) map { jc =>
+            buffer ++= Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+          }
+          // buffer ++= Map(JSON.parseFull(content).get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
         } getOrElse (Map[String, Any]().empty)
     }
     ActorbaseObject(buffer)
@@ -233,7 +236,10 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
     if (response.statusCode == OK) {
       val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
-      buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+      mapObject get "map" map { m =>
+        buffer = TreeMap(m.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+      }
+      // buffer = TreeMap(mapObject.get("map").get.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
     }
     ActorbaseCollection("anonymous", collectionName, buffer)(connection, scheme)
   }

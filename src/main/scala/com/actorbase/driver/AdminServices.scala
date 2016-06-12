@@ -48,7 +48,10 @@ trait AdminServices extends Connector {
     * @return
     * @throws
     */
-  def addUser(username: String): Boolean = true
+  def addUser(username: String): Boolean = {
+    // requestBuilder withCredentials("admin", "Actorb4se")
+    true
+  }
 
   /**
     * Insert description here

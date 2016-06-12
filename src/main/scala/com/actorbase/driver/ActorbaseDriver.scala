@@ -52,7 +52,7 @@ object ActorbaseDriver extends Connector {
     password: String = "Actorb4se",
     address: String = "127.0.0.1",
     port: Int = 9999,
-    ssl: Boolean = false): ActorbaseDriver with AdminServices  = new ActorbaseDriver(Connection(username, password, address, port)) with AdminServices
+    ssl: Boolean = false): ActorbaseDriver = new ActorbaseDriver(Connection(username, password, address, port))
 
   /**
     * Insert description here
@@ -61,7 +61,7 @@ object ActorbaseDriver extends Connector {
     * @return
     * @throws
     */
-  def apply(url: String): ActorbaseDriver with AdminServices = {
+  def apply(url: String): ActorbaseDriver = {
     val uri = new URI(url)
     implicit val scheme = uri.getScheme + "://"
     val credentials = uri.getUserInfo.split(":")
@@ -73,8 +73,8 @@ object ActorbaseDriver extends Connector {
     request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None1")
     println(response)
     if (response == "Admin" || response == "Common")
-      new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort)) with AdminServices
-    else new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort)) with AdminServices
+      new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
+    else new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
   }
 
   case class Connection(username: String, password: String, address: String, port: Int)
@@ -92,6 +92,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
 
   val uri: String = scheme + connection.address + ":" + connection.port
 
+  implicit val conn = connection
+  implicit val sche = scheme
+
   /**
     * Insert description here
     *
@@ -99,7 +102,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @return
     * @throws
     */
-  def authenticate(username: String, password: String): ActorbaseDriver with AdminServices = {
+  def authenticate(username: String, password: String): ActorbaseDriver = {
     ActorbaseDriver(username, password, connection.address, connection.port)
   }
 
@@ -169,7 +172,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @return
     * @throws
     */
-  def changePassword(newpassword: String): Boolean = ???
+  def changePassword(newpassword: String): Unit = {
+    requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/private/" + connection.username withBody serialize2byteArray(newpassword)  withMethod POST send()
+  }
 
   /**
     * Return a list of collection name stored remotely on the server
@@ -179,10 +184,18 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws
     */
   def listCollections : List[String] = {
+    var collections = List.empty[String]
     val response =
-      requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/listcollection" withMethod GET send()
-    if(response.statusCode == OK)
-      JSON.parseFull(response.body.get).getOrElse(List()).asInstanceOf[List[String]]
+      requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/listcollections" withMethod GET send()
+    if(response.statusCode == OK) {
+      response.body map { r =>
+        JSON.parseFull(r) map { p =>
+          val mapObject = p.asInstanceOf[Map[String, List[String]]]
+          mapObject get "list" map (collections :::= _)
+        }
+      }
+      collections
+    }
     else List()
   }
 
@@ -193,7 +206,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @return an ActorbaseCollectionMap containing a map of collections
     * @throws
     */
-  def getCollections: ActorbaseCollectionMap = ???
+  def getCollections: ActorbaseCollectionMap = {
+    var collections = TreeMap.empty[String, ActorbaseCollection]
+    listCollections map (x => collections += (x -> getCollection(x)))
+    ActorbaseCollectionMap(collections)(connection, scheme)
+  }
 
   /**
     * Retrieves an entire collection from server given the name. A collection is
@@ -320,6 +337,67 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def exportToFile(path: String): Boolean = {
     listCollections map (getCollection(_).export(path))
     true
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def addUser(username: String): Boolean = {
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username withMethod POST send()
+    if (response.statusCode == OK) true
+    else false
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def removeUser(username: String): Boolean = {
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username withMethod DELETE send()
+    if (response.statusCode == OK) true
+    else false
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def resetPassword(username: String): Boolean = {
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username withMethod PUT send()
+    if (response.statusCode == OK) true
+    else false
+  }
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def listUsers: List[String] = {
+    var users = List.empty[String]
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" withMethod GET send()
+    if(response.statusCode == OK) {
+      response.body map { r =>
+        JSON.parseFull(r) map { p =>
+          val mapObject = p.asInstanceOf[Map[String, List[String]]]
+          mapObject get "list" map (users :::= _)
+        }
+      }
+      users
+    }
+    else List()
   }
 
   /**

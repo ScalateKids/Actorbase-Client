@@ -259,7 +259,8 @@ class CommandReceiver(params: Map[Any, Any]) {
   def changePassword() : String = { //TODO checks on psw?
     val oldPsw = params.get("oldPsw").asInstanceOf[String]
     val newPsw = params.get("newPsw").asInstanceOf[String]
-    val done = CommandReceiver.actorbaseDriver.changePassword(/*oldPsw, */newPsw)
+    val done = true
+    CommandReceiver.actorbaseDriver.changePassword(newPsw)
 
     if (done) "Password changed correctly" else "Something went wrong during the oepration"
   }

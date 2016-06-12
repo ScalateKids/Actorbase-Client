@@ -48,9 +48,11 @@ trait AdminServices extends Connector {
     * @return
     * @throws
     */
-  def addUser(username: String): Boolean = {
-    // requestBuilder withCredentials("admin", "Actorb4se")
-    true
+  def addUser(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
+    val uri: String = scheme + connection.address + ":" + connection.port
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username  withMethod POST send()
+    if (response.statusCode == OK) true
+    else false
   }
 
   /**
@@ -60,7 +62,12 @@ trait AdminServices extends Connector {
     * @return
     * @throws
     */
-  def removeUser(username: String): Boolean = ???
+  def removeUser(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
+    val uri: String = scheme + connection.address + ":" + connection.port
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username  withMethod DELETE send()
+    if (response.statusCode == OK) true
+    else false
+  }
 
   /**
     * Insert description here
@@ -69,6 +76,11 @@ trait AdminServices extends Connector {
     * @return
     * @throws
     */
-  def resetPassword(username: String): Boolean = ???
+  def resetPassword(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
+    val uri: String = scheme + connection.address + ":" + connection.port
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username  withMethod PUT send()
+    if (response.statusCode == OK) true
+    else false
+  }
 
 }

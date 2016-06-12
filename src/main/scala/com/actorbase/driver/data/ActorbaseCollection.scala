@@ -28,7 +28,7 @@
 
 package com.actorbase.driver.data
 
-import com.actorbase.driver.ActorbaseServices.Connection
+import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import java.io.{File, PrintWriter}
@@ -79,7 +79,7 @@ case class ActorbaseCollection
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -107,7 +107,7 @@ case class ActorbaseCollection
       if(!data.contains(k)) {
         data -= k
         data += (k -> v)
-        requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+        requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -126,7 +126,7 @@ case class ActorbaseCollection
     keys.foreach { key =>
       if(data.contains(key)) {
         data -= key
-        requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+        requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -190,7 +190,7 @@ case class ActorbaseCollection
     * @throws
     */
   def addContributor(username: String): Boolean = {
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod POST send()
+    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod POST send()
     if (response.statusCode == 200) true
     else false
   }
@@ -203,7 +203,7 @@ case class ActorbaseCollection
     * @throws
     */
   def removeContributor(username: String): Boolean = {
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod DELETE send()
+    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod DELETE send()
     if (response.statusCode == 200) true
     else false
   }
@@ -218,7 +218,7 @@ case class ActorbaseCollection
     */
   def drop: Boolean = {
     data = data.empty
-    val response = requestBuilder withCredentials("admin", "actorbase") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
     if (response.statusCode == 200) true
     else false
   }

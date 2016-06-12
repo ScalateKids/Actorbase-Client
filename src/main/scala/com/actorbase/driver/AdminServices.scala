@@ -39,7 +39,7 @@ import com.actorbase.driver.client.api.RestMethods.Status._
   * @return
   * @throws
   */
-trait ActorbaseAdminServices extends Connector {
+trait AdminServices extends Connector {
 
   /**
     * Insert description here
@@ -48,7 +48,12 @@ trait ActorbaseAdminServices extends Connector {
     * @return
     * @throws
     */
-  def addUser(username: String): Boolean = ???
+  def addUser(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
+    val uri: String = scheme + connection.address + ":" + connection.port
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username  withMethod POST send()
+    if (response.statusCode == OK) true
+    else false
+  }
 
   /**
     * Insert description here
@@ -57,7 +62,12 @@ trait ActorbaseAdminServices extends Connector {
     * @return
     * @throws
     */
-  def removeUser(username: String): Boolean = ???
+  def removeUser(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
+    val uri: String = scheme + connection.address + ":" + connection.port
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username  withMethod DELETE send()
+    if (response.statusCode == OK) true
+    else false
+  }
 
   /**
     * Insert description here
@@ -66,6 +76,11 @@ trait ActorbaseAdminServices extends Connector {
     * @return
     * @throws
     */
-  def resetPassword(username: String): Boolean = ???
+  def resetPassword(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
+    val uri: String = scheme + connection.address + ":" + connection.port
+    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" + username  withMethod PUT send()
+    if (response.statusCode == OK) true
+    else false
+  }
 
 }

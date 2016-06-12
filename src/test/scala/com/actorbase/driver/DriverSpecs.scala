@@ -25,7 +25,7 @@
   * @version 1.0
   * @since 1.0
   */
-
+/*
 package com.actorbase.driver
 
 import org.scalatest._
@@ -49,6 +49,6 @@ object DriverSpecs {
     * @return
     * @throws
     */
-  abstract class DriverUnitSpec extends FlatSpec with Matchers with ScalaFutures
+  abstract class DriverUnitSpec extends FlatSpec with Matchers with ScalaFutures  with WordSpecLike /*with MustMatchers*/
 
-}
+}*/

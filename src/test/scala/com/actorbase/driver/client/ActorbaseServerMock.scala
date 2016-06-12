@@ -21,22 +21,16 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
+  *
   * @author Scalatekids TODO DA CAMBIARE
   * @version 1.0
   * @since 1.0
   */
-
+/*
 package com.actorbase.driver
 
-import _root_.akka.dispatch._
-import org.scalatra.FutureSupport
 
-class MyAppServlet extends ScalatraServlet with FutureSupport {
-  get("/collections/:name"){
-    new AsyncResult { val is =
-      Future {
-        """{ collection: customers }"""
-      }
-    }
-  }
+class ActorbaseServerMock {
+
 }
+*/

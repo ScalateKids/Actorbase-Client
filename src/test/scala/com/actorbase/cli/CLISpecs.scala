@@ -25,7 +25,7 @@
   * @version 1.0
   * @since 1.0
   */
-
+/*
 package com.actorbase.cli
 
 import org.scalatest._
@@ -50,3 +50,4 @@ object CLISpecs {
     */
   abstract class CLIUnitSpec extends FlatSpec with Matchers
 }
+*/

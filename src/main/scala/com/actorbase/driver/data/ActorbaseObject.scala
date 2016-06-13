@@ -47,7 +47,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     *
     * @param key a String representing the key associated to the value to be retrieved
     * @return Option[A] an Option containing the value of type A
-    * @throws
     */
   def as[A](key: String): Option[A] = elems.get(key) map (x => Some(x.asInstanceOf[A])) getOrElse None
 
@@ -57,7 +56,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     *
     * @param kv a key-value pair of type String - Any
     * @return an object of type ActorbaseObject, representing a proxy object of the system
-    * @throws
     */
   override def +[B1 >: B](kv: (String, B1)): ActorbaseObject[B1] = ActorbaseObject[B1](elems + (kv._1 -> kv._2))
 
@@ -69,7 +67,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     * @param elem2 a String-Any pair
     * @param elemss multiple String-Any pairs
     * @return an object of type ActorbaseObject representing a proxy of an object to be added to the system
-    * @throws
     */
   override def +[B1 >: B](elem1: (String, B1), elem2: (String, B1), elemss: (String, B1)*): ActorbaseObject[B1] =
     ActorbaseObject[B1](elems + (elem1._1 -> elem1._2) + (elem2._1 -> elem2._2) ++ elemss.toMap)
@@ -80,7 +77,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     *
     * @param key a String representing a key associated to the value of the item designed for removal
     * @return an object of type ActobaseObject representing a proxy of an existing object desgned for removal from the system
-    * @throws
     */
   override def -(key: String): ActorbaseObject[Any] = ActorbaseObject(elems - key)
 
@@ -102,7 +98,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     *
     * @param key a String representing a key associated to a value inside the system
     * @return an Option[Any] containing the value associated to the given key
-    * @throws
     */
   override def get(key: String): Option[Any] = elems.get(key)
 
@@ -111,7 +106,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     * iterator instance
     *
     * @return an instance of Iterator[String, Any], allow to iterate thorugh the elements of the object
-    * @throws
     */
   override def iterator: Iterator[(String, Any)] = elems.iterator
 
@@ -119,7 +113,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     * Override of the method toString, give a JSON representation of the ActorbaseObject
     *
     * @return a String representing the ActorbaseObject JSON formatted
-    * @throws
     */
   override def toString: String = serialize2JSON4s(this)
 

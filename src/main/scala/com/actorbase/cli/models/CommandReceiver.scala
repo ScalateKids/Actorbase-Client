@@ -31,9 +31,7 @@ package com.actorbase.cli.models
 
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
+// import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.actorbase.driver.ActorbaseDriver
 
@@ -223,7 +221,8 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def deleteCollection() : String = { //TODO need test when the server will implement this feature
     val name = params.get("Collection").get.asInstanceOf[String]
-    val done = CommandReceiver.actorbaseDriver.dropCollections(name)
+    CommandReceiver.actorbaseDriver.dropCollections(name)
+    val done = true // fix
 
     if (done) name+" deleted" else "there was an error deleting "+name
   }

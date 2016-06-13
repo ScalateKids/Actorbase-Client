@@ -29,5 +29,10 @@
 package com.actorbase.cli.views
 
 trait PromptProvider {
+  /**
+    * Method that returns a string representing the prompt.
+    *
+    * @return a String representing the prompt
+    */
   def getPrompt : String
 }

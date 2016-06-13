@@ -31,5 +31,10 @@ package com.actorbase.cli.views
 import com.actorbase.cli.models.Observable
 
 class ResultView extends Observer {
+  /**
+    * Method that updates the status of the class.
+    *
+    * @return a non value type
+    */
   override def update(o: Observable): Unit = println(o.getState)
 }

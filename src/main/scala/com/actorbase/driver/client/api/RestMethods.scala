@@ -149,5 +149,6 @@ object RestMethods {
     val Unauthorized = 401
     val Forbidden = 403
     val NotFound = 404
+    val Error = 500
   }
 }

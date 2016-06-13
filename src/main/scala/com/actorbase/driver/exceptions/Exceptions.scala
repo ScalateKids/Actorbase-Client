@@ -46,4 +46,6 @@ case class MalformedFileExc(msg: String) extends Exception(msg)
 
 case class UsernameAlreadyExistsExc(msg: String) extends Exception(msg)
 
-case class UndefinedUsernameExc(msg: String) extends Exception
+case class UndefinedUsernameExc(msg: String) extends Exception(msg)
+
+case class InternalErrorExc(msg: String) extends Exception(msg)

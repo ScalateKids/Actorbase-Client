@@ -31,25 +31,20 @@ package com.actorbase.driver.data
 import com.actorbase.driver.ActorbaseDriver.Connection
 import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
-import java.io.{File, PrintWriter}
+import com.actorbase.driver.client.api.RestMethods.Status._
+import com.actorbase.driver.exceptions._
 
+import java.io.{File, PrintWriter}
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
 
-// import spray.json._
-// import DefaultJsonProtocol._
-
-// object MyJsonProtocol extends DefaultJsonProtocol {
-//   implicit val connection = ActorbaseDriver.Connection("127.0.0.1", 9999)
-//   implicit val actorbaseCollectionFormat = jsonFormat3(ActorbaseCollection.apply)
-// }
 
 /**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
+  * Class representing a single collection of the database at the current state,
+  * that is the state at the very moment of the query time of the system. It
+  * contains key-value pairs representing items of the collection and exposes
+  * some utility methods to navigate and modify the contents in an easier way,
+  * reflecting all changes directly to the remote counterpart.
   */
 case class ActorbaseCollection
   (val owner: String, var collectionName: String,
@@ -59,27 +54,34 @@ case class ActorbaseCollection
   val uri: String = scheme + conn.address + ":" + conn.port
 
   /**
-    * Insert description here
+    * Rename the collection, reflecting this change to the remote system
     *
-    * @param
-    * @return
+    * @param newName a String representing the new name of the collection to be changed
+    * @return no return value
     * @throws
     */
-  def rename(newName: String): Boolean = ???
+  def rename(newName: String): Unit = ???
 
   /**
     * Insert an arbitrary variable number of key-value tuple to the collection
     * reflecting local changes to remote collection on server-side
     *
     * @param kv a vararg Tuple2 of type (String, Any)
-    * @return
-    * @throws
+    * @return an object of type ActorbaseCollection representing the collection updated
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
     */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def insert(kv: (String, Any)*): ActorbaseCollection = {
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        }
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -90,24 +92,32 @@ case class ActorbaseCollection
     * collection reflecting local changes to remote collection on server-side
     *
     * @param kv an ActorbaseObject parameter representing a key/value pair
-    * @return
+    * @return an object of type ActorbaseCollection representing the collection updated
     * @throws
     */
   def insert[A >: Any](kv: ActorbaseObject[A]): ActorbaseCollection = this.insert(kv.toSeq:_*)
 
   /**
-    * Insert description here
+    * Update one or more key-value of the collection, reflecting changes
+    * directly on remote system
     *
-    * @param
-    * @return
-    * @throws
+    * @param kv a vararg of Tuple2[String, Any] representing key-value pairs to be updated in the system
+    * @return an object of ActorbaseCollection containing the updated keys
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
     */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
       if(!data.contains(k)) {
         data -= k
         data += (k -> v)
-        requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        }
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -119,14 +129,21 @@ case class ActorbaseCollection
     *
     * @param keys a vararg String representing a sequence of keys to be removed
     * from the collection
-    * @return
-    * @throws
+    * @return an object of ActorbaseCollection containing the updated keys
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
     */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def remove(keys: String*): ActorbaseCollection = {
     keys.foreach { key =>
       if(data.contains(key)) {
         data -= key
-        requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        }
       }
     }
     ActorbaseCollection(owner, collectionName, data)
@@ -137,9 +154,12 @@ case class ActorbaseCollection
     * collection reflecting local changes to remote collection on server-side
     *
     * @param kv an ActorbaseObject parameter representing a key/value pair
-    * @return
-    * @throws
+    * @return an object of ActorbaseCollection containing the updated keys
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
     */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def remove[A >: Any](kv: ActorbaseObject[A]): ActorbaseCollection = this.remove(kv.keys.toSeq:_*)
 
   /**
@@ -157,7 +177,6 @@ case class ActorbaseCollection
     *
     * @param keys a vararg String representing a sequence of keys to be retrieved
     * @return an object of type ActorbaseObject
-    * @throws
     */
   def find[A >: Any](keys: String*): ActorbaseObject[A] = {
     var coll = TreeMap[String, Any]().empty
@@ -174,7 +193,6 @@ case class ActorbaseCollection
     *
     * @param key a String representing the key associated to the value to be retrieved
     * @return an object of type ActorbaseObject
-    * @throws
     */
   def findOne[A >: Any](key: String): Option[ActorbaseObject[A]] = {
     if (data.contains(key))
@@ -183,29 +201,55 @@ case class ActorbaseCollection
   }
 
   /**
-    * Insert description here
+    * Add a contributor to the collection, updating the remote system
+    * counterpart
     *
-    * @param
-    * @return
-    * @throws
+    * @param username a String representing the username of the user
+    * @param write a Boolean flag representing the permissions of the contributor
+    * @return no return value
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedUsernameExc in case of username not found on the remote system
+    * @throws UsernameAlreadyExistsExc in case of username already present inside the contributors list
     */
-  def addContributor(username: String): Boolean = {
-    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod POST send()
-    if (response.statusCode == 200) true
-    else false
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedUsernameExc])
+  @throws(classOf[UsernameAlreadyExistsExc])
+  def addContributor(username: String, write: Boolean = false): Unit = {
+    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod POST send()
+    response.statusCode match {
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+      case OK =>
+        response.body map { r =>
+          r.asInstanceOf[String] match {
+            case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
+            case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
+          }
+        }
+    }
   }
 
   /**
-    * Insert description here
+    * Remove a contributor from the collection, updating the remote system
+    * counterpart
     *
-    * @param
-    * @return
-    * @throws
+    * @param username a String representing the username of the user
+    * @return no return value
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedUsernameExc in case of username not found on the remote system
+    * @throws UsernameAlreadyExistsExc in case of username already present inside the contributors list
     */
-  def removeContributor(username: String): Boolean = {
-    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod DELETE send()
-    if (response.statusCode == 200) true
-    else false
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
+  def removeContributor(username: String): Unit = {
+    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod DELETE send()
+    response.statusCode match {
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+    }
   }
 
   /**
@@ -218,7 +262,7 @@ case class ActorbaseCollection
     */
   def drop: Boolean = {
     data = data.empty
-    val response = requestBuilder withCredentials("admin", "Actorb4se") withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName withMethod DELETE send()
     if (response.statusCode == 200) true
     else false
   }

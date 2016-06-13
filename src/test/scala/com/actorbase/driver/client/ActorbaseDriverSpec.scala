@@ -80,8 +80,9 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
   actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
 
   actorbaseMockServices expect get and path("/collections/testCollection") and respond using entity ( HttpEntity (
-    string = """{ "collection" : "testCollection", "items" : { }, "owner" : "" }"""
-  )) end()
+    string = """{ "collection" : "testCollection", "map" : { }, "owner" : "" }"""
+  )) and status(200) end()
+
   actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
   actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
 

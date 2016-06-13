@@ -113,24 +113,25 @@ object ActorbaseDriver extends Connector {
 }
 
 /**
-  * Insert description here
+  * Main class of the driver component, representing an interface that expose
+  * methods to use Actorbase from a Scala program.
+  * This class allow all general operations of insert, remove, delete and find
+  * of collections or items or both, exposing in addition "fast" methods to
+  * perform operations directly on the remote side without having to query for
+  * contents the system.
   *
-  * @param
-  * @return
-  * @throws
   */
 class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val scheme: String = "http://") extends Connector {
 
   val uri: String = scheme + connection.address + ":" + connection.port
 
-  // implicit val conn = connection
-  // implicit val sche = scheme
-
   /**
-    * Insert description here
+    * Authentication method, allow to insert credentials to be confirmed by
+    * Actorbase server side
     *
-    * @param
-    * @return
+    * @param username a String representing the username of the user
+    * @param password a String representing the password associated to the username
+    * @return an instance of the class ActorbaseDriver
     * @throws
     */
   def authenticate(username: String, password: String): ActorbaseDriver = {
@@ -138,10 +139,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   }
 
   /**
-    * Insert description here
+    * Insertion method, directly insert items without preventively querying the
+    * system
     *
-    * @param
-    * @return
+    * @param collection a String representing the collection uuid
+    * @param update a Boolean flag, true means overwrite the item inserted, false otherwise
+    * @param kv a Tuple2[String, Any] representing one or more key-value pair item to be inserted
+    * @return no return value
     * @throws
     */
   def insertTo(collection: String, update: Boolean, kv: (String, Any)*): Unit = {
@@ -155,10 +159,14 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   }
 
   /**
-    * Insert description here
+    * Overloaded insertion method, directly insert items without preventively
+    * querying the system, accepting an ActorbaseObject as kv parameter, using
+    * generic type A.
     *
-    * @param
-    * @return
+    * @param collection a String representing the collection uuid
+    * @param update a Boolean flag, true means overwrite the item inserted, false otherwise
+    * @param kv an object of type ActorbaseObject[A] representing one or more key-value pair item to be inserted
+    * @return no return value
     * @throws
     */
   def insertTo[A >: Any](collection: String, update: Boolean, kv: ActorbaseObject[A]): Unit = this.insertTo(collection, update, kv.toSeq:_*)

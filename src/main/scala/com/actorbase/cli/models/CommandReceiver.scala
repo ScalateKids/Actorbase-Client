@@ -49,18 +49,19 @@ object CommandReceiver {
 /**
   * Receiver class, process input arguments sent by the controller
   * using a driver reference to send requests to a listening
-  * Actorbase instance
+  * Actorbase instance.
   *
-  * @param
-  * @return
-  * @throws
+  * @param params a map containing the parameters that are used
+  *                for the methods.
   */
 class CommandReceiver(params: Map[Any, Any]) {
 
   /**
+    * Insert an item to the actorbase server.
     *
-    * @return
+    * @return a String, "Item inserted" if the method succeeded, an error message is returned if the method failed
     */
+
   def insert() : String = {
     val key = params.get("key").get.asInstanceOf[String]
     val value = params.get("value").get
@@ -74,8 +75,9 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Remove an item from the actorbase server.
     *
-    * @return
+    * @return a String, "Item removed" if the method succeeded, an error message is returned if the method failed
     */
   def removeItem() : String = {
     val key = params.get("key").get.asInstanceOf[String]
@@ -90,8 +92,9 @@ class CommandReceiver(params: Map[Any, Any]) {
 
 
   /**
+    * Authenticate to the actorbase server.
     *
-    * @return
+    * @return a String, "login succeeded" if the method succeeded, an error message is returned if the method failed
     */
   def login() : String = {
     var result : String ="[LOGIN]\n"
@@ -103,6 +106,8 @@ class CommandReceiver(params: Map[Any, Any]) {
 
   /**
     * Logout the active connection with the server instance of Actorbase
+    *
+    * @return a String, "logout succeeded" if the method succeeded, an error message is returned if the method failed
     */
   def logout() : String = {
     // CommandReceiver.actorbaseDriver.logout
@@ -110,19 +115,14 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
-    * Test driver, returning a String by blocking is ugly as fuck
-    * probably best to return Future[String] and demand printing
-    * to the invoker.
+    * Find command, this method is used to search in the server instance of Actorbase.
+    * Based on the params of the class this method can:
+    *  _search for a key in one or more collections;
+    *  _return one or more collections;
     *
-    * Also try/catch is temporary, probably not the right place to
-    * handle errors
-    *
-    * @param
-    * @return a String representing the output from the server instance
-    * of Actorbase
-    * @throws
+    * @return a String representing the output from the server instance of Actorbase
     */
-  def find() : String = {
+  def find() : String = { //TODO THIS HAS TO BE FINISHED
     var response = ""
     params.get("key") match{
       case None =>
@@ -149,8 +149,10 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * This method is used to get help to the user, can give a generic help containing
+    * all the possible commands that the user can call or help about one specific command
     *
-    * @return
+    * @return a String representing the help message
     */
   // ugly as hell
   def help() : String = {
@@ -183,8 +185,9 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Create a collection in the server instance of Actorbase.
     *
-    * @return
+    * @return a String, "Collection created" if the method succeeded, an error message is returned if the method failed
     */
   def createCollection() : String = {
     val name = params.get("name").get.asInstanceOf[String]
@@ -196,8 +199,9 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * List all the collections from the server instance of Actorbase.
     *
-    * @return
+    * @return a String containing all the collections names the used has access to
     */
   def listCollections() : String = {  //TODO need test when the server will implement this feature
     val collectionList = CommandReceiver.actorbaseDriver.listCollections
@@ -210,16 +214,20 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Rename a collection in the server instance of Actorbase.
     *
-    * @return
+    * @return a String, "Collectiong renamed" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def renameCollection() : String = { //TODO
     "to be implemented soon"
   }
 
   /**
+    * Drop a collection in the server instance of Actorbase.
     *
-    * @return
+    * @return a String, "Collection deleted" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def deleteCollection() : String = { //TODO need test when the server will implement this feature
     val name = params.get("Collection").get.asInstanceOf[String]
@@ -229,8 +237,10 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Add a collaborator to a collection in the server instance of Actorbase.
     *
-    * @return
+    * @return a String, "Collaborator added" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def addCollaborator() : String = {
     var result: String="[ADD CONTRIBUTOR]\n"
@@ -241,8 +251,10 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Remove a collaborator from a collection in the server instance of Actorbase.
     *
-    * @return
+    * @return a String, "Collaborator removed" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def removeCollaborator() : String = {
     var result: String="[REMOVE COLLABORATOR]\n"
@@ -253,8 +265,10 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Change the user password in the server instance of Actorbase.
     *
-    * @return
+    * @return a String, "Password changed" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def changePassword() : String = { //TODO checks on psw?
     val oldPsw = params.get("oldPsw").asInstanceOf[String]
@@ -262,12 +276,14 @@ class CommandReceiver(params: Map[Any, Any]) {
     val done = true
     CommandReceiver.actorbaseDriver.changePassword(newPsw)
 
-    if (done) "Password changed correctly" else "Something went wrong during the oepration"
+    if (done) "Password changed" else "Something went wrong during the oepration"
   }
 
   /**
+    * Add a user to the server instance of Actorbase. This operation needs Admin privileges
     *
-    * @return
+    * @return a String, "User added" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def addUser() : String = {
     var result: String="[ADD USER]\n"
@@ -278,8 +294,10 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Remove a user from the server instance of Actorbase. This operation needs Admin privileges
     *
-    * @return
+    * @return a String, "User removed" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def removeUser() : String = {
     var result: String="[REMOVE USER]\n"
@@ -290,8 +308,11 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Reset the password of a user in the server instance of Actorbase. This operation needs Admin privileges.
+    * The password is resetted to the default Actorbase password: Actorb4se
     *
-    * @return
+    * @return a String, "Password reset" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def resetPassword() : String = {
     var result: String="[RESET PASSWORD]\n"
@@ -302,8 +323,12 @@ class CommandReceiver(params: Map[Any, Any]) {
   }
 
   /**
+    * Export actorbase data into a file. Based on params this method can export:
+    *  _a key in one or more collections;
+    *  _one or more collections;
     *
-    * @return
+    * @return a String, "Exported" if the method succeeded, an error message is returned
+    *         if the method failed
     */
   def export() : String = { //TODO to be done
                             //val list = params.get("p_list").asInstanceOf[List[String]]

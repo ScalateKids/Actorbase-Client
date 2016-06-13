@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
   //"org.scalatra" %% "scalatra-scalatest" % "2.4.0.RC1" % "test",
   "org.scalaj" %% "scalaj-http" % "2.3.0",
+  "io.spray" %% "spray-can" % "1.3.3",
   "com.netaporter" %% "pre-canned" % "0.0.8" % "test",
   //"org.scalatra" %% "scalatra" % "2.3.1",
   //"org.scalatra" %% "scalatra-scalate" % "2.3.1",

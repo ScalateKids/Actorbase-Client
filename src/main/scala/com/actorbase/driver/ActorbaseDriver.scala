@@ -42,41 +42,72 @@ import java.net.URI
 object ActorbaseDriver extends Connector {
 
   /**
-    * Insert description here
+    * Apply method for authentication to the Actorbase server
     *
-    * @param
-    * @return
-    * @throws
+    * @param username a String representing the username of the user, fallback to anonymous
+    * @param password a String representing the password associated to the username, fallback to Actorb4se
+    * @param address a String representing the ip-address (hostname) of the Actorbase instance running to connect with, fallback to localhost
+    * @param port an Int representing the port of the Actorbase instance running to connect with, fallback to 9999
+    * @param ssl a Boolean flag representing the adoption of encrypted connection, true means TLS/SSL adoption while false means plain HTTP connection, fallback to false
+    * @return an instance of ActorbaseDriver, with administration methods only usable if credentials privilege level allows it
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     */
+  @throws(classOf[WrongCredentialsExc])
   def apply(username: String = "anonymous",
     password: String = "Actorb4se",
     address: String = "127.0.0.1",
     port: Int = 9999,
-    ssl: Boolean = false): ActorbaseDriver = new ActorbaseDriver(Connection(username, password, address, port))
+    ssl: Boolean = false): ActorbaseDriver = {
+    val scheme = if (ssl) "https://" else "http://"
+    val request = requestBuilder
+      .withCredentials(username, password)
+      .withUrl(scheme +  address + ":" + port + "/auth/" + username)
+      .withBody(password.getBytes)
+      .withMethod(POST) send()
+    request.statusCode match {
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case _ =>
+        var response = ""
+        request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
+        if (response == "Admin" || response == "Common")
+          new ActorbaseDriver(Connection(username, password, address, port))
+        else throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+    }
+  }
 
   /**
-    * Insert description here
+    * Apply method for authentication to the Actorbase server
     *
-    * @param
-    * @return
-    * @throws
+    * @param url a String representing the URL to connect with the Actorbase server
+    * it must follow some rules: [scheme]://[username:password]@[address]:[port]
+    * e.g "http://noname:nopass@my.domain:9999
+    * @return an instance of ActorbaseDriver, with administration methods only usable if credentials privilege level allows it
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     */
+  @throws(classOf[WrongCredentialsExc])
   def apply(url: String): ActorbaseDriver = {
     val uri = new URI(url)
     implicit val scheme = uri.getScheme + "://"
     val credentials = uri.getUserInfo.split(":")
-    val request = requestBuilder withCredentials(credentials(0), credentials(1)) withUrl scheme +  uri.getHost + ":" + uri.getPort + "/auth/" + credentials(0) withBody credentials(1).getBytes withMethod POST send()
-    // request.statusCode match {
-
-    // }
-    var response = ""
-    request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None1")
-    println(response)
-    if (response == "Admin" || response == "Common")
-      new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
-    else new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
+    val request = requestBuilder
+      .withCredentials(credentials(0), credentials(1))
+      .withUrl(scheme +  uri.getHost + ":" + uri.getPort + "/auth/" + credentials(0))
+      .withBody(credentials(1).getBytes)
+      .withMethod(POST) send()
+    request.statusCode match {
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case _ =>
+        var response = ""
+        request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
+        if (response == "Admin" || response == "Common")
+          new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
+        else throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+    }
   }
 
+  /**
+    * Simple case class used to pass around connection info
+    */
   case class Connection(username: String, password: String, address: String, port: Int)
 
 }
@@ -92,8 +123,8 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
 
   val uri: String = scheme + connection.address + ":" + connection.port
 
-  implicit val conn = connection
-  implicit val sche = scheme
+  // implicit val conn = connection
+  // implicit val sche = scheme
 
   /**
     * Insert description here

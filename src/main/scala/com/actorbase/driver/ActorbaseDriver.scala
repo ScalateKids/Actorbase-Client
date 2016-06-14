@@ -350,6 +350,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * object stored inside the database.
     *
     * @param collectionName a String representing the collection to fetch
+    * @param owner a String representing the collection owner
     * @return an object of type ActorbaseCollection, traversable with foreach,
     * containing a list of ActorbaseObject, representing key/value type object
     * of Actorbase
@@ -358,7 +359,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def getCollection(collectionName: String): ActorbaseCollection = {
+  def getCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
     var buffer = TreeMap.empty[String, Any]
     var owner = ""
     val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
@@ -488,6 +489,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case _ =>
         }
       } //getOrElse throw MalformedFileExc("Malformed json file")
     } catch {

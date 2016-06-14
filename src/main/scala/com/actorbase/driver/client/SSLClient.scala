@@ -49,7 +49,7 @@ trait SSLClient extends Client {
     * connection object
     * @throws
     */
-  abstract override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.allowUnsafeSSL, HttpOptions.readTimeout(5000))
+  abstract override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.allowUnsafeSSL, HttpOptions.readTimeout(60000))
 
   /**
     * Send method, send a Request object to the Actorbase server listening

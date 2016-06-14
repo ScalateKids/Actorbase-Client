@@ -29,6 +29,11 @@
 package com.actorbase.cli.views
 
 class ActorbaseBanner() {
+  /**
+    * Method that returns an introductive banner for the application.
+    *
+    * @return a String representing the banner of the application
+    */
   def getBanner() : String = {
     var banner = """
                    #    ___   ________________  ____  ____  ___   _____ ______

@@ -25,7 +25,7 @@
   * @version 1.0
   * @since 1.0
   */
-/*
+
 package com.actorbase.cli.controllers
 
 import com.actorbase.cli.CLISpecs.CLIUnitSpec
@@ -148,4 +148,3 @@ class GrammarParserSpec extends CLIUnitSpec {
   }
 
 }
-*/

@@ -25,10 +25,12 @@
   * @version 1.0
   * @since 1.0
   */
-/*
+
 package com.actorbase.cli
 
 import org.scalatest._
+import akka.actor.ActorSystem
+import spray.http.{ ContentType,  HttpEntity }
 
 /**
   * Module containing all specifications for testing CLI components.
@@ -48,6 +50,36 @@ object CLISpecs {
     * @return
     * @throws
     */
-  abstract class CLIUnitSpec extends FlatSpec with Matchers
+  abstract class CLIUnitSpec extends FlatSpec with Matchers{
+
+    implicit val system = ActorSystem()
+
+    import com.netaporter.precanned.dsl.fancy._
+
+    val actorbaseMockServices = httpServerMock(system).bind(9999).block
+
+    actorbaseMockServices expect post and path("/auth/admin") and respond using entity ( HttpEntity (
+      // contentType = ContentType(`text/plain`, `UTF-8`),
+      string = "Admin"
+    )) end()
+
+    actorbaseMockServices expect post and path("/auth/noexists") and respond using entity ( HttpEntity (
+      // contentType = ContentType(`text/plain`, `UTF-8`),
+      string = "None"
+    )) end()
+
+    actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
+
+    actorbaseMockServices expect get and path("/collections/testCollection") and respond using status(200) end()
+    actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
+    actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
+
+    actorbaseMockServices expect get and path("/collections/testCollection/testItem") and respond using status(200) end()
+    actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
+    actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
+    actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
+
+  }
+
+
 }
-*/

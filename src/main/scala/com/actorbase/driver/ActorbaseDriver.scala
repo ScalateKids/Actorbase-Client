@@ -184,9 +184,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             response.body map { x =>
               x.asInstanceOf[String] match {
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-                case "DuplicateKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case _ =>
               }
             }
+          case _ =>
         }
     }
   }
@@ -228,8 +230,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           response.body map { x =>
             x.asInstanceOf[String] match {
               case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+              case "NoPrivileges" => throw UndefinedCollectionExc("Insufficient permissions")
+              case _ =>
             }
           }
+        case _ =>
       }
     }
   }
@@ -260,6 +265,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
               buffer ++= Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
             }
           } getOrElse (Map[String, Any]().empty)
+        case _ =>
       }
     }
     ActorbaseObject(buffer)

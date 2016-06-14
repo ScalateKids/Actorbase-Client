@@ -265,6 +265,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
               buffer ++= Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
             }
           } getOrElse (Map[String, Any]().empty)
+        case _ =>
       }
     }
     ActorbaseObject(buffer)

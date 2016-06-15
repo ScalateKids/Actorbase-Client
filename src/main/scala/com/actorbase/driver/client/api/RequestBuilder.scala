@@ -45,7 +45,7 @@ case class RequestBuilder(
   url: Option[String],
   user: Option[String],
   password: Option[String],
-  headers: Seq[(String, String)],
+  headers: (String, String),
   body: Option[Array[Byte]]) {
 
   /**
@@ -104,7 +104,7 @@ case class RequestBuilder(
     * @return
     * @throws
     */
-  def addHeaders(hs: Seq[(String, String)]) = copy(headers = headers ++ hs)
+  def addHeaders(hs: (String, String)) = copy(headers = hs)
 
   /**
     * Insert description here
@@ -114,7 +114,7 @@ case class RequestBuilder(
     * @throws
     */
   def toRequest: Request = {
-    Request(method.get, url.get, user.get, password.get, toHeaders(headers: _*), body)
+    Request(method.get, url.get, user.get, password.get, headers, body)
   }
 
   /**
@@ -143,7 +143,7 @@ case class RequestBuilder(
   */
 object RequestBuilder {
 
-  val emptyBuilder = RequestBuilder(None, None, None, None, Seq(), None)
+  val emptyBuilder = RequestBuilder(None, None, None, None, ("", ""), None)
 
   /**
     * Insert description here
@@ -152,9 +152,7 @@ object RequestBuilder {
     * @return
     * @throws
     */
-  def apply(): RequestBuilder = {
-    emptyBuilder
-  }
+  def apply(): RequestBuilder = emptyBuilder
 
   /**
     * Insert description here

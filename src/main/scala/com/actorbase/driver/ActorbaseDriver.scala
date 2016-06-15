@@ -295,6 +295,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder.withCredentials(connection.username, connection.password)
       .withUrl(uri + "/private/" + connection.username)
       .withBody(serialize2byteArray(newpassword))
+      .addHeaders(("Old-password" , connection.password))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")

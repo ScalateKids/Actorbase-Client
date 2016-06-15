@@ -233,9 +233,9 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      * TS.DEF3.2.5 & Viene verificato che il \gloss{driver} dovrà permettere di 
      * aggiungere \gloss{collaboratori} ad una \gloss{collezione} del sistema
      */
-     //"add a contributor to a collection" in {
-
-     //}
+     /*"add a contributor to a collection" in {
+        noException should be thrownBy(driver.addContributor(""))
+     }*/
 
     /*
      * TS.DEF3.2.6 & Viene verificato che il \gloss{driver} dovrà permettere 

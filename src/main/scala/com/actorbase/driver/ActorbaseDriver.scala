@@ -259,6 +259,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        case NotFound =>
+          response.body map { content =>
+            content.asInstanceOf[String] match {
+              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+              case "NoPrivilege" => throw WrongCredentialsExc("Insufficient permissions")
+            }
+          }
         case OK =>
           response.body map { content =>
             JSON.parseFull(content) map { jc =>
@@ -298,6 +305,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             case "WrongNewPassword" => throw WrongNewPasswordExc("The password inserted does not meet Actorbase criteria")
           }
         }
+      case _ =>
     }
   }
 
@@ -313,7 +321,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def listCollections : List[String] = {
     var collections = List.empty[String]
     val response =
-      requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/listcollections" withMethod GET send()
+      requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections" withMethod GET send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -372,6 +380,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+      case NotFound => throw UndefinedCollectionExc("Undefined collection")
       case OK =>
         response.body map { b =>
           JSON.parseFull(b) map { js =>
@@ -382,11 +391,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             }
           }
         }
-        // val mapObject = JSON.parseFull(response.body.get).get.asInstanceOf[Map[String, Any]]
-        // mapObject get "owner" map (owner = _.asInstanceOf[String])
-        // mapObject get "map" map { m =>
-        //   buffer = TreeMap(m.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
-        // }
+      case _ =>
     }
     ActorbaseCollection(owner, collectionName, buffer)(connection, scheme)
   }
@@ -447,6 +452,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+      case _ =>
     }
   }
 
@@ -467,6 +473,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        case _ =>
       }
     }
   }
@@ -497,12 +504,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
           case _ =>
         }
-      } //getOrElse throw MalformedFileExc("Malformed json file")
+      }
     } catch {
       case nse: NoSuchElementException => throw MalformedFileExc("Malformed json file")
       case wce: WrongCredentialsExc => throw wce
       case mfe: MalformedFileExc => throw mfe
       case err: InternalErrorExc => throw err
+      case und: UndefinedCollectionExc => throw und
     }
   }
 
@@ -543,6 +551,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already exists in the system Actorbase")
           }
         }
+      case _ =>
     }
   }
 
@@ -570,6 +579,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
           }
         }
+      case _ =>
     }
   }
 
@@ -601,6 +611,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already exists in the system Actorbase")
           }
         }
+      case _  =>
     }
   }
 

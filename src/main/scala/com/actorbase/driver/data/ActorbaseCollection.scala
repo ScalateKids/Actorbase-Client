@@ -81,6 +81,7 @@ case class ActorbaseCollection
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case _ =>
         }
       }
     }
@@ -117,6 +118,7 @@ case class ActorbaseCollection
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case _ =>
         }
       }
     }
@@ -143,6 +145,7 @@ case class ActorbaseCollection
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case _ =>
         }
       }
     }
@@ -182,7 +185,7 @@ case class ActorbaseCollection
     var coll = TreeMap[String, Any]().empty
     keys.foreach { key =>
       if (data.contains(key))
-        coll += data.filterKeys(_ == key).head
+        data.filterKeys(_ == key) map ( head => coll += head )
     }
     ActorbaseObject(coll.toMap)
   }
@@ -196,7 +199,7 @@ case class ActorbaseCollection
     */
   def findOne[A >: Any](key: String): Option[ActorbaseObject[A]] = {
     if (data.contains(key))
-      Some(ActorbaseObject(key -> data.get(key).get))
+      Some(ActorbaseObject(key -> data.get(key).getOrElse(None)))
     else None
   }
 
@@ -260,11 +263,14 @@ case class ActorbaseCollection
     * @return
     * @throws
     */
-  def drop: Boolean = {
+  def drop: Unit = {
     data = data.empty
     val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName withMethod DELETE send()
-    if (response.statusCode == 200) true
-    else false
+    response.statusCode match {
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+      case _ =>
+    }
   }
 
   /**

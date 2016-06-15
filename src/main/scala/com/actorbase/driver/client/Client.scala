@@ -33,39 +33,26 @@ import scalaj.http.HttpOptions
 import com.actorbase.driver.client.api.RestMethods._
 
 /**
-  * Insert description here
+  * Trait to define the behavior of a client designed to interface with
+  * the server side of the system Actorbase
   *
-  * @param
-  * @return
-  * @throws
   */
 trait Client {
 
   /**
-    * Insert description here
+    * Add connection options to the scalaj-http client Object
     *
-    * @param
-    * @return
-    * @throws
     */
   def createClientOptions: Seq[HttpOptions.HttpOption]
 
   /**
-    * Insert description here
+    * Send method, send a Request object to the Actorbase server listening
+    * and return a Response object
     *
-    * @param
-    * @return
-    * @throws
+    * @param request a Request reference, contains all HTTP request details
+    * @return an object of type Response, containing the status of the response
+    * and the body as Option[String]
     */
   def send(request: Request): Response
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def shutdown: Unit
 
 }

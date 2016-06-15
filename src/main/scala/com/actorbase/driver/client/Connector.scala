@@ -30,6 +30,10 @@ package com.actorbase.driver.client
 
 import com.actorbase.driver.client.api.RequestBuilder
 
+/**
+  * Trait to add connection capabilities to all classes extending
+  * or mixing this
+  */
 trait Connector extends Serializer {
 
   /**

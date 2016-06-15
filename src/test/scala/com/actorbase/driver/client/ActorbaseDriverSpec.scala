@@ -40,10 +40,10 @@ import com.actorbase.driver.exceptions.{ MalformedFileExc, WrongCredentialsExc }
 import org.scalatest.matchers.MustMatchers
 import org.scalatest.WordSpec
 
-import akka.actor.ActorSystem
 import org.scalatest.FunSuiteLike
 import spray.http.{ ContentType,  HttpEntity }
 
+import com.actorbase.driver.ActorbaseServerMock
 
 /**
   * Insert description here
@@ -54,55 +54,7 @@ import spray.http.{ ContentType,  HttpEntity }
   */
 class ActorbaseDriverSpec extends WordSpec with Matchers{
 
-  implicit val system = ActorSystem()
-  //val driver = ActorbaseDriver("127.0.0.1", 8080, false)
-  //val driver = ActorbaseDriver("http://admin:Actorb4se@127.0.0.1:8080")
-
-  //  addServlet(classOf[ActorbaseServerMock], "/*")
-
-  import com.netaporter.precanned.dsl.fancy._
-
-  val actorbaseMockServices = httpServerMock(system).bind(8766).block
-
-
-  actorbaseMockServices expect get and path("/testscalaj") and respond using status(300) end()
-
-  actorbaseMockServices expect post and path("/auth/admin") and respond using entity ( HttpEntity (
-    // contentType = ContentType(`text/plain`, `UTF-8`),
-    string = "Admin"
-  )) end()
-
-  actorbaseMockServices expect post and path("/auth/noexists") and respond using entity ( HttpEntity (
-    // contentType = ContentType(`text/plain`, `UTF-8`),
-    string = "None"
-  )) end()
-
-  // list collection
-  actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
-
-  // collection routes
-  actorbaseMockServices expect get and path("/collections/testCollection/") and respond using entity ( HttpEntity (
-    string = """{ "collection" : "testCollection", "map" : { }, "owner" : "" }"""
-  )) and status(200) end()
-  actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
-  actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
-
-  // items routes
-  actorbaseMockServices expect get and path("/collections/testCollection/testItem") and respond using status(200) end()
-  actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
-  actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
-  actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
-
-  // collaborator routes
-  actorbaseMockServices expect get and path("contributors/testCollection") and respond using status(200) end()
-  actorbaseMockServices expect post and path("contributors/testCollection/read") and respond using status(200) end()
-/*  actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
-  actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()  
-*/
-  // other routes
-  actorbaseMockServices expect get and path("/collections/testNavigableCollection/") and respond using entity ( HttpEntity (
-    string = """{ "collection" : "testCollection", "map" : { "key" -> "palyload" }, "owner" : "" }"""
-  )) and status(200) end()
+  ActorbaseServerMock.startMock
 
   /*
    * TS.DEF3 viene verificato che dovrà essere fornito un driver Scala per interfacciarsi con il database
@@ -126,21 +78,18 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
     "make http request test" in {
       import scalaj.http._
-
       val res: HttpResponse[String] = Http("http://127.0.0.1:8766/testscalaj").asString
       //println(res.code + " " + res.body)
-      res.code should be(300)
+      res.code should be(200)
     }
     // }
 
     // to be *scommented* when the feature will return something
-    /*it should {
      "ask for insert item" in {
-     val response = driver.insertTo("testCollection", false, ("testItem" -> "testPayload"))
-     println(response)
-     response.code should be(200)
+       val response = driver.insertTo("testCollection", false, ("testItem" -> "testPayload"))
+       println(response)
+       response.code should be(200)
      }
-     }*/
 
     /* 
      * TU.DEF3.2 Si verifica che Il \gloss{driver} dovrà permettere l'esecuzione 

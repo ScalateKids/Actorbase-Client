@@ -188,10 +188,10 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      }*/
 
 
+//manca case ok nel driver
     // it should {
     "import items from file" in {
-      val response = driver.importFromFile("src/test/resources/importTest.json")
-      assert( response == true )
+      noException should be thrownBy(driver.importFromFile("src/test/resources/importTest.json"))
     }
   }
 }

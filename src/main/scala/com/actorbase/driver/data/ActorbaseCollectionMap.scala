@@ -26,27 +26,16 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.client
+package com.actorbase.driver.data
 
-import scala.concurrent.Future
-import com.actorbase.driver.client.RestMethods._
+import com.actorbase.driver.client.Connector
+import com.actorbase.driver.ActorbaseDriver.Connection
 
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
-  */
-class ActorbaseDriver(address: String, port: Int = 9999) {
+import scala.collection.immutable.TreeMap
+import scala.collection.generic.FilterMonadic
 
-  /**
-    * ActorbaseClient instance, with stacked trait for SSL
-    * support
-    */
-  val client = new ActorbaseClient() with SSLClient
-
-  val requestBuilder = RequestBuilder()
+case class ActorbaseCollectionMap private
+  (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection, implicit val scheme: String = "http://") extends Connector {
 
   /**
     * Insert description here
@@ -55,21 +44,10 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def listCollections() : Future[Response] = client.send(
-    requestBuilder withUrl "http://" + address + ":" + port + "/actorbase/listCollections" withMethod GET)
-
-  /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  def find() : Future[Response] = {
-    client.send(
-      requestBuilder
-        .withUrl("http://" + address + ":" + port + "/actorbase/allDatabase")
-        .withMethod(GET))
+  def find(keys: String*): ActorbaseCollection = {
+    var coll = new TreeMap[String, Any]()
+    data map {collection => collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))}
+    ActorbaseCollection("anonymous", "findResults", coll)(conn, scheme)
   }
 
   /**
@@ -79,14 +57,12 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  def find(key: String, collection: String = "") : Future[Response] = {
-    val path =
-      if(!collection.isEmpty) "/" + collection + "/" + key
-      else "/" + key
-    client.send(
-      requestBuilder
-        .withUrl("https://" + address + ":" + port + "/collections/dummy" + path)
-        .withMethod(GET))
+  def drop(collections: String*): Unit = {
+    // TODO: exceptions check
+    collections.foreach { collection =>
+      data.get(collection).get.drop
+      data -= collection
+    }
   }
 
   /**
@@ -96,16 +72,33 @@ class ActorbaseDriver(address: String, port: Int = 9999) {
     * @return
     * @throws
     */
-  // def insert: Future[Response] {
-  //   client.send(
-  //     requestBuilder
-  //       .withUrl("http)
-  //   )
-  // }
+  def count: Int = data.size
 
   /**
-    * Shutdown the connection with the server
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
     */
-  def logout() : Unit = client.shutdown
+  def foreach(f: ((String, ActorbaseCollection)) => Unit): Unit = data.foreach(f)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  def withFilter(f: ((String, ActorbaseCollection)) => Boolean): FilterMonadic[(String, ActorbaseCollection), TreeMap[String, ActorbaseCollection]] = data.withFilter(f)
+
+  /**
+    * Insert description here
+    *
+    * @param
+    * @return
+    * @throws
+    */
+  override def toString: String = data.mkString
 
 }

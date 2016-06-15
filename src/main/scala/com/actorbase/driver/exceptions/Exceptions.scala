@@ -26,18 +26,26 @@
   * @since 1.0
   */
 
-package com.actorbase.cli.models
-/**
-  * A command of the ActorbaseCLI.
-  * This class extends the Command trait
-  * in the models package of the ActorbaseCLI.
-  */
-class ChangePasswordCommand(cr: CommandReceiver) extends Command {
-  /**
-    * Method used to call the right method of a class that contains the code to run the Command.
-    *
-    * @return a String containing the result to return to the user of the Command invoked
-    */
-  override def execute() : String = cr.changePassword
-}
+package com.actorbase.driver.exceptions
 
+case class WrongCredentialsExc(msg: String) extends Exception(msg)
+
+case class WrongPasswordExc(msg: String) extends Exception(msg)
+
+case class WrongNewPasswordExc(msg: String) extends Exception(msg)
+
+case class CollectionAlreadyExistsExc(msg: String) extends Exception(msg)
+
+case class UndefinedCollectionExc(msg: String) extends Exception(msg)
+
+case class UndefinedFileExc(msg: String) extends Exception(msg)
+
+case class DuplicateKeyExc(msg: String) extends Exception(msg)
+
+case class MalformedFileExc(msg: String) extends Exception(msg)
+
+case class UsernameAlreadyExistsExc(msg: String) extends Exception(msg)
+
+case class UndefinedUsernameExc(msg: String) extends Exception(msg)
+
+case class InternalErrorExc(msg: String) extends Exception(msg)

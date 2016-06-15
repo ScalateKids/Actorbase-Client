@@ -28,53 +28,38 @@
 
 package com.actorbase.driver.client
 
+import scalaj.http.HttpOptions
 
-import play.api.{Configuration, Environment, Mode}
-import play.api.libs.ws.WSConfigParser
-import play.api.libs.ws.ning.{NingAsyncHttpClientConfigBuilder, NingWSClient, NingWSClientConfigParser}
-import com.typesafe.config.ConfigFactory
-import scala.concurrent.Future
-
-import com.actorbase.driver.client.RestMethods._
+import com.actorbase.driver.client.api.RestMethods._
 
 /**
-  * Insert description here
+  * Trait to define the behavior of a client designed to interface with
+  * the server side of the system Actorbase, in this case it add some
+  * structure in order to allow performance of encrypted requests.
   *
-  * @param
-  * @return
-  * @throws
   */
 trait SSLClient extends Client {
 
   /**
-    * Insert description here
+    * Add ssl option to the scalaj-http client Object
     *
-    * @param
-    * @return
-    * @throws
+    * @return a sequence of HttpOption representing options to be applied to the
+    * connection object
     */
-  abstract override def initClient : NingWSClient  = {
-    val configuration = Configuration(ConfigFactory.load("application.conf"))
-    val environment = Environment.simple(new java.io.File("./src/main/resources"), Mode.Dev)
-    val parser = new WSConfigParser(configuration, environment)
-    val clientConfig = parser.parse()
-    val ningParser = new NingWSClientConfigParser(clientConfig, configuration, environment)
-    val ningClientConfig = ningParser.parse()
-    val builder = new NingAsyncHttpClientConfigBuilder(ningClientConfig)
-    val asyncHttpClientConfig = builder.build()
-    val client = new NingWSClient(asyncHttpClientConfig)
-    client
-  }
+  abstract override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.allowUnsafeSSL, HttpOptions.readTimeout(60000))
 
   /**
-    * Insert description here
+    * Send method, send a Request object to the Actorbase server listening
+    * and return a Response object with SSL encryption
     *
-    * @param
-    * @return
-    * @throws
+    * @param request a Request reference, contains all HTTPS request details
+    * @return an object of type Response, containing the status of the response
+    * and the body as Option[String]
+    *
+    * @return an object of type Response, containing the status of the response
+    * and the body as Option[String]
     */
-  abstract override def send(request: Request): Future[Response] = {
+  abstract override def send(request: Request): Response = {
     super.send(request)
   }
-
 }

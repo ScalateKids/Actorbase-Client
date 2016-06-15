@@ -26,18 +26,25 @@
   * @since 1.0
   */
 
-package com.actorbase.cli.models
-/**
-  * A command of the ActorbaseCLI.
-  * This class extends the Command trait
-  * in the models package of the ActorbaseCLI.
-  */
-class ChangePasswordCommand(cr: CommandReceiver) extends Command {
-  /**
-    * Method used to call the right method of a class that contains the code to run the Command.
-    *
-    * @return a String containing the result to return to the user of the Command invoked
-    */
-  override def execute() : String = cr.changePassword
-}
+package com.actorbase.driver.client
 
+import com.actorbase.driver.client.api.RequestBuilder
+
+/**
+  * Trait to add connection capabilities to all classes extending
+  * or mixing this
+  */
+trait Connector extends Serializer {
+
+  /**
+    * ActorbaseClient instance, with stacked trait for SSL
+    * support
+    */
+  implicit val client = new ActorbaseClient() with SSLClient
+
+  /**
+    * RequestBuilder instance to build REST request
+    */
+  val requestBuilder = RequestBuilder()
+
+}

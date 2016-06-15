@@ -26,18 +26,26 @@
   * @since 1.0
   */
 
-package com.actorbase.cli.models
-/**
-  * A command of the ActorbaseCLI.
-  * This class extends the Command trait
-  * in the models package of the ActorbaseCLI.
-  */
-class ChangePasswordCommand(cr: CommandReceiver) extends Command {
-  /**
-    * Method used to call the right method of a class that contains the code to run the Command.
-    *
-    * @return a String containing the result to return to the user of the Command invoked
-    */
-  override def execute() : String = cr.changePassword
-}
+package com.actorbase.driver.data
 
+object ActorbaseEntities {
+
+  sealed trait ActorbaseEntity
+
+  case class IntegerEntity(v: Int) extends ActorbaseEntity
+
+  case class DoubleEntity(v: Double) extends ActorbaseEntity
+
+  case class FloatEntity(v: Float) extends ActorbaseEntity
+
+  case class BoolEntity(v: Boolean) extends ActorbaseEntity
+
+  case class StringEntity(v: String) extends ActorbaseEntity
+
+  case class MapEntity(v: Map[String, ActorbaseEntity]) extends ActorbaseEntity
+
+  case class ArrayEntity(v: Seq[ActorbaseEntity]) extends ActorbaseEntity
+
+  case class Bin(v: Array[Byte]) extends ActorbaseEntity
+
+}

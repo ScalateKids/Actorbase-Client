@@ -28,96 +28,43 @@
 
 package com.actorbase.driver.client
 
-import play.api.libs.ws._
-import play.api.libs.ws.ning._
+import scalaj.http.{Http, HttpOptions}
 
-import play.api.libs.ws.ning.NingWSClient
-import play.api.libs.ws.{WSResponse, WSRequest}
-
-import com.ning.http.client.AsyncHttpClientConfig
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
-import com.actorbase.driver.client.RestMethods._
+import com.actorbase.driver.client.api.RestMethods._
 
 /**
-  * Insert description here
+  * This class have the responsibility of the communication
+  * with the HTTP interface of the server side of Actorbase
   *
-  * @param
-  * @return
-  * @throws
-  */
-// object ActorbaseClient extends ActorbaseClient {
-
-//   lazy val client = initClient
-
-// }
-
-/**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
   */
 class ActorbaseClient extends Client {
 
-  lazy val client = initClient
+  private val client = Http
+  private val options = createClientOptions
 
   /**
-    * Insert description here
+    * Add connection options to the scalaj-http client Object
     *
-    * @param
-    * @return
-    * @throws
+    * @return a sequence of HttpOption representing options to be applied to the
+    * connection object
     */
-  override def initClient() : NingWSClient  = {
-    val builder = new AsyncHttpClientConfig.Builder()
-    val client = new NingWSClient(builder.build)
-    client
-  }
+  override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.readTimeout(60000))
 
   /**
     * Send method, send a Request object to the Actorbase server listening
-    * and return a Future[Response] containing the Response object
+    * and return a Response object
     *
     * @param request a Request reference, contains all HTTP request details
-    * @return a Future of type Response, containing the status of the response
+    * @return an object of type Response, containing the status of the response
     * and the body as Option[String]
-    * @throws
     */
-  override def send(request: Request) : Future[Response] = {
-    getHttpResponse(request).map {
-      response => Response(response.status, Some(response.body.asInstanceOf[Array[Byte]]))
+  override def send(request: Request): Response = {
+    val response = request.method match {
+      case GET    => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).options(options).asString
+      case POST   => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None".getBytes)).options(options).asString
+      case PUT    => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None".getBytes)).method("PUT").options(options).asString
+      case DELETE => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).method("DELETE").options(options).asString
     }
+    Response(response.code, Some(response.body.asInstanceOf[String]))
   }
-
-  /**
-    * Send a Request object to the Actorbase server listening and return a
-    * Future[WSResponse] (an object of the library PlayWS!)
-    *
-    * @param request a Request reference, contains all HTTP request details
-    * @return a Future of type WSResponse, containing all headers, body and
-    * status of the response from the server
-    * @throws
-    */
-  def getHttpResponse(request: Request): Future[WSResponse] = {
-    val wsRequest: WSRequest = client.url(request.uri).withHeaders("Cache-Control" -> "no-cache")
-    request.method match {
-      case GET    => wsRequest.get
-      case POST   => wsRequest.post(request.body.get)
-      case PUT    => wsRequest.put(request.body.get)
-      case DELETE => wsRequest.delete
-    }
-  }
-
-  /**
-    * Shutdown the connection with the server closing the client
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  override def shutdown(): Unit = client.close
 }

@@ -1,0 +1,94 @@
+#!/usr/bin/perl
+#
+#
+#
+
+use warnings;
+use strict;
+
+use Digest::MD5 qw(md5 md5_hex md5_base64);
+
+sub generate_unique_id {
+    my $buildID = md5_base64 ( rand($$) ) . md5_base64 ( rand($$) ) . md5_base64 ( rand($$) );
+
+    # Strip out "+", "/" and \d
+    $buildID =~ s/\+//g;
+    $buildID =~ s/\///g;
+
+    return substr ($buildID, -12 );
+}
+
+my $sample = <<"JSON";
+           : {
+      "_id": "574c674d1bd853dd0e04aa86",
+      "index": 0,
+      "guid": "645ea354-69cc-44ec-8a11-8ed8bf4ffb41",
+      "isActive": true,
+      "balance": "$1,469.90",
+      "picture": "http://placehold.it/32x32",
+      "age": 27,
+      "eyeColor": "brown",
+      "name": {
+        "first": "Nunez",
+        "last": "Frazier"
+      },
+      "company": "ZOLARITY",
+      "email": "nunez.frazier\@zolarity.org",
+      "phone": "+1 (801) 536-2891",
+      "address": "713 Fay Court, Sylvanite, Michigan, 4699",
+      "about": "Consectetur Lorem eu aute ullamco amet consequat ipsum magna minim incididunt. Adipisicing irure ea aliquip deserunt laborum sunt anim ipsum. Duis deserunt ut est do officia velit ut duis duis nulla do labore in. Non consequat sunt occaecat pariatur ipsum. Est laboris quis cupidatat non labore nisi. Velit et eiusmod ut ad. Ex et minim culpa esse fugiat nostrud magna ea consequat culpa dolor non proident sunt.",
+      "registered": "Friday, August 14, 2015 9:45 AM",
+      "latitude": "-22.015246",
+      "longitude": "48.572605",
+      "tags": [
+        "elit",
+        "sint",
+        "est",
+        "nisi",
+        "ad"
+      ],
+      "range": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "friends": [
+        {
+          "id": 0,
+          "name": "Kinney Clayton"
+        },
+        {
+          "id": 1,
+          "name": "Alvarez Cervantes"
+        },
+       {
+          "id": 2,
+          "name": "Watkins Baird"
+        }
+      ],
+      "greeting": "Hello, Nunez! You have 8 unread messages.",
+      "favoriteFruit": "banana"
+    }
+JSON
+
+my $pre = <<"PRE";
+{
+    "collection": "json1",
+    "map": {
+PRE
+
+my $post = "}}";
+my $json = "";
+
+for(0..2000) {
+    $json .= '"' . generate_unique_id . '"' . $sample . ','
+}
+
+print $pre . $json . $post

@@ -26,82 +26,63 @@
   * @since 1.0
   */
 
-package com.actorbase.driver.client
+package com.actorbase.driver.client.api
 
-import play.api.libs.ws.WSResponse
 import scala.util.parsing.json.JSON
 import scala.language.implicitConversions
+
+import scalaj.http.HttpResponse
+
 /**
-  * Insert description here
+  * This module contains all object and class useful to build
+  * HTTP request
   *
-  * @param
-  * @return
-  * @throws
   */
 
 object RestMethods {
+
   /**
-    * Insert description here
+    * Class representing a generic HTTP request
     *
-    * @param
-    * @return
-    * @throws
     */
   sealed abstract class Method(name: String)
 
   /**
-    * Insert description here
+    * Object representing a GET request
     *
-    * @param
-    * @return
-    * @throws
     */
   case object GET extends Method("GET")
 
   /**
-    * Insert description here
+    * Object representing a POST method
     *
-    * @param
-    * @return
-    * @throws
     */
   case object POST extends Method("POST")
 
   /**
-    * Insert description here
+    * Object representing a PUT request
     *
-    * @param
-    * @return
-    * @throws
     */
   case object PUT extends Method("PUT")
 
   /**
-    * Insert description here
+    * Object representing a DELETE request
     *
-    * @param
-    * @return
-    * @throws
     */
   case object DELETE extends Method("DELETE")
 
   /**
-    * Insert description here
+    * Simple class representing an HTTP request, formed by all common fields of
+    * a request
     *
-    * @param
-    * @return
-    * @throws
     */
-  case class Request(method: Method, uri: String, headers: Map[String, List[String]] = Map(), body: Option[Array[Byte]] = None)
+  case class Request(method: Method, uri: String, user: String, password: String, headers: (String, String) = ("",""), body: Option[Array[Byte]] = None)
 
   /**
-    * Insert description here
+    * Simple class representing an HTTP response
     *
-    * @param
-    * @return
-    * @throws
     */
-  case class Response(statusCode: Int, body: Option[Array[Byte]])
+  case class Response(statusCode: Int, body: Option[String])
 
   /**
     * Companion object of case class Response
@@ -118,35 +99,29 @@ object RestMethods {
       * @param response The Response object to convert
       * @return a Map[String, List[String]] representing a JSON object
       */
-    // implicit def toMap(response: Response) : Map[String, List[String]] = {
-    //   JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
-    // }
+    implicit def toMap(response: Response) : Map[String, List[String]] = {
+      JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
+    }
 
     /**
       * Implicit conversion method, return a Response from a WSResponse (playWS! response type)
       *
-      *
-      * @param wsResponse The WSResponse object to convert
-      * @return a Response object containing statusCode and body of the WSResponse
+      * @param HttpResponse The HttpResponse[T] object to convert
+      * @return a Response object containing statusCode and body of the HttpResponse
       */
-    implicit def toResponse(wsResponse: WSResponse) : Response = Response(wsResponse.status, Some(wsResponse.body.asInstanceOf[Array[Byte]]))
+    implicit def HttpResponseToResponse(HttpResponse: HttpResponse[String]) : Response = Response(HttpResponse.statusCode, Some(HttpResponse.body.asInstanceOf[String]))
   }
 
   /**
-    * Insert description here
+    * Status object, contains the most common return codes of HTTP request
     *
-    * @param
-    * @return
-    * @throws
     */
   object Status {
     val OK = 200
-    val Created = 201
-    val Accepted = 202
     val BadRequest = 400
     val Unauthorized = 401
-    val PaymentRequired = 402
     val Forbidden = 403
     val NotFound = 404
+    val Error = 500
   }
 }

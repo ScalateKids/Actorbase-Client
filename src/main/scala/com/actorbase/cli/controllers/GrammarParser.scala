@@ -34,6 +34,13 @@ import com.actorbase.cli.views.ResultView
 import scala.tools.jline.console.ConsoleReader
 import scala.util.parsing.combinator._
 
+/**
+  * GrammarParser class, process input strings sent by the user command line
+  * using a CommandInvoker object to send the requests to the models package
+  * This class translate the user input strings into model Commands.
+  *
+  * @param TODO
+  */
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
 
   // base arguments types
@@ -46,16 +53,31 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
 
   // chained commands
 
+  /**
+    * Method to parse the login and logout commands.
+    *
+    * @return a Parser[Command] representing the login or logout command based on the user input.
+    */
   def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ literalString | "logout") ^^ {
     case "logout" => new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
     case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
   }
 
-  def changePasswordCommand : Parser[Command] = "changePassword " ~ keyString ~ keyString ~ keyString ^^ {
+  /**
+    * Method to parse the changePasswordCommand.
+    *
+    * @return a Parser[Command] representing the ChangePasswordCommand with the right parameters.
+    */
+  def changePasswordCommand : Parser[Command] = "changePassword" ~ keyString ~ keyString ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 =>
       new ChangePasswordCommand(new CommandReceiver(Map[Any, Any]("oldPsw" -> args_1, "newPsw" -> args_2, "repeatedPsw" -> args_3)))
   }
 
+  /**
+    * Method to parse the help command.
+    *
+    * @return a Parser[Command] representing the HelpCommand with the right parameters.
+    */
   // ugly as hell, needs improvements
   def helpCommand : Parser[Command] = "help" ~> keyString.? ^^ {
     case arg => new HelpCommand(new CommandReceiver(Map[Any, Any]("command" -> arg)))
@@ -65,6 +87,16 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                          COLLECTION OPERATIONS                                                 **/
   /********************************************************************************************************************/
 
+  /**
+    * Method to parse the collection operations commands.
+    * Commands that can be parsed are:
+    *  _createCollection
+    *  _deleteCollection
+    *  _listCollections
+    *  _renameCollection
+    *
+    * @return a Parser[Command] representing the right command based on the user input.
+    */
   def collectionManagementCommand : Parser[Command] =
     (("createCollection" | "deleteCollection") ~ literalString |
       "listCollections" |
@@ -77,16 +109,31 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
         new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
     }
 
+  /**
+    * Method to parse the addCollaboratorCommand with the parameters passed by the user
+    *
+    * @return a Parser[Command] representing the AddCollaboratorCommand with the right parameters.
+    */
   def addCollaboratorCommand : Parser[Command] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 =>
       new AddCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2, "permissions" -> args_3)))
   }
 
+  /**
+    * Method to parse the removeCollaboratorCommand with the parameters passed by the user
+    *
+    * @return a Parser[Command] representing the RemoveCollaboratorCommand with the right parameters.
+    */
   def removeCollaboratorCommand : Parser[Command] = "removeCollaborator" ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
       new RemoveCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
   }
 
+  /**
+    * Method to parse the exportCommand with the parameters passed by the user
+    *
+    * @return a Parser[Command] representing the ExportCommand with the right parameters.
+    */
   // only works without spaces for now
   def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
@@ -97,25 +144,44 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                               ITEM OPERATIONS                                                  **/
   /********************************************************************************************************************/
 
+  /**
+    * Method to parse the insertItemCommand with the parameters passed by the user
+    *
+    * @return a Parser[Command] representing the InsertItemCommand with the right parameters.
+    */
   // TODO flag sovrascrittura
-  // TODO inserimento item con creazione nuova collezione
-  def insertItemCommand : Parser[Command] = "insert " ~ keyString ~ types ~ quotedString ~ "to " ~ literalString ^^ {
-    case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 ~ cmd_part_2 ~ args_4 =>
-      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key " -> args_1, "type" -> args_2, "quotedString" -> args_3, cmd_part_2 -> args_4)))
+  def insertItemCommand : Parser[Command] = "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ literalString ^^ {
+    case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~  args_3 =>
+      val value = args_2 match {
+        case integer if integer matches("""^\d+$""") => integer.toInt
+        case double if double matches("""^\d+\.\d+""") => double.toDouble
+        case _ => args_2
+      }
+      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "value" -> value, "collection" -> args_3)))
   }
 
   // TODO insert item da file?
 
+  /**
+    * Method to parse the removeItemCommand with the parameters passed by the user
+    *
+    * @return a Parser[Command] representing the RemoveItemCommand with the right parameters.
+    */
   def removeItemCommand : Parser[Command] = "remove " ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
       new RemoveItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
   }
 
+  /**
+    * Method to parse the findCommand with the parameters passed by the user.
+    *
+    * @return a Parser[Command] representing the FindCommand with the right parameters.
+    */
   // meh
   def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
-    case "find" => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> None, "collection" -> None)))
+    case "find" => new FindCommand(new CommandReceiver(Map[Any, Any](/*"key" -> None, "collection" -> None*/)))
     case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
-    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> None, "collection" -> args_1.asInstanceOf[String].split(",").toList)))
+    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any](/*"key" -> None, */"collection" -> args_1.asInstanceOf[String].split(",").toList)))
     case "find" ~ args_1 ~ "from"  ~ args_2 =>
       new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2.asInstanceOf[String].split(",").toList)))
   }
@@ -124,12 +190,28 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   /**                                              USERS MANAGEMENT                                                  **/
   /********************************************************************************************************************/
 
+  /**
+    * Method to parse the user management commands.
+    * Commands that can be parsed are:
+    *  _addUser
+    *  _removeUser
+    *  _resetPassword
+    *
+    * @return a Parser[Command] representing the right command based on the user input.
+    */
   def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
     case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
     case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
     case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
   }
 
+  /**
+    * Method that contains all the possible Commands parsable by the GrammarParser.
+    * This method is used by parseInput to check if the user input received from
+    * CommandLoop correspond to a method listed here.
+    *
+    * @return a Parser[Command] containing all the parsable commands of the GrammarParser
+    */
   def commandList : Parser[Command] = {
     insertItemCommand | exportCommand | authManagementCommand | addCollaboratorCommand | findCommand |
     helpCommand | collectionManagementCommand | removeCollaboratorCommand | removeItemCommand |

@@ -28,11 +28,20 @@
 
 package com.actorbase.cli.views
 
+import com.actorbase.cli.models.CommandReceiver
+
 class ActorbasePrompt extends PromptProvider{
 
-  val os = System.getProperty("os.name")
+  // val os = System.getProperty("os.name")
+  val connection = CommandReceiver.actorbaseDriver.connection
+
+  /**
+    * Method that returns a string representing the prompt.
+    *
+    * @return a String representing the prompt of the Actorbase application
+    */
 
   override def getPrompt: String = {
-    "actorbasecli@" + os.toLowerCase + "$ "
+    "actorbase@" + connection.address + "[" + connection.username  +"]$~: "
   }
 }

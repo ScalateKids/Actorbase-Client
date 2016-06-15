@@ -1,6 +1,8 @@
 .idea/
 target/
 
+payloads
+
 *.class
 *.log
 

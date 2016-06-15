@@ -21,42 +21,26 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
+  *
   * @author Scalatekids TODO DA CAMBIARE
   * @version 1.0
   * @since 1.0
   */
 
-package com.actorbase.cli
+package com.actorbase.driver
 
-import org.scalatest._
-import akka.actor.ActorSystem
+import com.netaporter.precanned.dsl.fancy._
 import spray.http.{ ContentType,  HttpEntity }
+import akka.actor.ActorSystem
 
-/**
-  * Module containing all specifications for testing CLI components.
-  * All types of specifications and tests related to the CLI component
-  * should be added here.
-  *
-  * @param
-  * @return
-  * @throws
-  */
-object CLISpecs {
+object ActorbaseServerMock {
 
-  /**
-    * Basic unit-testing class
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  abstract class CLIUnitSpec extends FlatSpec with Matchers{
+  implicit val system = ActorSystem()
 
-    implicit val system = ActorSystem()
+  def startMock: Unit = {
+    val actorbaseMockServices = httpServerMock(system).bind(8766).block
 
-    import com.netaporter.precanned.dsl.fancy._
-
-    val actorbaseMockServices = httpServerMock(system).bind(9999).block
+    actorbaseMockServices expect get and path("/testscalaj") and respond using status(200) end()
 
     actorbaseMockServices expect post and path("/auth/admin") and respond using entity ( HttpEntity (
       // contentType = ContentType(`text/plain`, `UTF-8`),
@@ -68,18 +52,32 @@ object CLISpecs {
       string = "None"
     )) end()
 
+    // list collection
     actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
 
-    actorbaseMockServices expect get and path("/collections/testCollection") and respond using status(200) end()
+    // collection routes
+    actorbaseMockServices expect get and path("/collections/testCollection/") and respond using entity ( HttpEntity (
+      string = """{ "collection" : "testCollection", "map" : { }, "owner" : "" }"""
+    )) and status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
 
+    // items routes
     actorbaseMockServices expect get and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
 
+    // collaborator routes
+    actorbaseMockServices expect get and path("contributors/testCollection") and respond using status(200) end()
+    actorbaseMockServices expect post and path("contributors/testCollection/read") and respond using status(200) end()
+    /*  actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
+      actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
+    */
+    // other routes
+    actorbaseMockServices expect get and path("/collections/testNavigableCollection/") and respond using entity ( HttpEntity (
+      string = """{ "collection" : "testCollection", "map" : { "key" -> "palyload" }, "owner" : "" }"""
+    )) and status(200) end()
   }
-
-
 }
+

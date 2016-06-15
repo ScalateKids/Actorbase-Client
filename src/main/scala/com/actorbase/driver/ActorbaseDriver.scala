@@ -378,13 +378,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def getCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
+  def getCollection(collectionName: String, originalOwner: String = connection.username): ActorbaseCollection = {
     var buffer = TreeMap.empty[String, Any]
     var owner = ""
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
-      .withUrl(uri + "/collections/" + collectionName + "/")
-      .addHeaders(("owner", owner))
+      .withUrl(uri + "/collections/" + collectionName)
+      .addHeaders(("owner", originalOwner))
       .withMethod(GET).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")

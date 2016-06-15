@@ -29,7 +29,7 @@
 
 package com.actorbase.cli.models
 
-import com.actorbase.driver.exceptions.{InternalErrorExc, WrongCredentialsExc}
+import com.actorbase.driver.exceptions._
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
 // import scala.concurrent.ExecutionContext.Implicits.global
@@ -103,7 +103,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String, "login succeeded" if the method succeeded, an error message is returned if the method failed
     */
   def login() : String = {
-    var result : String ="[LOGIN]\n"
+    var result : String ="[LOGIN]\n"  //TODO ?
     for((k,v) <- params) {
       result += s"$k -> $v\n"
     }
@@ -115,7 +115,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     *
     * @return a String, "logout succeeded" if the method succeeded, an error message is returned if the method failed
     */
-  def logout() : String = {
+  def logout() : String = { //TODO ?
     // CommandReceiver.actorbaseDriver.logout
     "[LOGOUT]\nSuccessfully logged out from actorbase"
   }
@@ -153,6 +153,7 @@ class CommandReceiver(params: Map[Any, Any]) {
       }
     }
     catch {
+      case uce: UndefinedCollectionExc => return "Undefined collection"
       case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
     }
@@ -166,7 +167,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String representing the help message
     */
   // ugly as hell
-  def help() : String = {
+  def help() : String = {   //TODO dovrebbe mostrare solo i comandi del privilegio relativo all'account
     var result : String = "\n"//"[HELP]\n"
     params.get("command").get match {
       case None =>
@@ -209,9 +210,8 @@ class CommandReceiver(params: Map[Any, Any]) {
       case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
     }
-    //TODO check if everything was ok?
 
-    "collection "+name+" created" // stub
+    "collection "+name+" created"
   }
 
   /**
@@ -222,9 +222,7 @@ class CommandReceiver(params: Map[Any, Any]) {
   def listCollections() : String = {  //TODO need test when the server will implement this feature
     try {
       val collectionList = CommandReceiver.actorbaseDriver.listCollections
-
-      collectionList.foreach(println)
-
+      //collectionList.foreach(println)
       var list = ""
       collectionList.foreach(c => list = list + c + "\n")
       list
@@ -247,7 +245,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
     case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
   }
-    "to be implemented soon"
+    "Collection renamed"
   }
 
   /**
@@ -274,7 +272,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String, "Collaborator added" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def addCollaborator() : String = {
+  def addCollaborator() : String = {   //TODO
     var result: String="[ADD CONTRIBUTOR]\n"
     for((k,v) <- params){
       result += s"$k -> $v\n"
@@ -288,7 +286,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String, "Collaborator removed" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def removeCollaborator() : String = {
+  def removeCollaborator() : String = {   //TODO
     var result: String="[REMOVE COLLABORATOR]\n"
     for((k,v) <- params){
       result += s"$k -> $v\n"
@@ -302,13 +300,20 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String, "Password changed" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def changePassword() : String = { //TODO checks on psw?
-    val oldPsw = params.get("oldPsw").asInstanceOf[String]
-    val newPsw = params.get("newPsw").asInstanceOf[String]
-    val done = true
-    CommandReceiver.actorbaseDriver.changePassword(newPsw)
+  def changePassword() : String = {
+    try{
+      val oldPsw = params.get("oldPsw").asInstanceOf[String]
+      val newPsw = params.get("newPsw").asInstanceOf[String]
+      CommandReceiver.actorbaseDriver.changePassword(newPsw)
 
-    if (done) "Password changed" else "Something went wrong during the oepration"
+      "Password changed"
+    }
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      case wnp: WrongNewPasswordExc => return "The password inserted does not meet Actorbase criteria"
+      case uue: UndefinedUsernameExc => return "Undefined username"
+    }
   }
 
   /**
@@ -318,11 +323,16 @@ class CommandReceiver(params: Map[Any, Any]) {
     *         if the method failed
     */
   def addUser() : String = {
-    var result: String="[ADD USER]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
+    try{
+      val username = params.get("username").asInstanceOf[String]
+      CommandReceiver.actorbaseDriver.addUser(username)
+      username+" removed from the system"
     }
-    result
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      case uae: UsernameAlreadyExistsExc=> return "Username already exists in the system Actorbase"
+    }
   }
 
   /**
@@ -332,11 +342,16 @@ class CommandReceiver(params: Map[Any, Any]) {
     *         if the method failed
     */
   def removeUser() : String = {
-    var result: String="[REMOVE USER]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
+    try{
+      val username = params.get("username").asInstanceOf[String]
+      CommandReceiver.actorbaseDriver.removeUser(username)
+      username+" removed from the system"
     }
-    result
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      case uue: UndefinedUsernameExc => return "Undefined username: Actorbase does not contains such credential"
+    }
   }
 
   /**
@@ -347,11 +362,17 @@ class CommandReceiver(params: Map[Any, Any]) {
     *         if the method failed
     */
   def resetPassword() : String = {
-    var result: String="[RESET PASSWORD]\n"
-    for((k,v) <- params){
-      result += s"$k -> $v\n"
+    try{
+      val user = params.get("username").asInstanceOf[String]
+      CommandReceiver.actorbaseDriver.resetPassword(user)
+      user+" password reset"
     }
-    result
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      case uue: UndefinedUsernameExc => return "Undefined username: Actorbase does not contains such credential"
+      case uae: UsernameAlreadyExistsExc => return "Username already exists in the system Actorbase"
+    }
   }
 
   /**
@@ -362,11 +383,21 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String, "Exported" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def export() : String = { //TODO to be done
-                            //val list = params.get("p_list").asInstanceOf[List[String]]
+  def export() : String = { //val list = params.get("p_list").asInstanceOf[List[String]]
                             //val path = params.get("f_path").asInstanceOf[String]
-
-    "Exported into "//+path
+    /* todo
+    try{
+      val path = params.get("f_path").asInstanceOf[String]
+      CommandReceiver.actorbaseDriver.exportToFile(path)
+      "Exported into "+path
+    }
+    catch{
+      case wce: WrongCredentialsExc => "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => "There was an internal server error, something wrong happened."
+      case uue: UndefinedUsernameExc => "Undefined username: Actorbase does not contains such credential"
+      case uae: UsernameAlreadyExistsExc => "Username already exists in the system Actorbase"
+    }*/
+    "exported"
   }
 
   /**

@@ -220,7 +220,8 @@ case class ActorbaseCollection
   @throws(classOf[UndefinedUsernameExc])
   @throws(classOf[UsernameAlreadyExistsExc])
   def addContributor(username: String, write: Boolean = false): Unit = {
-    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod POST send()
+    val permission = if (!write) "read" else "readwrite"
+    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/contributors/" + collectionName + "/" + permission withBody serialize2byteArray(username) withMethod POST send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -248,7 +249,7 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def removeContributor(username: String): Unit = {
-    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/contributors/" + username withMethod DELETE send()
+    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/contributors/" + collectionName + "/" + username withMethod DELETE send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")

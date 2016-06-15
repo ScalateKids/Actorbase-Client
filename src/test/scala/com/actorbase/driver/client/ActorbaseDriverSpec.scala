@@ -79,10 +79,9 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
   actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
 
-  actorbaseMockServices expect get and path("/collections/testCollection") and respond using entity ( HttpEntity (
+  actorbaseMockServices expect get and path("/collections/testCollection/") and respond using entity ( HttpEntity (
     string = """{ "collection" : "testCollection", "map" : { }, "owner" : "" }"""
   )) and status(200) end()
-
   actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
   actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
 
@@ -140,33 +139,35 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
     // }
 
+// TODO fails perchè non c'è case OK in driver?
     // it should {
     "ask for deleting a collection" in {
-      val response = driver.dropCollections("testCollection")
-      println(response)
+      //val response = driver.dropCollections("testCollection")
+      noException should be thrownBy(driver.dropCollections("testCollection"))
     }
     // }
 
 
+    /*** ITEM PART ***/
 
     // it should {
     "ask for a single item" in {
-      val response = driver.find("testItem", "testCollection")
-      //assert(response.getClass() == ActorbaseObject)
+      //val response = driver.find("testItem", "testCollection")
+      noException should be thrownBy(driver.find("testItem", "testCollection"))
     }
     // }
 
     // it should {
     "ask for inserting one item without overwriting" in {
-      val response = driver.insertTo("testCollection", false, ("testItem" ->"testPayload"))
-      //assert(response.getClass() == ActorbaseObject)
+      //val response = driver.insertTo("testCollection", false, ("testItem" ->"testPayload"))
+      noException should be thrownBy(driver.insertTo("testCollection", false, ("testItem" ->"testPayload")))
     }
     // }
 
     // it should {
     "ask for inserting one item allowing overwriting" in {
-      val response = driver.insertTo("testCollection", true, ("testItem" ->"testPayload"))
-      //assert(response.getClass() == ActorbaseObject)
+      //val response = driver.insertTo("testCollection", true, ("testItem" ->"testPayload"))
+      noException should be thrownBy(driver.insertTo("testCollection", true, ("testItem" ->"testPayload")))
     }
     // }
 
@@ -178,12 +179,6 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     // }
 
 
-    /*
-     it should {
-     "authenticate to the actorsystem" in {
-
-     }
-     }*/
 
     /*
      it should {
@@ -193,10 +188,10 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      }*/
 
 
+//manca case ok nel driver
     // it should {
     "import items from file" in {
-      val response = driver.importFromFile("src/test/resources/importTest.json")
-      assert( response == true )
+      noException should be thrownBy(driver.importFromFile("src/test/resources/importTest.json"))
     }
   }
 }

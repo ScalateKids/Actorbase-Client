@@ -341,7 +341,7 @@ class CommandReceiver(params: Map[Any, Any]) {
 
   /**
     * Reset the password of a user in the server instance of Actorbase. This operation needs Admin privileges.
-    * The password is resetted to the default Actorbase password: Actorb4se
+    * The password is reset to the default Actorbase password: Actorb4se
     *
     * @return a String, "Password reset" if the method succeeded, an error message is returned
     *         if the method failed

@@ -416,8 +416,12 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def addCollection(collectionName: String): ActorbaseCollection = {
-    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName withMethod POST send() // control response
+  def addCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
+    val response = requestBuilder
+      .withCredentials(connection.username, connection.password)
+      .withUrl(uri + "/collections/" + collectionName)
+      .addHeaders(("owner", owner))
+      .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -436,9 +440,12 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
-    val response =
-      requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collection.collectionName withMethod POST send() // control response and add payload to post
+  def addCollection(collection: ActorbaseCollection, owner: String = connection.username): ActorbaseCollection = {
+    val response = requestBuilder
+      .withCredentials(connection.username, connection.password)
+      .withUrl(uri + "/collections/" + collection.collectionName)
+      .addHeaders(("owner", owner))
+      .withMethod(POST).send() // control response and add payload to post
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")

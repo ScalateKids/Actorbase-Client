@@ -29,6 +29,7 @@
 
 package com.actorbase.cli.models
 
+import com.actorbase.driver.exceptions.{InternalErrorExc, WrongCredentialsExc}
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
 // import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,12 +65,15 @@ class CommandReceiver(params: Map[Any, Any]) {
     val key = params.get("key").get.asInstanceOf[String]
     val value = params.get("value").get
     val collection = params.get("collection").get.asInstanceOf[String]
-
-    val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
-
-    actColl.insert((key, value))
-
-    "Item inserted" //stub
+    try {
+      val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
+      actColl.insert((key, value))
+    }
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    }
+    "Item inserted."
   }
 
   /**
@@ -81,11 +85,15 @@ class CommandReceiver(params: Map[Any, Any]) {
     val key = params.get("key").get.asInstanceOf[String]
     val collection = params.get("collection").get.asInstanceOf[String]
 
-    val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
-
-    actColl.remove( key )
-
-    "Item removed" //stub
+    try {
+      val actColl = CommandReceiver.actorbaseDriver.getCollection(collection)
+      actColl.remove(key)
+    }
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    }
+    "Item removed"
   }
 
 
@@ -122,27 +130,32 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def find() : String = { //TODO THIS HAS TO BE FINISHED
     var response = ""
-    params.get("key") match{
-      case None =>
-        params.get("collection") match{
-          case None =>
-          //TODO get all database?
-          case Some(c) =>
-            //TODO if its a list should call another method, or change this in the driver
-            response = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) ).toString
-        }
-      case Some(k) =>
-        params.get("collection") match{
-          case None =>
-          //TODO find key from all database
-          case Some(c) =>
-            // val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
-            // response = actColl.findOne( k.toString ).toString
-            val actColl = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq:_*)
-            response = actColl.toString
-        }
+    try {
+      params.get("key") match {
+        case None =>
+          params.get("collection") match {
+            case None =>
+              response = CommandReceiver.actorbaseDriver.getCollections.toString
+            case Some(c) =>
+              //TODO if its a list should call another method, or change this in the driver
+              response = CommandReceiver.actorbaseDriver.getCollection(c.asInstanceOf[List[String]](0)).toString
+          }
+        case Some(k) =>
+          params.get("collection") match {
+            case None =>
+            //TODO find key from all database
+            case Some(c) =>
+              // val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
+              // response = actColl.findOne( k.toString ).toString
+              val actColl = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*)
+              response = actColl.toString
+          }
+      }
     }
-
+    catch {
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    }
     response
   }
 
@@ -189,8 +202,13 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def createCollection() : String = {
     val name = params.get("name").get.asInstanceOf[String]
-    CommandReceiver.actorbaseDriver.addCollection(name)
-
+    try {
+      CommandReceiver.actorbaseDriver.addCollection(name)
+    }
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    }
     //TODO check if everything was ok?
 
     "collection "+name+" created" // stub
@@ -202,13 +220,19 @@ class CommandReceiver(params: Map[Any, Any]) {
     * @return a String containing all the collections names the used has access to
     */
   def listCollections() : String = {  //TODO need test when the server will implement this feature
-    val collectionList = CommandReceiver.actorbaseDriver.listCollections
+    try {
+      val collectionList = CommandReceiver.actorbaseDriver.listCollections
 
-    collectionList.foreach(println)
+      collectionList.foreach(println)
 
-    var list = ""
-    collectionList.foreach(c => list = list+c+"\n")
-    list
+      var list = ""
+      collectionList.foreach(c => list = list + c + "\n")
+      list
+    }
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    }
   }
 
   /**
@@ -218,6 +242,11 @@ class CommandReceiver(params: Map[Any, Any]) {
     *         if the method failed
     */
   def renameCollection() : String = { //TODO
+  try{}
+  catch{
+    case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+    case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+  }
     "to be implemented soon"
   }
 
@@ -229,11 +258,15 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def deleteCollection() : String = { //TODO need test when the server will implement this feature
     val name = params.get("Collection").get.asInstanceOf[String]
-    CommandReceiver.actorbaseDriver.dropCollections(name)
-    val done = true // fix
-
-    if (done) name+" deleted" else "there was an error deleting "+name
+    try {
+      CommandReceiver.actorbaseDriver.dropCollections(name)
+    }
+  catch{
+    case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+    case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
   }
+  "deleted"
+}
 
   /**
     * Add a collaborator to a collection in the server instance of Actorbase.

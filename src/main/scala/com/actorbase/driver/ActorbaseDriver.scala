@@ -287,10 +287,12 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws InternalErrorExc in case of internal server error
     * @throws WrongNewPasswordExc in case of a new password that does not meet Actorbase criteria (e.g. at least one
     * uppercase character, at least one lowercase character, at least one digit)
+    * @throws UndefinedUsernameExc in case of an undefined username
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[WrongNewPasswordExc])
+  @throws(classOf[UndefinedUsernameExc])
   def changePassword(newpassword: String): Unit = {
     val response = requestBuilder.withCredentials(connection.username, connection.password)
       .withUrl(uri + "/private/" + connection.username)
@@ -304,6 +306,8 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         response.body map { x =>
           x.asInstanceOf[String] match {
             case "WrongNewPassword" => throw WrongNewPasswordExc("The password inserted does not meet Actorbase criteria")
+            case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username")
+            case "OK" =>
           }
         }
       case _ =>
@@ -377,7 +381,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def getCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
     var buffer = TreeMap.empty[String, Any]
     var owner = ""
-    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName + "/" withMethod GET send()
+    val response = requestBuilder
+      .withCredentials(connection.username, connection.password)
+      .withUrl(uri + "/collections/" + collectionName + "/")
+      .addHeaders(("owner", owner))
+      .withMethod(GET).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")

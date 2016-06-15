@@ -27,8 +27,17 @@
   */
 
 package com.actorbase.cli.models
-
+/**
+  * A command of the ActorbaseCLI.
+  * This class extends the Command trait
+  * in the models package of the ActorbaseCLI.
+  */
 class ListCollectionsCommand(cr: CommandReceiver) extends Command {
+  /**
+    * Method used to call the right method of a class that contains the code to run the Command.
+    *
+    * @return a String containing the result to return to the user of the Command invoked
+    */
   override def execute() : String = cr.listCollections
 }
 

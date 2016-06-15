@@ -161,7 +161,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
   @throws(classOf[DuplicateKeyExc])
-  def insertTo(collection: String, update: Boolean, kv: (String, Any)*): Unit = {
+  def insertTo(collection: String, update: Boolean, kv: (String, Any)*)(owner: String = connection.username): Unit = {
     kv.foreach {
       case (k, v) =>
         val response =
@@ -170,12 +170,14 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
               .withCredentials(connection.username, connection.password)
               .withUrl(uri + "/collections/" + collection + "/" + k)
               .withBody(serialize2byteArray(v))
+              .addHeaders(("owner", owner))
               .withMethod(POST).send()
           else
             requestBuilder
               .withCredentials(connection.username, connection.password)
               .withUrl(uri + "/collections/" + collection + "/" + k)
               .withBody(serialize2byteArray(v))
+              .addHeaders(("owner", owner))
               .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -203,7 +205,8 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @param kv an object of type ActorbaseObject[A] representing one or more key-value pair item to be inserted
     * @return no return value
     */
-  def insertTo[A >: Any](collection: String, update: Boolean, kv: ActorbaseObject[A]): Unit = this.insertTo(collection, update, kv.toSeq:_*)
+  def insertTo[A >: Any](collection: String, update: Boolean, kv: ActorbaseObject[A], owner: String): Unit =
+    this.insertTo(collection, update, kv.toSeq:_*)(owner)
 
   /**
     * Remove method, directly remove items without preventively querying
@@ -219,10 +222,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
-  def removeFrom(collection: String, keys: String*): Unit = {
+  def removeFrom(collection: String, keys: String*)(owner: String = connection.username): Unit = {
     keys.foreach { key =>
-      val response =
-        requestBuilder.withCredentials(connection.username, connection.password).withUrl(uri + "/collections/" + collection + "/" + key).withMethod(DELETE).send()
+      val response = requestBuilder
+        .withCredentials(connection.username, connection.password)
+        .withUrl(uri + "/collections/" + collection + "/" + key)
+        .addHeaders(("owner", owner))
+        .withMethod(DELETE).send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -252,10 +258,14 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def find[A >: Any](key: String, collections: String*): ActorbaseObject[A] = {
+  def find[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
     var buffer = Map.empty[String, Any]
     collections.foreach { collectionName =>
-      val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod GET send()
+      val response = requestBuilder
+        .withCredentials(connection.username, connection.password)
+        .withUrl(uri + "/collections/" + collectionName + "/" + key)
+        .addHeaders(("owner", owner))
+        .withMethod(GET).send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -440,11 +450,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def addCollection(collection: ActorbaseCollection, owner: String = connection.username): ActorbaseCollection = {
+  def addCollection(collection: ActorbaseCollection): ActorbaseCollection = {
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collection.collectionName)
-      .addHeaders(("owner", owner))
+      .addHeaders(("owner", collection.owner))
       .withMethod(POST).send() // control response and add payload to post
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -507,14 +517,19 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[MalformedFileExc])
-  def importFromFile(path: String): Unit = {
+  def importFromFile(path: String)(owner: String = connection.username): Unit = {
     try {
       val json = Source.fromFile(path).getLines.mkString
       val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
       val collectionName = mapObject.get("collection").getOrElse("NoName")
       val buffer = mapObject.get("map").get.asInstanceOf[Map[String, Any]]
       buffer map { x =>
-        val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName + "/" + x._1 withBody serialize2byteArray(x._2) withMethod POST send()
+        val response = requestBuilder
+          .withCredentials(connection.username, connection.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + x._1)
+          .withBody(serialize2byteArray(x._2))
+          .addHeaders(("owner", owner))
+          .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -540,7 +555,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws InternalErrorExc in case of internal server error
     * @throws MalformedFileExc in case of a not well balanced JSON file or a non-existant file at the given path
     */
-  def exportToFile(path: String): Unit = listCollections map (getCollection(_).export(path))
+  def exportToFile(path: String)(owner: String = connection.username): Unit = listCollections map (getCollection(_, owner).export(path))
 
   /**
     * Add a new user to the system with the given username and the Actorbase
@@ -565,6 +580,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         response.body map { r =>
           r.asInstanceOf[String] match {
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already exists in the system Actorbase")
+            case "OK" =>
           }
         }
       case _ =>
@@ -593,6 +609,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         response.body map { r =>
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
+            case "OK" =>
           }
         }
       case _ =>
@@ -625,6 +642,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already exists in the system Actorbase")
+            case "OK" =>
           }
         }
       case _  =>

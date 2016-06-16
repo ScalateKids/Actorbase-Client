@@ -42,6 +42,8 @@ case class UndefinedFileExc(msg: String) extends Exception(msg)
 
 case class DuplicateKeyExc(msg: String) extends Exception(msg)
 
+case class UndefinedKeyExc(msg: String) extends Exception(msg)
+
 case class MalformedFileExc(msg: String) extends Exception(msg)
 
 case class UsernameAlreadyExistsExc(msg: String) extends Exception(msg)

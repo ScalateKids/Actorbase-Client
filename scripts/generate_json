@@ -80,8 +80,8 @@ JSON
 
 my $pre = <<"PRE";
 {
-    "collection": "json1",
-    "map": {
+    "collectionName": "json1",
+    "data": {
 PRE
 
 my $post = "}}";

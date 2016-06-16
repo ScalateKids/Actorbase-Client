@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -41,6 +41,8 @@ case class UndefinedCollectionExc(msg: String) extends Exception(msg)
 case class UndefinedFileExc(msg: String) extends Exception(msg)
 
 case class DuplicateKeyExc(msg: String) extends Exception(msg)
+
+case class UndefinedKeyExc(msg: String) extends Exception(msg)
 
 case class MalformedFileExc(msg: String) extends Exception(msg)
 

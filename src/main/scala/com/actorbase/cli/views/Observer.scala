@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -33,7 +33,7 @@ import com.actorbase.cli.models.Observable
 trait Observer {
   /**
     * Method that updates the status of the class that implements this interface.
-    *
+    * @param o the observable to update
     * @return a non value type
     */
   def update(o: Observable): Unit

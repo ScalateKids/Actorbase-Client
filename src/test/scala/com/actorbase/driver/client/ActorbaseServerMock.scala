@@ -55,29 +55,63 @@ object ActorbaseServerMock {
     // list collection
     actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
 
-    // collection routes
-    actorbaseMockServices expect get and path("/collections/testCollection/") and respond using entity ( HttpEntity (
+    /**
+      * collection routes
+      */
+    actorbaseMockServices expect get and path("/collections/testCollection") and respond using entity ( HttpEntity (
       string = """{ "collection" : "testCollection", "map" : { }, "owner" : "" }"""
     )) and status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
 
-    // items routes
+    /**
+      * items routes
+      */
     actorbaseMockServices expect get and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
 
-    // collaborator routes
+    /**
+      * collaborator routes
+      */
     actorbaseMockServices expect get and path("contributors/testCollection") and respond using status(200) end()
     actorbaseMockServices expect post and path("contributors/testCollection/read") and respond using status(200) end()
-    /*  actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
-      actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
-    */
-    // other routes
-    actorbaseMockServices expect get and path("/collections/testNavigableCollection/") and respond using entity ( HttpEntity (
+
+    /** 
+      * contributors routes
+      */
+    actorbaseMockServices expect get and path("/collections/contributorCollection") and respond using status(200) end()
+    actorbaseMockServices expect post and path("/contributors/contributorCollection") and respond using status(200) end()
+    actorbaseMockServices expect delete and path("/contributors/contributorCollection") and respond using status(200) end()
+
+    /**
+      * users routes
+      */
+    //actorbaseMockServices expect get and path("/users/username") and respond using status(200) end()
+    actorbaseMockServices expect post and path("/users/username") and respond using entity ( HttpEntity ( 
+      string = """OK""")) and status(200) end()
+    actorbaseMockServices expect delete and path("/users/username") and respond using entity ( HttpEntity ( 
+      string = """OK""")) and status(200) end()
+    actorbaseMockServices expect put and path("/users/username") and respond using entity ( HttpEntity ( 
+      string = """OK""")) and status(200) end()
+
+    /**
+      * other routes
+      */
+    actorbaseMockServices expect get and path("/collections/testNavigableCollection") and respond using entity ( HttpEntity (
       string = """{ "collection" : "testCollection", "map" : { "key" -> "palyload" }, "owner" : "" }"""
     )) and status(200) end()
+
+
+    /**
+      * routes for the exception tests
+      */
+    actorbaseMockServices expect post and path("/collections/alreadyInside") and respond using status(500) end()
+    actorbaseMockServices expect delete and path("/collections/notExistent") and respond using status(500) end()
+    actorbaseMockServices expect delete and path("/collections/notExistent/testItem") and respond using status(500) end()
+    actorbaseMockServices expect post and path("/contributors/testCollection") and respond using status(500) end()
+    actorbaseMockServices expect post and path("/contributors/testCollection2") and respond using status(500) end()
   }
 }
 

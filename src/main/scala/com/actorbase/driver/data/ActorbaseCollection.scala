@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -54,15 +54,6 @@ case class ActorbaseCollection
   val uri: String = scheme + conn.address + ":" + conn.port
 
   /**
-    * Rename the collection, reflecting this change to the remote system
-    *
-    * @param newName a String representing the new name of the collection to be changed
-    * @return no return value
-    * @throws
-    */
-  def rename(newName: String): Unit = ???
-
-  /**
     * Insert an arbitrary variable number of key-value tuple to the collection
     * reflecting local changes to remote collection on server-side
     *
@@ -77,7 +68,12 @@ case class ActorbaseCollection
     for((k, v) <- kv) {
       if(!data.contains(k)) {
         data += (k -> v)
-        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod POST send()
+        val response = requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + k)
+          .withBody(serialize2byteArray(v))
+          .addHeaders(("owner", owner))
+          .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -111,10 +107,15 @@ case class ActorbaseCollection
   @throws(classOf[InternalErrorExc])
   def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
-      if(!data.contains(k)) {
+      if(data.contains(k)) {
         data -= k
         data += (k -> v)
-        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + k withBody serialize2byteArray(v) withMethod PUT send()
+        val response = requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + k)
+          .withBody(serialize2byteArray(v))
+          .addHeaders(("owner", owner))
+          .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")

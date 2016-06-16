@@ -21,19 +21,14 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
 
 package com.actorbase.cli.views
 
-import com.actorbase.cli.models.CommandReceiver
-
 class ActorbasePrompt extends PromptProvider{
-
-  // val os = System.getProperty("os.name")
-  val connection = CommandReceiver.actorbaseDriver.connection
 
   /**
     * Method that returns a string representing the prompt.
@@ -42,6 +37,6 @@ class ActorbasePrompt extends PromptProvider{
     */
 
   override def getPrompt: String = {
-    "actorbase@" + connection.address + "[" + connection.username  +"]$~: "
+    "actorbase$~: "
   }
 }

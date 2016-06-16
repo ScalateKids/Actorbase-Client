@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -31,20 +31,37 @@ package com.actorbase.cli.models
 import com.actorbase.cli.views.Observer
 
 import scala.collection.mutable.ListBuffer
-
+/**
+  * A trait of the ActorbaseCLI.
+  * This trait describe de design pattern and keep update model status
+  */
 trait Observable {
 
   private var observers : ListBuffer[Observer] = new ListBuffer[Observer]
   private var state : String = ""
-
+  /**
+  * change the state of the trait
+  * @param s a String that rappresent the new state to set
+  **/
   def setState(s: String) : Unit = state = s
-
+  /**
+  * return the state of the trait
+  * @return a string with the state of the trait
+  **/
   def getState : String = state
-
+  /**
+  * return the state of the trait
+  * @param observer add class to the list of observed class
+  **/
   def attach(observer: Observer) : Unit = observers :+= observer
-
+  /**
+  * return the state of the trait
+  * @param observer remove class to the list of observed class
+  **/
   def detach(observer: Observer) : Unit = observers -= observer
-
+ /**
+  * recall an update on all observers
+  **/
   def notifyAllObservers() : Unit = {
     for(observer <- observers)
       observer.update(this)

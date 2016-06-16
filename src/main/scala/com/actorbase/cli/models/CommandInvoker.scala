@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -31,7 +31,12 @@ package com.actorbase.cli.models
 class CommandInvoker extends Observable {
 
   private var history : List[Command] = Nil
-
+   /**
+    * Method used to get command and route it to the right class
+    *
+    * @param cmd contain the command definition
+    * @return a String containing the result to return to the user of the Command invoked
+    */
   def storeAndExecute(cmd : Command) : String = {
     this.history :+= cmd
     setState(cmd.execute())

@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -67,14 +67,14 @@ object ActorbaseDriver extends Connector {
       .withBody(password.getBytes)
       .withMethod(POST) send()
     request.statusCode match {
-      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case _ =>
         var response = ""
         request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
         if (response == "Admin" || response == "Common")
           new ActorbaseDriver(Connection(username, password, address, port))
-        else throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        else throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
     }
   }
 
@@ -100,17 +100,14 @@ object ActorbaseDriver extends Connector {
       .withBody(credentials(1).getBytes)
       .withMethod(POST) send()
     request.statusCode match {
-      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case Unauthorized | Forbidden => throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case _ =>
         var response = ""
         request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
         if (response == "Admin" || response == "Common")
           new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
-        else {
-          println(response)
-          throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-        }
+        else throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
     }
   }
 
@@ -154,6 +151,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @param collection a String representing the collection uuid
     * @param update a Boolean flag, true means overwrite the item inserted, false otherwise
     * @param kv a Tuple2[String, Any] representing one or more key-value pair item to be inserted
+    * @param owner a String representing the orignal owner of the collection
     * @return no return value
     * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     * @throws InternalErrorExc in case of internal server error
@@ -212,6 +210,17 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     this.insertTo(collection, update, kv.toSeq:_*)(owner)
 
   /**
+    * Uncurried version of the method insertTo, accept same parameters but
+    * fallback owner to the current.
+    *
+    * @param collection a String representing the collection uuid
+    * @param update a Boolean flag, true means overwrite the item inserted, false otherwise
+    * @param kv a Tuple2[String, Any] representing one or more key-value pair item to be inserted
+    * @return no return value
+    */
+  def insert(collection: String, update: Boolean, kv: (String, Any)*): Unit = insertTo(collection, update, kv:_*)(connection.username)
+
+  /**
     * Remove method, directly remove items without preventively querying
     * the system, accepting a sequence of keys.
     *
@@ -249,6 +258,16 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   }
 
   /**
+    * Uncurring version of remove method, directly remove items without preventively querying
+    * the system, accepting a sequence of keys, but fallback owner to current one.
+    *
+    * @param collection a String representing the collection uuid
+    * @param keys a vararg of String representing a sequence of keys designed for removal
+    * @return no return value
+    */
+  def remove(collection: String, keys: String*): Unit = removeFrom(collection, keys:_*)(connection.username)
+
+  /**
     * Find method, directly query the remote system without preventively requesting
     * the entire collection set. Accept a key and a sequence of collections to search
     * for.
@@ -261,7 +280,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def find[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
+  def findFrom[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
     var buffer = Map.empty[String, Any]
     collections.foreach { collectionName =>
       val response = requestBuilder
@@ -272,24 +291,36 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-        case NotFound =>
-          response.body map { content =>
-            content.asInstanceOf[String] match {
-              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-              case "NoPrivilege" => throw WrongCredentialsExc("Insufficient permissions")
-            }
-          }
+        // case NotFound =>
+        //   response.body map { content =>
+        //     content.asInstanceOf[String] match {
+        //       case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+        //       case "NoPrivilege" => throw WrongCredentialsExc("Insufficient permissions")
+        //     }
+        //   }
         case OK =>
           response.body map { content =>
             JSON.parseFull(content) map { jc =>
-              buffer ++= Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+              val item = Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+              item get "response" map (x => buffer += (collectionName -> x))
             }
-          } getOrElse (Map[String, Any]().empty)
+          } getOrElse (Map.empty[String, Any])
         case _ =>
       }
     }
     ActorbaseObject(buffer)
   }
+
+  /**
+    * Unurried version of find method, directly query the remote system without
+    * preventively requesting the entire collection set. Accept a key and a
+    * sequence of collections to search for, but owner fallback to current one.
+    *
+    * @param key a String representing a key designed for search
+    * @param collections a vararg of String representing a sequence of uuid designed for search of the given key
+    * @return an instance of ActorbaseObject[A] containing the results of the find operation
+    */
+  def find [A >: Any](key: String, collections: String*): ActorbaseObject[A] = findFrom(key, collections:_*)(connection.username)
 
   /**
     * Change the password associated to the user profile on the system
@@ -367,7 +398,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[InternalErrorExc])
   def getCollections: ActorbaseCollectionMap = {
     var collections = TreeMap.empty[String, ActorbaseCollection]
-    listCollections map (x => collections += (x -> getCollection(x)))
+    try {
+      listCollections map (x => collections += (x -> getCollection(x)))
+    } catch {
+      case uce:UndefinedCollectionExc =>
+    }
     ActorbaseCollectionMap(collections)(connection, scheme)
   }
 
@@ -496,9 +531,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def dropCollections(collections: String*): Unit = {
+  def dropCollectionsFrom(collections: String*)(owner: String = connection.username): Unit = {
     collections.foreach { collectionName =>
-      val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections/" + collectionName withMethod DELETE send()
+      val response = requestBuilder
+        .withCredentials(connection.username, connection.password)
+        .withUrl(uri + "/collections/" + collectionName)
+        .addHeaders(("owner", owner))
+        .withMethod(DELETE).send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -506,6 +545,16 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       }
     }
   }
+
+  /**
+    * Uncurried version of the method dropCollectionsFrom, drop one or more
+    * specified collections from the database, silently fail in case of no match
+    * of the specified collections, but fallback owner to the current one.
+    *
+    * @param collections a vararg of String, represents a sequence of collections to be removed from the system
+    * @return Unit, no return value
+    */
+  def dropCollections(collections: String*): Unit = dropCollectionsFrom(collections:_*)(connection.username)
 
   /**
     * Import a sequence of collections from a JSON file located into the
@@ -524,8 +573,8 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     try {
       val json = Source.fromFile(path).getLines.mkString
       val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
-      val collectionName = mapObject.get("collection").getOrElse("NoName")
-      val buffer = mapObject.get("map").get.asInstanceOf[Map[String, Any]]
+      val collectionName = mapObject.get("collectionName").getOrElse("NoName")
+      val buffer = mapObject.get("data").get.asInstanceOf[Map[String, Any]]
       buffer map { x =>
         val response = requestBuilder
           .withCredentials(connection.username, connection.password)
@@ -549,6 +598,16 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   }
 
   /**
+    * Uncurring version of the importFromFile method, import a sequence of
+    * collections from a JSON file located into the filesystem at a given path,
+    * but fallback owner to the current one.
+    *
+    * @param path a String representing a folder into the filesystem
+    * @return no return value
+    */
+  def importData(path: String): Unit = importFromFile(path)(connection.username)
+
+  /**
     * Export all the collections owned or in-contribution by the user on the filesystem
     * at a specified path in JSON format.
     *
@@ -558,7 +617,25 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws InternalErrorExc in case of internal server error
     * @throws MalformedFileExc in case of a not well balanced JSON file or a non-existant file at the given path
     */
-  def exportToFile(path: String)(owner: String = connection.username): Unit = listCollections map (getCollection(_, owner).export(path))
+  def exportToFile(path: String)(owner: String = connection.username): Unit = {
+    listCollections map { x =>
+      try {
+        getCollection(x, owner).export(path)
+      } catch {
+        case uce:UndefinedCollectionExc =>
+      }
+    }
+  }
+
+  /**
+    * Uncurried version of the method exportToFile, export all the collections owned or in-contribution by the user on the
+    * filesystem at a specified path in JSON format, but fallback owner to the
+    * current one.
+    *
+    * @param path a String representing a folder into the filesystem
+    * @return no return value
+    */
+  def exportData(path: String): Unit = exportToFile(path)(connection.username)
 
   /**
     * Add a new user to the system with the given username and the Actorbase
@@ -678,10 +755,5 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case _ => List()
     }
   }
-
-  /**
-    * Shutdown the connection with the server
-    */
-  def logout() : Unit = ???
 
 }

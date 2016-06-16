@@ -22,7 +22,7 @@
   * SOFTWARE.
   * <p/>
   *
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -416,15 +416,7 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *
     * @return a String, "imported" if the method succeded, an error message if it fails
     */
-<<<<<<< HEAD
-  // def import() : String = {
-  //   var result : String = "[EXPORT]\n"
-  //   for ((k, v) <- params) {
-  //     result += s"$k -> $v\n"
-  //   }
-  //   result
-  // }
-=======
+
   def importFrom() : String = {
     try{
       val path = params.get("path").get.asInstanceOf[String]
@@ -438,5 +430,4 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     }
     "imported"
   }
->>>>>>> dc2a4da2e7b2228ca377220090d8b9be887ff1fd
 }

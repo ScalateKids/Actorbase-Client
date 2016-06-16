@@ -109,6 +109,7 @@ object ActorbaseServerMock {
       */
     actorbaseMockServices expect post and path("/collections/alreadyInside") and respond using status(500) end()
     actorbaseMockServices expect delete and path("/collections/notExistent") and respond using status(500) end()
+    actorbaseMockServices expect delete and path("/collections/notExistent/testItem") and respond using status(500) end()
     actorbaseMockServices expect post and path("/contributors/testCollection") and respond using status(500) end()
     actorbaseMockServices expect post and path("/contributors/testCollection2") and respond using status(500) end()
   }

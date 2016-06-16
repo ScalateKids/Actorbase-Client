@@ -86,9 +86,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
     // to be *scommented* when the feature will return something
      "ask for insert item" in {
-       val response = driver.insertTo("testCollection", false, ("testItem" -> "testPayload"))
-       println(response)
-       response.code should be(200)
+       noException should be thrownBy(driver.insertTo("testCollection", false, ("testItem" -> "testPayload"))())
      }
 
     /* 
@@ -215,25 +213,25 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      */
     "ask for a single item" in {
       //val response = driver.find("testItem", "testCollection")
-      noException should be thrownBy(driver.find("testItem", "testCollection"))
+      noException should be thrownBy(driver.find("testItem", "testCollection"))()
     }
 
     "ask for inserting one item without overwriting" in {
       //val response = driver.insertTo("testCollection", false, ("testItem" ->"testPayload"))
-      noException should be thrownBy(driver.insertTo("testCollection", false, ("testItem" ->"testPayload")))
+      noException should be thrownBy(driver.insertTo("testCollection", false, ("testItem" ->"testPayload")))()
     }
     
 
     "ask for inserting one item allowing overwriting" in {
       //val response = driver.insertTo("testCollection", true, ("testItem" ->"testPayload"))
-      noException should be thrownBy(driver.insertTo("testCollection", true, ("testItem" ->"testPayload")))
+      noException should be thrownBy(driver.insertTo("testCollection", true, ("testItem" ->"testPayload")))()
     }
     
     /*
      * TS.DEF3.3.2 & Viene verificato che il \gloss{driver} dovrà permettere di cancellare uno o più \gloss{item} dal sistema 
      */
     "ask for deleting one item" in {
-      val response = driver.removeFrom("testCollection", "testItem")
+      val response = driver.removeFrom("testCollection", "testItem")()
       //assert(response.getClass() == ActorbaseObject)
     }
 
@@ -243,7 +241,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      */
 //manca case ok nel driver
     "import items from file" in {
-      noException should be thrownBy(driver.importFromFile("src/test/resources/importTest.json"))
+      noException should be thrownBy(driver.importFromFile("src/test/resources/importTest.json"))()
     }
 
 
@@ -273,7 +271,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      * TU.OBF3.8.3 & Si verifica che Il \gloss{Driver} dovrà poter restituire \gloss{item}  & OK   & OBF3.8.3    \\
      */
     "return an item" in {
-      noException should be thrownBy(driver.find("testItem", "testCollection"))
+      noException should be thrownBy(driver.find("testItem", "testCollection"))()
     }     
 
     /*              USERS PART          */

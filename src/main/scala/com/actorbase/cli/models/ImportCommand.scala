@@ -21,24 +21,24 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
 
 package com.actorbase.cli.models
+
 /**
   * A command of the ActorbaseCLI.
   * This class extends the Command trait
   * in the models package of the ActorbaseCLI.
   * @param cr an instance of command reciver to implement design pattern
   */
-class ListCollectionsCommand(cr: CommandReceiver) extends Command {
+class ImportCommand(cr: CommandReceiver) extends Command {
   /**
     * Method used to call the right method of a class that contains the code to run the Command.
     *
     * @return a String containing the result to return to the user of the Command invoked
     */
-  override def execute() : String = cr.listCollections
+  override def execute() : String = cr.importFrom
 }
-

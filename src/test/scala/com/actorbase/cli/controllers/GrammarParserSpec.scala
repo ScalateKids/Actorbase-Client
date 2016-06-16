@@ -43,107 +43,107 @@ import com.actorbase.cli.models.CommandInvoker
 class GrammarParserSpec extends CLIUnitSpec {
 
   "GrammarParser.parseInput" should "parse 'listCollections' command" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("listCollections") === true)
   }
 
   it should "parse 'addCollaborator user to collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("addCollaborator testUser to testCOllection") === true)
   }
 
   it should "parse 'removeCollaborator user from collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("removeCollaborator testUser from testCOllection") === true)
   }
 
   it should "parse 'createCollection collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("createCollection testCollection") === true)
   }
 
   it should "parse 'renameCollection collection to newname'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("createCollection testCollection to testName") === true)
   }
 
   it should "parse 'insert (key -> value ) to collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("insert (key -> value ) to testCollection") === true)
   }
 
   it should "parse 'remove key from collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("remove key from testCollection") === true)
   }
 
   it should "parse 'find key from collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("find key from testCollection") === true)
   }
 
   it should "parse 'find key'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("find key from") === true)
   }
 
   it should "parse 'find from collection'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("find from testCollection") === true)
   }
 
   it should "parse 'find from'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("find from ") === true)
   }
 
   it should "parse 'logout' command" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("logout") === true)
   }
 
   it should "parse a single key as first argument in export command e.g. 'export key to path'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("export key to path") === true)
   }
 
   it should "parse list as first argument in export command e.g. 'export key1,key2,key3 to path'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("export key1,key2,key3 to path") === true)
   }
 
   it should "parse 'help'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("help") === true)
   }
 
   it should "parse a single command in the help command 'help command'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("help test") === true)
   }
 
   it should "parse 'addUser user'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("addUser testUser") === true)
   }
 
   it should "parse 'removeUser user'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("removeUser testUser") === true)
   }
 
   it should "parse 'resetPassword user'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("resetPassword testUser") === true)
   }
 
   it should "parse 'exit'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("exit") === false)
   }
 
   it should "parse 'quit'" in {
-    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView)
+    val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("quit") === false)
   }
 

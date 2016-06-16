@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids TODO DA CAMBIARE
+  * @author Scalatekids 
   * @version 1.0
   * @since 1.0
   */
@@ -142,6 +142,11 @@ class GrammarParser(commandInvoker: CommandInvoker,
       new ExportCommand(new CommandReceiver(hostname, port,Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2), username, password))
   }
 
+  def importCommand : Parser[Command] = "import " ~ (keyString) ^^ {
+    case cmd_part_1 ~ args_1 =>
+      new ImportCommand(new CommandReceiver(hostname, port, Map[Any, Any]("path" -> args_1), username, password))
+  }
+
   /********************************************************************************************************************/
   /**                                               ITEM OPERATIONS                                                  **/
   /********************************************************************************************************************/
@@ -217,7 +222,7 @@ class GrammarParser(commandInvoker: CommandInvoker,
   def commandList : Parser[Command] = {
     insertItemCommand | exportCommand | authManagementCommand | addCollaboratorCommand | findCommand |
     helpCommand | collectionManagementCommand | removeCollaboratorCommand | removeItemCommand |
-    changePasswordCommand | userManagementCommand
+    changePasswordCommand | userManagementCommand | importCommand
   }
 
   /**

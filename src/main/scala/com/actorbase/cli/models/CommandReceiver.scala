@@ -147,7 +147,7 @@ class CommandReceiver(params: Map[Any, Any]) {
             case Some(c) =>
               // val actColl = CommandReceiver.actorbaseDriver.getCollection( c.asInstanceOf[List[String]](0) )
               // response = actColl.findOne( k.toString ).toString
-              val actColl = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*)()
+              val actColl = CommandReceiver.actorbaseDriver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*)
               response = actColl.toString
           }
       }

@@ -107,7 +107,10 @@ object ActorbaseDriver extends Connector {
         request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
         if (response == "Admin" || response == "Common")
           new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
-        else throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        else {
+          println(response)
+          throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        }
     }
   }
 
@@ -236,7 +239,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           response.body map { x =>
             x.asInstanceOf[String] match {
               case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-              case "NoPrivileges" => throw UndefinedCollectionExc("Insufficient permissions")
+              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
               case _ =>
             }
           }
@@ -306,7 +309,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def changePassword(newpassword: String): Unit = {
     val response = requestBuilder.withCredentials(connection.username, connection.password)
       .withUrl(uri + "/private/" + connection.username)
-      .withBody(serialize2byteArray(newpassword))
+      .withBody(newpassword.getBytes)
       .addHeaders(("Old-password" , connection.password))
       .withMethod(POST).send()
     response.statusCode match {
@@ -426,11 +429,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def addCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
+  def addCollection(collectionName: String): ActorbaseCollection = {
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collectionName)
-      .addHeaders(("owner", owner))
+      .addHeaders(("owner", connection.username))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")

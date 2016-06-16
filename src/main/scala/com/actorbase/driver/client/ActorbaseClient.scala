@@ -33,11 +33,9 @@ import scalaj.http.{Http, HttpOptions}
 import com.actorbase.driver.client.api.RestMethods._
 
 /**
-  * Insert description here
+  * This class have the responsibility of the communication
+  * with the HTTP interface of the server side of Actorbase
   *
-  * @param
-  * @return
-  * @throws
   */
 class ActorbaseClient extends Client {
 
@@ -47,10 +45,8 @@ class ActorbaseClient extends Client {
   /**
     * Add connection options to the scalaj-http client Object
     *
-    * @param
     * @return a sequence of HttpOption representing options to be applied to the
     * connection object
-    * @throws
     */
   override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.readTimeout(60000))
 
@@ -61,7 +57,6 @@ class ActorbaseClient extends Client {
     * @param request a Request reference, contains all HTTP request details
     * @return an object of type Response, containing the status of the response
     * and the body as Option[String]
-    * @throws
     */
   override def send(request: Request): Response = {
     val response = request.method match {
@@ -72,13 +67,4 @@ class ActorbaseClient extends Client {
     }
     Response(response.code, Some(response.body.asInstanceOf[String]))
   }
-
-  /**
-    * Shutdown the connection with the server closing the client
-    *
-    * @param
-    * @return
-    * @throws
-    */
-  override def shutdown(): Unit = println("Shutdown")
 }

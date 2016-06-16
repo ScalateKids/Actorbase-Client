@@ -36,6 +36,11 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization._
 import org.json4s.jackson.JsonMethods._
 
+/**
+  * Trait to add serializing and deserializing capabilities to all class
+  * extending or mixing this, support different genres of serialization and
+  * deserialization, including array of bytes and JSON
+  */
 trait Serializer {
 
   /**

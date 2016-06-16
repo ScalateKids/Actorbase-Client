@@ -221,7 +221,12 @@ case class ActorbaseCollection
   @throws(classOf[UsernameAlreadyExistsExc])
   def addContributor(username: String, write: Boolean = false): Unit = {
     val permission = if (!write) "read" else "readwrite"
-    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/contributors/" + collectionName + "/" + permission withBody serialize2byteArray(username) withMethod POST send()
+    val response = requestBuilder
+      .withCredentials(conn.username, conn.password)
+      .withUrl(uri + "/contributors/" + collectionName)
+      .withBody(serialize2byteArray(username))
+      .addHeaders(("permission", permission))
+      .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
@@ -260,10 +265,11 @@ case class ActorbaseCollection
     * Drop the entire collection, reflecting the local change to remote on
     * server-side
     *
-    * @param
-    * @return
-    * @throws
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
     */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def drop: Unit = {
     data = data.empty
     val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName withMethod DELETE send()
@@ -275,19 +281,19 @@ case class ActorbaseCollection
   }
 
   /**
-    * Insert description here
+    * Count the number of items inside this collection
     *
-    * @param
-    * @return
-    * @throws
+    * @return an Int, represents the number of key-value pair
     */
   def count: Int = data.size
 
   /**
-    * Insert description here
+    * Export the contente of the current collection to a given path on
+    * the filesystem, JSON formatted
     *
-    * @param
-    * @return
+    * @param path a String representing the path on the filesystem where
+    * the JSON file will be saved
+    * @return no return value
     * @throws
     */
   def export(path: String): Unit = {
@@ -297,29 +303,30 @@ case class ActorbaseCollection
   }
 
   /**
-    * Insert description here
+    * Foreach method, applies a function f to all elements of this map.
     *
-    * @param
-    * @return
-    * @throws
+    * @param f the function that is applied for its side-effect to every element.
+    * The result of function f is discarded.
+    * @return no return value
     */
   def foreach(f: ((String, Any)) => Unit): Unit = data.foreach(f)
 
   /**
-    * Insert description here
+    * Creates a non-strict filter of this traversable collection.
     *
-    * @param
-    * @return
-    * @throws
+    * @param p the predicate used to test elements.
+    * @return an object of class WithFilter, which supports map, flatMap, foreach,
+    * and withFilter operations. All these operations apply to those elements of
+    * this traversable collection which satisfy the predicate p.
     */
-  def withFilter(f: ((String, Any)) => Boolean): FilterMonadic[(String, Any), TreeMap[String, Any]] = data.withFilter(f)
+  def withFilter(p: ((String, Any)) => Boolean): FilterMonadic[(String, Any), TreeMap[String, Any]] = data.withFilter(p)
 
   /**
-    * Insert description here
+    * Converts this collection to a string.
     *
     * @param
-    * @return
-    * @throws
+    * @return a string representation of this collection. By default this string
+    * consists of a JSON containing the colleciton name, the owner and items
     */
   override def toString: String = {
     var headers = new TreeMap[String, Any]()

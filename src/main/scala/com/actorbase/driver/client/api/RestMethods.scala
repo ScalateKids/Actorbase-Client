@@ -32,76 +32,55 @@ import scala.util.parsing.json.JSON
 import scala.language.implicitConversions
 
 import scalaj.http.HttpResponse
+
 /**
-  * Insert description here
+  * This module contains all object and class useful to build
+  * HTTP request
   *
-  * @param
-  * @return
-  * @throws
   */
 
 object RestMethods {
 
   /**
-    * Insert description here
+    * Class representing a generic HTTP request
     *
-    * @param
-    * @return
-    * @throws
     */
   sealed abstract class Method(name: String)
 
   /**
-    * Insert description here
+    * Object representing a GET request
     *
-    * @param
-    * @return
-    * @throws
     */
   case object GET extends Method("GET")
 
   /**
-    * Insert description here
+    * Object representing a POST method
     *
-    * @param
-    * @return
-    * @throws
     */
   case object POST extends Method("POST")
 
   /**
-    * Insert description here
+    * Object representing a PUT request
     *
-    * @param
-    * @return
-    * @throws
     */
   case object PUT extends Method("PUT")
 
   /**
-    * Insert description here
+    * Object representing a DELETE request
     *
-    * @param
-    * @return
-    * @throws
     */
   case object DELETE extends Method("DELETE")
 
   /**
-    * Insert description here
+    * Simple class representing an HTTP request, formed by all common fields of
+    * a request
     *
-    * @param
-    * @return
-    * @throws
     */
   case class Request(method: Method, uri: String, user: String, password: String, headers: (String, String) = ("",""), body: Option[Array[Byte]] = None)
 
   /**
-    * Insert description here
+    * Simple class representing an HTTP response
     *
-    * @param
-    * @return
-    * @throws
     */
   case class Response(statusCode: Int, body: Option[String])
 
@@ -127,7 +106,6 @@ object RestMethods {
     /**
       * Implicit conversion method, return a Response from a WSResponse (playWS! response type)
       *
-      *
       * @param HttpResponse The HttpResponse[T] object to convert
       * @return a Response object containing statusCode and body of the HttpResponse
       */
@@ -135,16 +113,11 @@ object RestMethods {
   }
 
   /**
-    * Insert description here
+    * Status object, contains the most common return codes of HTTP request
     *
-    * @param
-    * @return
-    * @throws
     */
   object Status {
     val OK = 200
-    val Created = 201
-    val Accepted = 202
     val BadRequest = 400
     val Unauthorized = 401
     val Forbidden = 403

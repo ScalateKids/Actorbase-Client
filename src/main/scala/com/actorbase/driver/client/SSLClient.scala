@@ -33,21 +33,18 @@ import scalaj.http.HttpOptions
 import com.actorbase.driver.client.api.RestMethods._
 
 /**
-  * Insert description here
+  * Trait to define the behavior of a client designed to interface with
+  * the server side of the system Actorbase, in this case it add some
+  * structure in order to allow performance of encrypted requests.
   *
-  * @param
-  * @return
-  * @throws
   */
 trait SSLClient extends Client {
 
   /**
     * Add ssl option to the scalaj-http client Object
     *
-    * @param
     * @return a sequence of HttpOption representing options to be applied to the
     * connection object
-    * @throws
     */
   abstract override def createClientOptions: Seq[HttpOptions.HttpOption] = Seq(HttpOptions.allowUnsafeSSL, HttpOptions.readTimeout(60000))
 
@@ -59,9 +56,8 @@ trait SSLClient extends Client {
     * @return an object of type Response, containing the status of the response
     * and the body as Option[String]
     *
-    * @param
-    * @return
-    * @throws
+    * @return an object of type Response, containing the status of the response
+    * and the body as Option[String]
     */
   abstract override def send(request: Request): Response = {
     super.send(request)

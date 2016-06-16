@@ -34,11 +34,9 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.ActorbaseClient
 
 /**
-  * Insert description here
+  * Builder class, used to create HTTP request to communicate with
+  * the server side of Actorbase
   *
-  * @param
-  * @return
-  * @throws
   */
 case class RequestBuilder(
   method: Option[Method],
@@ -49,47 +47,49 @@ case class RequestBuilder(
   body: Option[Array[Byte]]) {
 
   /**
-    * Insert description here
+    * Add a method of connection, it can be either GET, POST, PUT or DELETE, it
+    * defines the verb of a RESTful communication
     *
-    * @param
-    * @return
-    * @throws
+    * @param method a Method type that define an HTTP call, behavioring like a
+    * verb in a RESTful communication session
+    * @return an Instance of the class RequestBuilder
     */
   def withMethod(method: Method): RequestBuilder = copy(method = Some(method))
 
   /**
-    * Insert description here
+    * Add the url of the resource to be reached by the connection, generally it
+    * represents the location of the server
     *
-    * @param
-    * @return
-    * @throws
+    * @param url a String representing the URL of the server on the domain
+    * @return an Instance of the class RequestBuilder
     */
   def withUrl(url: String): RequestBuilder = copy(url = Some(url))
 
   /**
-    * Insert description here
+    * Add credentials to the request, formed by an username and a password
     *
-    * @param
-    * @return
-    * @throws
+    * @param uname a String representing the username of the user
+    * @param pass a String representing the password associated to the
+    * username of the user
+    * @return an Instance of the class RequestBuilder
     */
   def withCredentials(uname: String, pass: String): RequestBuilder = copy(user = Some(uname), password = Some(pass))
 
   /**
-    * Insert description here
+    * Add the body of the request, containing an array of bytes. Can be
+    * anything.
     *
-    * @param
-    * @return
-    * @throws
+    * @param body an Array[Byte] representing the payload to be added
+    * to the request
+    * @return an Instance of the class RequestBuilder
     */
   def withBody(body: Array[Byte]): RequestBuilder = copy(body = Some(body))
 
   /**
-    * Insert description here
+    * Aappend an additional path to the request
     *
-    * @param
-    * @return
-    * @throws
+    * @param path a String representing the new path to be appended
+    * @return an Instance of the class RequestBuilder
     */
   def addPath(path: String): RequestBuilder = {
     val s = url.get.toString
@@ -98,31 +98,29 @@ case class RequestBuilder(
   }
 
   /**
-    * Insert description here
+    * Add headers to the request, represented by a String-String pair
     *
-    * @param
-    * @return
-    * @throws
+    * @param hs a tuple2[String, String] representing an header in form of key-value pair
+    * @return an Instance of the class RequestBuilder
     */
   def addHeaders(hs: (String, String)) = copy(headers = hs)
 
   /**
-    * Insert description here
+    * Convert the current object of type RequestBuilder to an object of type
+    * Request
     *
-    * @param
-    * @return
-    * @throws
+    * @return an instance of the class Request with all parts added
     */
   def toRequest: Request = {
     Request(method.get, url.get, user.get, password.get, headers, body)
   }
 
   /**
-    * Insert description here
+    * Converts a vararg of headers to a Map of string as key and list of strings
+    * as value
     *
-    * @param
-    * @return
-    * @throws
+    * @param hs a vararg of string-string pairs
+    * @return a Map[String, List[String]] of headers
     */
   def toHeaders(hs: (String, String)*): Map[String, List[String]] = {
     hs.foldRight(Map[String, List[String]]()) {
@@ -135,31 +133,25 @@ case class RequestBuilder(
 }
 
 /**
-  * Insert description here
-  *
-  * @param
-  * @return
-  * @throws
+  * Companion object of the class RequestBuilder, contains utility methods and
+  * implicit converters
   */
 object RequestBuilder {
 
   val emptyBuilder = RequestBuilder(None, None, None, None, ("", ""), None)
 
   /**
-    * Insert description here
+    * Apply method
     *
-    * @param
-    * @return
-    * @throws
+    * @return an instance of the class RequestBuilder
     */
   def apply(): RequestBuilder = emptyBuilder
 
   /**
-    * Insert description here
+    * Implicit converter, converts the RequestBuilder object into a Request
     *
-    * @param
-    * @return
-    * @throws
+    * @param builder an instance of a RequestBuilder class
+    * @return an Instance of the class Request with all parts added
     */
   implicit def toRequest(builder: RequestBuilder): Request = builder.toRequest
 

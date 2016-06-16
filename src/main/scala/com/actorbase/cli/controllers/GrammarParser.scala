@@ -42,7 +42,12 @@ import scala.util.parsing.combinator._
   * @param commandInvoker an instance of command invoker for execute all request command on the models package
   * @param view where the result of request will stored after invocation of commandInvoker
   */
-class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
+class GrammarParser(commandInvoker: CommandInvoker,
+  view: ResultView,
+  hostname: String,
+  port: Int,
+  private var username: String = "admin",
+  private var password: String = "Actorb4se") extends JavaTokenParsers with Observable {
 
   // base arguments types
   val types : Parser[String] = """Integer|Double|String|Binary""".r
@@ -60,8 +65,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     * @return a Parser[Command] representing the login or logout command based on the user input.
     */
   def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ literalString | "logout") ^^ {
-    case "logout" => new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None)))
-    case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "password" -> args_2)))
+    case "logout" => new LogoutCommand(new CommandReceiver(hostname, port, Map[Any, Any]("logout" -> None), username, password))
+    case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(hostname, port, Map[Any, Any]("username" -> args_1, "password" -> args_2), username, password))
   }
 
   /**
@@ -71,7 +76,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     */
   def changePasswordCommand : Parser[Command] = "changePassword" ~ keyString ~ keyString ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 =>
-      new ChangePasswordCommand(new CommandReceiver(Map[Any, Any]("oldPsw" -> args_1, "newPsw" -> args_2, "repeatedPsw" -> args_3)))
+      new ChangePasswordCommand(new CommandReceiver(hostname, port,Map[Any, Any]("oldPsw" -> args_1, "newPsw" -> args_2, "repeatedPsw" -> args_3), username, password))
   }
 
   /**
@@ -81,7 +86,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     */
   // ugly as hell, needs improvements
   def helpCommand : Parser[Command] = "help" ~> keyString.? ^^ {
-    case arg => new HelpCommand(new CommandReceiver(Map[Any, Any]("command" -> arg)))
+    case arg => new HelpCommand(new CommandReceiver(hostname, port, Map[Any, Any]("command" -> arg), username, password))
   }
 
   /********************************************************************************************************************/
@@ -94,20 +99,16 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     *  _createCollection
     *  _deleteCollection
     *  _listCollections
-    *  _renameCollection
     *
     * @return a Parser[Command] representing the right command based on the user input.
     */
   def collectionManagementCommand : Parser[Command] =
     (("createCollection" | "deleteCollection") ~ literalString |
-      "listCollections" |
-      "renameCollection" ~ keyString ~ "to " ~ keyString) ^^ {
+      "listCollections") ^^ {
 
-      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[Any, Any]("name" -> args_1)))
-      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[Any, Any]("Collection" -> args_1)))
-      case "listCollections" => new ListCollectionsCommand(new CommandReceiver(Map[Any, Any]("list" -> None)))
-      case "renameCollection" ~ args_1 ~ cmd_part_2 ~ args_2 =>
-        new RenameCollectionCommand(new CommandReceiver(Map[Any, Any]("oldName" -> args_1, "newName" -> args_2)))
+      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(hostname, port,Map[Any, Any]("name" -> args_1), username, password))
+      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(hostname, port,Map[Any, Any]("Collection" -> args_1), username, password))
+      case "listCollections" => new ListCollectionsCommand(new CommandReceiver(hostname, port,Map[Any, Any]("list" -> None), username, password))
     }
 
   /**
@@ -117,7 +118,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     */
   def addCollaboratorCommand : Parser[Command] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 =>
-      new AddCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2, "permissions" -> args_3)))
+      new AddCollaboratorCommand(new CommandReceiver(hostname, port,Map[Any, Any]("username" -> args_1, "collection" -> args_2, "permissions" -> args_3), username, password))
   }
 
   /**
@@ -127,7 +128,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     */
   def removeCollaboratorCommand : Parser[Command] = "removeCollaborator" ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new RemoveCollaboratorCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1, "collection" -> args_2)))
+      new RemoveCollaboratorCommand(new CommandReceiver(hostname, port,Map[Any, Any]("username" -> args_1, "collection" -> args_2), username, password))
   }
 
   /**
@@ -138,7 +139,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
   // only works without spaces for now
   def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ literalString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new ExportCommand(new CommandReceiver(Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2)))
+      new ExportCommand(new CommandReceiver(hostname, port,Map[Any, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2), username, password))
   }
 
   /********************************************************************************************************************/
@@ -158,7 +159,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
         case double if double matches("""^\d+\.\d+""") => double.toDouble
         case _ => args_2
       }
-      new InsertItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "value" -> value, "collection" -> args_3)))
+      new InsertItemCommand(new CommandReceiver(hostname, port,Map[Any, Any]("key" -> args_1, "value" -> value, "collection" -> args_3), username, password))
   }
 
   // TODO insert item da file?
@@ -170,7 +171,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     */
   def removeItemCommand : Parser[Command] = "remove " ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new RemoveItemCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2)))
+      new RemoveItemCommand(new CommandReceiver(hostname, port,Map[Any, Any]("key" -> args_1, "collection" -> args_2), username, password))
   }
 
   /**
@@ -180,11 +181,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     */
   // meh
   def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
-    case "find" => new FindCommand(new CommandReceiver(Map[Any, Any](/*"key" -> None, "collection" -> None*/)))
-    case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1)))
-    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[Any, Any](/*"key" -> None, */"collection" -> args_1.asInstanceOf[String].split(",").toList)))
+    case "find" => new FindCommand(new CommandReceiver(hostname, port,Map[Any, Any](/*"key" -> None, "collection" -> None*/), username, password))
+    case "find" ~ args_1 => new FindCommand(new CommandReceiver(hostname, port,Map[Any, Any]("key" -> args_1), username, password))
+    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(hostname, port,Map[Any, Any](/*"key" -> None, */"collection" -> args_1.asInstanceOf[String].split(",").toList), username, password))
     case "find" ~ args_1 ~ "from"  ~ args_2 =>
-      new FindCommand(new CommandReceiver(Map[Any, Any]("key" -> args_1, "collection" -> args_2.asInstanceOf[String].split(",").toList)))
+      new FindCommand(new CommandReceiver(hostname, port,Map[Any, Any]("key" -> args_1, "collection" -> args_2.asInstanceOf[String].split(",").toList), username, password))
   }
 
   /********************************************************************************************************************/
@@ -201,9 +202,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     * @return a Parser[Command] representing the right command based on the user input.
     */
   def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
-    case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
-    case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
-    case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[Any, Any]("username" -> args_1)))
+    case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(hostname, port,Map[Any, Any]("username" -> args_1), username, password))
+    case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(hostname, port,Map[Any, Any]("username" -> args_1), username, password))
+    case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(hostname, port,Map[Any, Any]("username" -> args_1), username, password))
   }
 
   /**
@@ -234,7 +235,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends Ja
     var status : Boolean = true
     val reader : ConsoleReader = new ConsoleReader()
     if(input matches("(quit|exit)\\s*")) {
-      commandInvoker.storeAndExecute(new LogoutCommand(new CommandReceiver(Map[Any, Any]("logout" -> None))))
+      commandInvoker.storeAndExecute(new LogoutCommand(new CommandReceiver(hostname, port,Map[Any, Any]("logout" -> None), username, password)))
       status = false
     }
     else {

@@ -39,7 +39,8 @@ import scala.util.parsing.combinator._
   * using a CommandInvoker object to send the requests to the models package
   * This class translate the user input strings into model Commands.
   *
-  * @param TODO
+  * @param commandInvoker an instance of command invoker for execute all request command on the models package
+  * @param view where the result of request will stored after invocation of commandInvoker
   */
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView) extends JavaTokenParsers with Observable {
 

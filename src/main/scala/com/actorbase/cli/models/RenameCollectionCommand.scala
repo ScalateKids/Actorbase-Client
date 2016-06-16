@@ -31,6 +31,7 @@ package com.actorbase.cli.models
   * A command of the ActorbaseCLI.
   * This class extends the Command trait
   * in the models package of the ActorbaseCLI.
+  * @param cr an instance of command reciver to implement design pattern
   */
 class RenameCollectionCommand(cr: CommandReceiver) extends Command {
   /**

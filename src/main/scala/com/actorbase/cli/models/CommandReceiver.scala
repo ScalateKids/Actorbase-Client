@@ -324,7 +324,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def addUser() : String = {
     try{
-      val username = params.get("username").asInstanceOf[String]
+      val username = params.get("username").get.asInstanceOf[String]
       CommandReceiver.actorbaseDriver.addUser(username)
       username+" removed from the system"
     }
@@ -343,7 +343,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def removeUser() : String = {
     try{
-      val username = params.get("username").asInstanceOf[String]
+      val username = params.get("username").get.asInstanceOf[String]
       CommandReceiver.actorbaseDriver.removeUser(username)
       username+" removed from the system"
     }
@@ -363,7 +363,7 @@ class CommandReceiver(params: Map[Any, Any]) {
     */
   def resetPassword() : String = {
     try{
-      val user = params.get("username").asInstanceOf[String]
+      val user = params.get("username").get.asInstanceOf[String]
       CommandReceiver.actorbaseDriver.resetPassword(user)
       user+" password reset"
     }

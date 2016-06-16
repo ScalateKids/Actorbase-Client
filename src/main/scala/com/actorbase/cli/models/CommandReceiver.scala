@@ -413,11 +413,11 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *
     * @return
     */
-  def import() : String = {
-    var result : String = "[EXPORT]\n"
-    for ((k, v) <- params) {
-      result += s"$k -> $v\n"
-    }
-    result
-  }
+  // def import() : String = {
+  //   var result : String = "[EXPORT]\n"
+  //   for ((k, v) <- params) {
+  //     result += s"$k -> $v\n"
+  //   }
+  //   result
+  // }
 }

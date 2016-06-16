@@ -153,7 +153,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     // it should {
     "ask for a single item" in {
       //val response = driver.find("testItem", "testCollection")
-      noException should be thrownBy(driver.find("testItem", "testCollection"))
+      noException should be thrownBy(driver.find("testItem", "testCollection")(_))
     }
     // }
 

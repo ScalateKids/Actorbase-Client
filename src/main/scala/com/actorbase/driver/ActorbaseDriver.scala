@@ -398,7 +398,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[InternalErrorExc])
   def getCollections: ActorbaseCollectionMap = {
     var collections = TreeMap.empty[String, ActorbaseCollection]
-    listCollections map (x => collections += (x -> getCollection(x)))
+    try {
+      listCollections map (x => collections += (x -> getCollection(x)))
+    } catch {
+      case uce:UndefinedCollectionExc =>
+    }
     ActorbaseCollectionMap(collections)(connection, scheme)
   }
 

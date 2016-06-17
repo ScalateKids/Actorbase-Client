@@ -22,16 +22,19 @@
   * SOFTWARE.
   * <p/>
   *
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
 
 package com.actorbase.cli.models
 
+import java.io.FileNotFoundException
+
 import com.actorbase.driver.exceptions._
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
+import java.io.FileNotFoundException
 // import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.actorbase.driver.ActorbaseDriver
@@ -311,8 +314,8 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     */
   def changePassword() : String = {
     try{
-      val oldPsw = params.get("oldPsw").asInstanceOf[String]
-      val newPsw = params.get("newPsw").asInstanceOf[String]
+      val oldPsw = params.get("oldPsw").get.asInstanceOf[String]
+      val newPsw = params.get("newPsw").get.asInstanceOf[String]
       driver.changePassword(newPsw)
 
       "Password changed"
@@ -333,7 +336,7 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     */
   def addUser() : String = {
     try{
-      val username = params.get("username").asInstanceOf[String]
+      val username = params.get("username").get.asInstanceOf[String]
       driver.addUser(username)
       username + " added to the system"
     }
@@ -352,7 +355,7 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     */
   def removeUser() : String = {
     try{
-      val username = params.get("username").asInstanceOf[String]
+      val username = params.get("username").get.asInstanceOf[String]
       driver.removeUser(username)
       username + " removed from the system"
     }
@@ -372,7 +375,7 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     */
   def resetPassword() : String = {
     try{
-      val user = params.get("username").asInstanceOf[String]
+      val user = params.get("username").get.asInstanceOf[String]
       driver.resetPassword(user)
       user + " password reset"
     }
@@ -396,28 +399,35 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     //val list = params.get("p_list").asInstanceOf[List[String]]
     //val path = params.get("f_path").asInstanceOf[String]
     try{
-      val path = params.get("f_path").asInstanceOf[String]
+      val path = params.get("f_path").get.asInstanceOf[String]
       driver.exportData(path)
-      "Exported into " + path
     }
     catch{
-      case wce: WrongCredentialsExc => "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => "There was an internal server error, something wrong happened."
-      case uue: UndefinedUsernameExc => "Undefined username: Actorbase does not contains such credential"
-      case uae: UsernameAlreadyExistsExc => "Username already exists in the system Actorbase"
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      case uue: UndefinedUsernameExc => return "Undefined username: Actorbase does not contains such credential"
+      case uae: UsernameAlreadyExistsExc => return "Username already exists in the system Actorbase"
     }
     "exported"
   }
 
   /**
+    * Import data from a well formatted JSON file.
     *
-    * @return
-    *//*
-  def import() : String = {
-    var result : String = "[EXPORT]\n"
-    for ((k, v) <- params) {
-      result += s"$k -> $v\n"
+    * @return a String, "imported" if the method succeded, an error message if it fails
+    */
+
+  def importFrom() : String = {
+    try{
+      val path = params.get("path").get.asInstanceOf[String]
+      driver.importData(path)
     }
-    result
-  }*/
+    catch{
+      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      case mfe: MalformedFileExc => return "Malformed json file"
+      case fnfe: FileNotFoundException => return "file not found"
+    }
+    "imported"
+  }
 }

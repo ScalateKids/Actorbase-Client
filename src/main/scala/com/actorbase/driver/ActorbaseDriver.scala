@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -33,11 +33,22 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.data.{ ActorbaseCollection, ActorbaseCollectionMap, ActorbaseObject }
 import com.actorbase.driver.exceptions._
-import scala.io.Source
 
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+
+import scala.io.Source
 import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
 import java.net.URI
+
+case class ActorbaseCollection1
+(val owner: String, val collectionName: String,
+  val data: Map[String, Any])
+
+// case class ActorbaseCollection2
+// (val owner: String, val collectionName: String,
+//   val data: Map[String, List[Double]])
 
 object ActorbaseDriver extends Connector {
 
@@ -72,7 +83,8 @@ object ActorbaseDriver extends Connector {
       case _ =>
         var response = ""
         request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
-        if (response == "Admin" || response == "Common")
+        // if (response == "Admin" || response == "Common")
+        if (response != "None")
           new ActorbaseDriver(Connection(username, password, address, port))
         else throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
     }
@@ -105,7 +117,8 @@ object ActorbaseDriver extends Connector {
       case _ =>
         var response = ""
         request.body map (x => response = x.asInstanceOf[String]) getOrElse (response = "None")
-        if (response == "Admin" || response == "Common")
+        // if (response == "Admin" || response == "Common")
+        if (response != "None")
           new ActorbaseDriver(Connection(credentials(0), credentials(1), uri.getHost, uri.getPort))
         else throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
     }
@@ -381,9 +394,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             mapObject get "list" map (collections :::= _)
           }
         }
-        collections
-      case _ => List()
+      case _ => collections :::= List()
     }
+    collections
   }
 
   /**
@@ -427,8 +440,10 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def getCollection(collectionName: String, originalOwner: String = connection.username): ActorbaseCollection = {
+    implicit val formats = DefaultFormats
     var buffer = TreeMap.empty[String, Any]
     var owner = ""
+    var ret: ActorbaseCollection1 = null
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collectionName)
@@ -440,17 +455,22 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case NotFound => throw UndefinedCollectionExc("Undefined collection")
       case OK =>
         response.body map { b =>
-          JSON.parseFull(b) map { js =>
-            val mapObject = js.asInstanceOf[Map[String, Any]]
-            mapObject get "owner" map (x => owner = x.asInstanceOf[String])
-            mapObject get "map" map { m =>
-              buffer = TreeMap(m.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
-            }
-          }
+          ret = parse(b).extract[ActorbaseCollection1]
+          // println(ret)
+          // JSON.parseFull(b) map { js =>
+          //   println(b)
+          //   val mapObject = js.asInstanceOf[Map[String, Any]]
+          //   mapObject get "owner" map (x => owner = x.asInstanceOf[String])
+          //   mapObject get "map" map { m =>
+          // buffer = TreeMap(ret.data.transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+          //   }
+          // }
+
         }
       case _ =>
     }
-    ActorbaseCollection(owner, collectionName, buffer)(connection, scheme)
+    // ActorbaseCollection(ret.owner, ret.collectionName, buffer)(connection, scheme)
+    ActorbaseCollection(ret.owner, ret.collectionName, TreeMap(ret.data.toArray:_*))(connection, scheme)
   }
 
 
@@ -464,11 +484,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def addCollection(collectionName: String): ActorbaseCollection = {
+  def addCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collectionName)
-      .addHeaders(("owner", connection.username))
+      .addHeaders(("owner", owner))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -509,14 +529,11 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     * @throws InternalErrorExc in case of internal server error
     */
-  @throws(classOf[WrongCredentialsExc])
-  @throws(classOf[InternalErrorExc])
   def dropCollections: Unit = {
-    val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections" withMethod DELETE send()
-    response.statusCode match {
-      case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-      case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-      case _ =>
+    if (connection.username != "admin")
+      listCollections map (x => dropCollections(x))
+    else listCollections map { x =>
+      listUsers map (u => dropCollectionsFrom(x)(u))
     }
   }
 
@@ -570,11 +587,15 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[InternalErrorExc])
   @throws(classOf[MalformedFileExc])
   def importFromFile(path: String)(owner: String = connection.username): Unit = {
+    implicit val formats = DefaultFormats
     try {
       val json = Source.fromFile(path).getLines.mkString
-      val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
-      val collectionName = mapObject.get("collectionName").getOrElse("NoName")
-      val buffer = mapObject.get("data").get.asInstanceOf[Map[String, Any]]
+      val mapObject = parse(json).extract[ActorbaseCollection1]
+      // val mapObject = JSON.parseFull(json).get.asInstanceOf[Map[String, Any]]
+      // val collectionName = mapObject.get("collectionName").getOrElse("NoName")
+      // val buffer = mapObject.get("data").get.asInstanceOf[Map[String, Any]]
+      val collectionName = mapObject.collectionName
+      val buffer = mapObject.data
       buffer map { x =>
         val response = requestBuilder
           .withCredentials(connection.username, connection.password)

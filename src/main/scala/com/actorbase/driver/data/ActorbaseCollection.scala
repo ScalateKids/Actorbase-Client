@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -225,7 +225,7 @@ case class ActorbaseCollection
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
-      .withBody(serialize2byteArray(username))
+      .withBody(username.getBytes)
       .addHeaders(("permission", permission))
       .withMethod(POST).send()
     response.statusCode match {

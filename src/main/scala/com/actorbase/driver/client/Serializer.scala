@@ -47,6 +47,7 @@ import org.json4s.jackson.JsonMethods._
 trait Serializer {
 
   def base64(in: Array[Byte]): String = Base64.getUrlEncoder.encodeToString(in)
+
   /**
     * Serialization method. Converts an object of type Any to an array of bytes
     *

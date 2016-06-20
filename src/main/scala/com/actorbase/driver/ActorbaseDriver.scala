@@ -42,6 +42,10 @@ import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
 import java.net.URI
 
+case class SingleResponse(response: Any)
+
+case class ListResponse(list: List[String])
+
 case class ActorbaseCollection1
 (val owner: String, val collectionName: String,
   val data: Map[String, Any])
@@ -75,7 +79,7 @@ object ActorbaseDriver extends Connector {
     val request = requestBuilder
       .withCredentials(username, password)
       .withUrl(scheme +  address + ":" + port + "/auth/" + username)
-      .withBody(password.getBytes)
+      .withBody(base64(password.getBytes("UTF-8")))
       .withMethod(POST) send()
     request.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
@@ -109,7 +113,7 @@ object ActorbaseDriver extends Connector {
     val request = requestBuilder
       .withCredentials(credentials(0), credentials(1))
       .withUrl(scheme +  uri.getHost + ":" + uri.getPort + "/auth/" + credentials(0))
-      .withBody(credentials(1).getBytes)
+      .withBody(base64(credentials(1).getBytes("UTF-8")))
       .withMethod(POST) send()
     request.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Wrong credentials: username or password is not recognized by the system, or insufficient permissions")
@@ -294,6 +298,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def findFrom[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
+    implicit val formats = DefaultFormats
     var buffer = Map.empty[String, Any]
     collections.foreach { collectionName =>
       val response = requestBuilder
@@ -313,10 +318,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         //   }
         case OK =>
           response.body map { content =>
-            JSON.parseFull(content) map { jc =>
-              val item = Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
-              item get "response" map (x => buffer += (collectionName -> x))
-            }
+            val ret = parse(content).extract[SingleResponse]
+            // println(ret.response)
+            buffer += (collectionName -> ret.response)
+            // JSON.parseFull(content) map { jc =>
+            //   val item = Map(jc.asInstanceOf[Map[String, List[Double]]].transform((k, v) => deserializeFromByteArray(v.map(_.toByte).toArray)).toArray:_*)
+            //   item get "response" map (x => buffer += (collectionName -> x))
+            // }
           } getOrElse (Map.empty[String, Any])
         case _ =>
       }
@@ -353,7 +361,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def changePassword(newpassword: String): Unit = {
     val response = requestBuilder.withCredentials(connection.username, connection.password)
       .withUrl(uri + "/private/" + connection.username)
-      .withBody(newpassword.getBytes)
+      .withBody(base64(newpassword.getBytes("UTF-8")))
       .addHeaders(("Old-password" , connection.password))
       .withMethod(POST).send()
     response.statusCode match {
@@ -381,6 +389,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def listCollections : List[String] = {
+    implicit val formats = DefaultFormats
     var collections = List.empty[String]
     val response =
       requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections" withMethod GET send()
@@ -389,10 +398,12 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case OK =>
         response.body map { r =>
-          JSON.parseFull(r) map { p =>
-            val mapObject = p.asInstanceOf[Map[String, List[String]]]
-            mapObject get "list" map (collections :::= _)
-          }
+          // JSON.parseFull(r) map { p =>
+          //   val mapObject = p.asInstanceOf[Map[String, List[String]]]
+          //   mapObject get "list" map (collections :::= _)
+          // }
+          val ret = parse(r).extract[ListResponse]
+          collections :::= ret.list
         }
       case _ => collections :::= List()
     }
@@ -760,6 +771,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def listUsers: List[String] = {
+    implicit val formats = DefaultFormats
     var users = List.empty[String]
     val response = requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/users/" withMethod GET send()
     response.statusCode match {
@@ -767,10 +779,12 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case OK =>
         response.body map { r =>
-          JSON.parseFull(r) map { p =>
-            val mapObject = p.asInstanceOf[Map[String, List[String]]]
-            mapObject get "list" map (users :::= _)
-          }
+          // JSON.parseFull(r) map { p =>
+          //   val mapObject = p.asInstanceOf[Map[String, List[String]]]
+          //   mapObject get "list" map (users :::= _)
+          // }
+          val ret = parse(r).extract[ListResponse]
+          users :::= ret.list
         }
         users
       case _ => List()

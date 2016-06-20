@@ -21,20 +21,23 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
 
 package com.actorbase.driver.client
 
-import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
+import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream }
+
+import java.util.Base64
 import scala.pickling._, Defaults._, json._
 
 import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization._
 import org.json4s.jackson.JsonMethods._
+
 
 /**
   * Trait to add serializing and deserializing capabilities to all class
@@ -43,6 +46,7 @@ import org.json4s.jackson.JsonMethods._
   */
 trait Serializer {
 
+  def base64(in: Array[Byte]): String = Base64.getUrlEncoder.encodeToString(in)
   /**
     * Serialization method. Converts an object of type Any to an array of bytes
     *
@@ -50,16 +54,22 @@ trait Serializer {
     * @return an Array[Byte] type
     * @throws
     */
-  def serialize2byteArray(o: Any): Array[Byte] = {
+  def serialize2byteArray(o: Any): String = {
     // import scala.pickling.binary._
     // o.pickle.value
     val bos = new ByteArrayOutputStream()
-    var out = new ObjectOutputStream(bos)
-    out.writeObject(o);
+    var oos = new ObjectOutputStream(bos)
+    oos.writeObject(o);
     val bytes = bos.toByteArray()
-    out.close();
+    oos.close();
     bos.close();
-    bytes
+    base64(bytes)
+  }
+
+  def deserializeFromBase64[A <: Any](in: String): A = {
+    val bytes = Base64.getUrlDecoder.decode(in)
+    val inputStream = new ObjectInputStream(new ByteArrayInputStream(bytes))
+    inputStream.readUnshared().asInstanceOf[A]
   }
 
   /**

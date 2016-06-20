@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -44,7 +44,7 @@ case class RequestBuilder(
   user: Option[String],
   password: Option[String],
   headers: (String, String),
-  body: Option[Array[Byte]]) {
+  body: Option[String]) {
 
   /**
     * Add a method of connection, it can be either GET, POST, PUT or DELETE, it
@@ -79,11 +79,11 @@ case class RequestBuilder(
     * Add the body of the request, containing an array of bytes. Can be
     * anything.
     *
-    * @param body an Array[Byte] representing the payload to be added
+    * @param body an String representing the payload to be added
     * to the request
     * @return an Instance of the class RequestBuilder
     */
-  def withBody(body: Array[Byte]): RequestBuilder = copy(body = Some(body))
+  def withBody(body: String): RequestBuilder = copy(body = Some(body))
 
   /**
     * Aappend an additional path to the request

@@ -20,7 +20,8 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.3.0",
   "org.json4s" %% "json4s-jackson" % "3.3.0",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
-  "io.spray" %%  "spray-json" % "1.3.2")
+  "io.spray" %%  "spray-json" % "1.3.2"
+  )
 
 initialCommands in console += """
 import com.actorbase.driver.ActorbaseDriver

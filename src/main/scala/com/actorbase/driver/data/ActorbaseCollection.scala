@@ -34,6 +34,8 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.exceptions._
 
+import scalaj.http.HttpConstants._
+
 import java.io.{File, PrintWriter}
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
@@ -225,7 +227,7 @@ case class ActorbaseCollection
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
-      .withBody(username.getBytes)
+      .withBody(base64(username.getBytes("UTF-8")))
       .addHeaders(("permission", permission))
       .withMethod(POST).send()
     response.statusCode match {

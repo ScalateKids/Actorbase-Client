@@ -44,16 +44,50 @@ object CommandLoop {
   def main(args: Array[String]) = {
     var hostname = "127.0.0.1"
     var port = 9999
-    // val (hostname, port) =
-    if (args.nonEmpty) {
-      // (args(0), args(1))
-      hostname = args(0)
-      port = args(1).toInt
+    var username = "anonymous"
+    var password = "anonymous"
+    //Argument GrammarParser
+    if (args.length == 0)
+    {
+      println("[!] no arg, Client loaded by default param");
     }
-    // else {
-      // ("127.0.0.1", 9999)
-    // }
-    // status variable, represents do\while condition
+    else
+    {
+      val arglist = args.toList
+      type OptionMap = Map[String, Any]
+
+      def nextOption(map : OptionMap, list: List[String]) : OptionMap = {
+	def isSwitch(s : String) = (s(0) == '-')
+	list match {
+	  case Nil => map
+	  case "-h" :: value :: tail =>
+				nextOption(map ++ Map("host" -> value), tail)
+	  case "-p" :: value :: tail =>
+				nextOption(map ++ Map("port" -> value.toInt), tail)
+	  case "-u" :: value :: tail =>
+				nextOption(map ++ Map("username" -> value), tail)	
+	  case string :: Nil => nextOption(map ++ Map("error" -> string), list.tail)	  
+	  case _ :: value :: tail =>
+				nextOption(map ++ Map("error" -> value.toInt), tail)
+	}
+      }
+      val options = nextOption(Map(),arglist)
+      if(options.get("host").getOrElse("127.0.0.1") != hostname) hostname = options.get("host").get.toString
+      if(options.get("port").getOrElse(9999) != port) port = options.get("port").get.asInstanceOf[Int]
+      if(options.get("username").getOrElse("anonymous") != username) 
+      {
+	username = options.get("username").get.toString
+	val input = readLine("prompt password for user "+username+" : ")
+	password = input
+      }     
+    }
+    //printing connection parameter after args parse
+    println("[*] Loading param:")
+    println("[*] Hostname : " + hostname)
+    println("[*] Port     : " + port)
+    println("[*] Username : " + username)
+    println("[*] Password : " + password)
+    
     var loop : Boolean = true
 
     // model ref

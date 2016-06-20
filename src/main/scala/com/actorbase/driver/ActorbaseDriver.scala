@@ -581,6 +581,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         }
       }
     } catch {
+      case jpe: com.fasterxml.jackson.core.JsonParseException => throw MalformedFileExc("Malformed json file")
       case nse: NoSuchElementException => throw MalformedFileExc("Malformed json file")
       case wce: WrongCredentialsExc => throw wce
       case mfe: MalformedFileExc => throw mfe

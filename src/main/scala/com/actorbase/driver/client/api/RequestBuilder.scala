@@ -112,7 +112,7 @@ case class RequestBuilder(
     * @return an instance of the class Request with all parts added
     */
   def toRequest: Request = {
-    Request(method.get, url.get, user.get, password.get, headers, body)
+    Request(method.getOrElse(GET), url.getOrElse("127.0.0.1"), user.getOrElse("anonymous"), password.getOrElse("Actorb4se"), headers, body)
   }
 
   /**

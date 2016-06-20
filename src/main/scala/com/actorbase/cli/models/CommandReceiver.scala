@@ -293,8 +293,6 @@ class CommandReceiver(params: Map[Any, Any], driver: ActorbaseDriver) {
     var result: String = ""
     val collection = params.get("collection").get.asInstanceOf[String]
     val username = params.get("username").get.asInstanceOf[String]
-    val permission = params.get("permissions").get.asInstanceOf[String]
-    val p = if (permission == "read") false else true
     try {
       driver.getCollection(collection).removeContributor(username)
     } catch {

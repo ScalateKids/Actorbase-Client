@@ -87,12 +87,12 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
        noException should be thrownBy(driver.insertTo("testCollection", false, ("testItem" -> "testPayload"))())
      }
 
-    /*** 
-     * TU.DEF3.2 Si verifica che Il driver dovrà permettere l'esecuzione 
-     * di comandi per poter eseguire operazioni sulle collezioni 
-     */    
+    /**
+     * TU.DEF3.2 Si verifica che Il driver dovrà permettere l'esecuzione
+     * di comandi per poter eseguire operazioni sulle collezioni
+     */
 
-    /***
+    /**
      * TS.DEF3.2.2 & Viene verificato che il driver dovrà permettere di elencare
      * i nomi delle collezioni presenti all’interno del database
      */
@@ -147,7 +147,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       an [UndefinedCollectionExc] should be thrownBy driver.getCollection("testCollection2")
     }
 
-    /***
+    /**
      * TU.DEF3.2.7.3 Si verifica che il driver dovrà esportare tutto il contenuto del
      * sistema in caso di inserimento di una lista nomi \gloss{collezioni} vuota
      */
@@ -178,7 +178,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      * TS.DEF3.2.5 & Viene verificato che il \gloss{driver} dovrà permettere di
      * aggiungere \gloss{collaboratori} ad una \gloss{collezione} del sistema
      */ 
-     /***
+     /**
     "add a contributor to a collection" in {
       val response = driver.getCollection("contributorCollection")
       noException should be thrownBy(response.addContributor("username", false))
@@ -188,14 +188,14 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      * TS.DEF3.2.6 & Viene verificato che il \gloss{driver} dovrà permettere
      * di rimuovere un \gloss{collaboratore} da una \gloss{collezione} del sistema
      */ 
-     /***
+     /**
     "remove a contributor from a collection" in {
       val response = driver.getCollection("contributorCollection")
       noException should be thrownBy(response.removeContributor("username"))
     } */
 
 
-    /***** ITEM PART ***/
+    /*** ITEM PART ***/
 
     /**
       * TU.DEF3.3 & Si verifica che Il \gloss{driver} dovrà permettere di eseguire comandi per poter
@@ -210,7 +210,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       an [java.io.FileNotFoundException] should be thrownBy(driver.importData("src/test/resources/filenotexisting.json"))
     }
 
-    /***
+    /**
       * TU.DEF3.3.1.2.3 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso
       * di inserimento di un \gloss{path} che punta ad un file \gloss{JSON} non correttamente formato
       */

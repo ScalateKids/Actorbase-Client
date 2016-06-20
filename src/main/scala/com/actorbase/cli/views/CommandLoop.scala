@@ -21,13 +21,14 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
 
 package com.actorbase.cli.views
 
+import com.actorbase.cli.controllers.DriverConnection
 import com.actorbase.cli.controllers.GrammarParser
 import com.actorbase.cli.models._
 
@@ -38,92 +39,97 @@ import scala.tools.jline.console.completer._
 
 import java.io._
 import scala.collection.JavaConversions._
+import scala.util.{ Failure, Success }
 
 object CommandLoop {
 
   def main(args: Array[String]) = {
-    var hostname = "127.0.0.1"
-    var port = 9999
-    var username = "anonymous"
-    var password = "anonymous"
+    val reader = new ConsoleReader()
+    var (hostname, port, username, password) = ("127.0.0.1", 9999, "anonymous", "Actorb4se")
     //Argument GrammarParser
     if (args.length == 0)
-    {
       println("[!] no arg, Client loaded by default param");
-    }
-    else
-    {
+    else {
       val arglist = args.toList
-      type OptionMap = Map[String, Any]
+      type OptionMap = Map[String, String]
 
       def nextOption(map : OptionMap, list: List[String]) : OptionMap = {
-	def isSwitch(s : String) = (s(0) == '-')
-	list match {
-	  case Nil => map
-	  case "-h" :: value :: tail =>
-				nextOption(map ++ Map("host" -> value), tail)
-	  case "-p" :: value :: tail =>
-				nextOption(map ++ Map("port" -> value.toInt), tail)
-	  case "-u" :: value :: tail =>
-				nextOption(map ++ Map("username" -> value), tail)	
-	  case string :: Nil => nextOption(map ++ Map("error" -> string), list.tail)	  
-	  case _ :: value :: tail =>
-				nextOption(map ++ Map("error" -> value.toInt), tail)
-	}
+        def isSwitch(s : String) = (s(0) == '-')
+        list match {
+          case Nil => map
+          case "-h" :: value :: tail =>
+            nextOption(map ++ Map("host" -> value), tail)
+          case "-p" :: value :: tail =>
+            nextOption(map ++ Map("port" -> value), tail)
+          case "-u" :: value :: tail =>
+            nextOption(map ++ Map("username" -> value), tail)
+          case string :: Nil => nextOption(map ++ Map("error" -> string), list.tail)
+          case _ :: value :: tail =>
+            nextOption(map ++ Map("error" -> value), tail)
+        }
       }
-      val options = nextOption(Map(),arglist)
-      if(options.get("host").getOrElse("127.0.0.1") != hostname) hostname = options.get("host").get.toString
-      if(options.get("port").getOrElse(9999) != port) port = options.get("port").get.asInstanceOf[Int]
-      if(options.get("username").getOrElse("anonymous") != username) 
-      {
-	username = options.get("username").get.toString
-	val input = readLine("prompt password for user "+username+" : ")
-	password = input
-      }     
+      val options = nextOption(Map(), arglist)
+
+      options get "host" map (hostname = _)
+      options get "port" map (s => port = s.toInt)
+      options get "username" map { u =>
+        val pass: String =
+          if (u != "anonymous" && !options.contains("password"))
+            reader.readLine(">> password: ", '*')
+          else options.get("password").getOrElse("Actorb4se")
+        password = pass
+        username = u
+      }
     }
-    //printing connection parameter after args parse
-    println("[*] Loading param:")
-    println("[*] Hostname : " + hostname)
-    println("[*] Port     : " + port)
-    println("[*] Username : " + username)
-    println("[*] Password : " + password)
-    
-    var loop : Boolean = true
+    DriverConnection.getDriver(hostname, port, username, password) match {
+      case Success(d) =>
+        //printing connection parameter after args parse
+        println("[*] Loading param:")
+        println("[*] Hostname : " + hostname)
+        println("[*] Port     : " + port)
+        println("[*] Username : " + username)
+        println("[*] Password : " + password)
 
-    // model ref
-    val commandInvoker = new CommandInvoker
+        var loop : Boolean = true
 
-    // view ref
-    val view = new ResultView
+        // model ref
+        val commandInvoker = new CommandInvoker
 
-    // controller ref
-    val grammarParser = new GrammarParser(commandInvoker, view, hostname, port)
+        // view ref
+        val view = new ResultView
 
-    // attach view to observers
-    commandInvoker.attach(view)
-    grammarParser.attach(view)
+        // controller ref
+        val grammarParser = new GrammarParser(commandInvoker, view, d)
 
-    val reader = new ConsoleReader()
-    val history = new FileHistory(new File(".history"))
-    val prompt = new ActorbasePrompt
-    val banner = new ActorbaseBanner
-    var completers : List[String] = Nil
-    print(banner.getBanner())
+        // attach view to observers
+        commandInvoker.attach(view)
+        grammarParser.attach(view)
 
-    reader.setHistory(history)
-    reader.setPrompt(prompt.getPrompt)
-    reader.setBellEnabled(false)
-    ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
-      completers :+= entry.getKey
+        val history = new FileHistory(new File(".history"))
+        val prompt = new ActorbasePrompt(d.connection)
+        val banner = new ActorbaseBanner
+        var completers : List[String] = Nil
+        print(banner.getBanner())
+
+        reader.setHistory(history)
+        reader.setPrompt(prompt.getPrompt)
+        reader.setBellEnabled(false)
+        ConfigFactory.load("commands.conf").getConfig("commands").entrySet.foreach { entry =>
+          if (username == "admin")
+            completers :+= entry.getKey
+          else if (entry.getKey != "addUser" && entry.getKey != "removeUser" && entry.getKey != "resetPassword")
+            completers :+= entry.getKey
+        }
+        reader.addCompleter(new StringsCompleter(completers))
+
+        val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
+
+        while(loop) {
+          loop = grammarParser.parseInput(reader.readLine)
+          out.flush
+        }
+      // reader.getHistory.asInstanceOf[FileHistory].flush()
+      case Failure(e) => println(e.getMessage)
     }
-    reader.addCompleter(new StringsCompleter(completers))
-
-    val out : PrintWriter = new PrintWriter(reader.getTerminal().wrapOutIfNeeded(System.out))
-
-    while(loop) {
-      loop = grammarParser.parseInput(reader.readLine)
-      out.flush
-    }
-    // reader.getHistory.asInstanceOf[FileHistory].flush()
   }
 }

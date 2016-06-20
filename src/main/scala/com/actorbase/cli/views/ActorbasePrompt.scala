@@ -21,22 +21,30 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
 
 package com.actorbase.cli.views
 
-class ActorbasePrompt extends PromptProvider{
+import com.actorbase.driver.ActorbaseDriver
 
+class ActorbasePrompt(connectionInfo: ActorbaseDriver.Connection) extends PromptProvider{
+
+  private val os = System.getProperty("os.name")
   /**
     * Method that returns a string representing the prompt.
     *
     * @return a String representing the prompt of the Actorbase application
     */
-
   override def getPrompt: String = {
-    "actorbase$~: "
+    val addr = connectionInfo.address
+    val user = connectionInfo.username
+    val prompt =     user + "@" + addr + "$~: "
+    os match {
+      case nix if (nix.contains("Linux") || nix.contains("Darwin")) => s"\u001B[1m" + prompt + "\u001B[0m"
+      case _ => prompt
+    }
   }
 }

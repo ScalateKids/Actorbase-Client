@@ -21,26 +21,17 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids
+  * @author Scalatekids TODO DA CAMBIARE
   * @version 1.0
   * @since 1.0
   */
 
-package com.actorbase.cli.models
+package com.actorbase.cli.controllers
 
-class CommandInvoker extends Observable {
+import com.actorbase.driver.ActorbaseDriver
+import scala.util.Try
 
-  private var history: List[Command] = Nil
-   /**
-    * Method used to get command and route it to the right class
-    *
-    * @param cmd contain the command definition
-    * @return a String containing the result to return to the user of the Command invoked
-    */
-  def storeAndExecute(cmd: Command): String = {
-    this.history :+= cmd
-    setState(cmd.execute())
-    notifyAllObservers
-    getState
-  }
+object DriverConnection {
+  def getDriver(host: String, port: Int, user: String, pass: String): Try[ActorbaseDriver] =
+    Try(ActorbaseDriver("http://" + user + ":" + pass + "@" + host + ":" + port))
 }

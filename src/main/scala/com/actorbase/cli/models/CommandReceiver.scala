@@ -57,9 +57,7 @@ object CommandReceiver {
   * @param params a map containing the parameters that are used
   *                for the methods.
   */
-class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], username: String, password: String = "Actorb4se") {
-
-  private var driver = CommandReceiver.actorbaseDriver(hostname, port, username, password)
+class CommandReceiver(params: Map[Any, Any], driver: ActorbaseDriver) {
 
   /**
     * Insert an item to the actorbase server.
@@ -110,14 +108,14 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     * @return a String, "login succeeded" if the method succeeded, an error message is returned if the method failed
     */
   def login() : String = {
-    val username =  params.get("username").get.asInstanceOf[String]
-    val password = params.get("password").get.asInstanceOf[String]
-    try {
-      driver = driver.authenticate(username, password)
-    } catch {
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    }
+    // val username =  params.get("username").get.asInstanceOf[String]
+    // val password = params.get("password").get.asInstanceOf[String]
+    // try {
+    //   driver = driver.authenticate(username, password)
+    // } catch {
+    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    // }
     "Login successful"
   }
 

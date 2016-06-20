@@ -48,6 +48,7 @@ trait Serializer {
 
   def base64(in: Array[Byte]): String = Base64.getUrlEncoder.encodeToString(in)
 
+  def base64FromString(in: String): String = Base64.getUrlEncoder.encodeToString(in.getBytes("UTF-8"))
   /**
     * Serialization method. Converts an object of type Any to an array of bytes
     *

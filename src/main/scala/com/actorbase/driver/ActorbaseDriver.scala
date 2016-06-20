@@ -180,14 +180,14 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
               .withCredentials(connection.username, connection.password)
               .withUrl(uri + "/collections/" + collection + "/" + k)
               .withBody(serialize2byteArray(v))
-              .addHeaders(("owner", base64(owner)))
+              .addHeaders(("owner", base64FromString(owner)))
               .withMethod(POST).send()
           else
             requestBuilder
               .withCredentials(connection.username, connection.password)
               .withUrl(uri + "/collections/" + collection + "/" + k)
               .withBody(serialize2byteArray(v))
-              .addHeaders(("owner", base64(owner)))
+              .addHeaders(("owner", base64FromString(owner)))
               .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -248,7 +248,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       val response = requestBuilder
         .withCredentials(connection.username, connection.password)
         .withUrl(uri + "/collections/" + collection + "/" + key)
-        .addHeaders(("owner", base64(owner)))
+        .addHeaders(("owner", base64FromString(owner)))
         .withMethod(DELETE).send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -296,7 +296,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       val response = requestBuilder
         .withCredentials(connection.username, connection.password)
         .withUrl(uri + "/collections/" + collectionName + "/" + key)
-        .addHeaders(("owner", base64(owner)))
+        .addHeaders(("owner", base64FromString(owner)))
         .withMethod(GET).send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -342,7 +342,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder.withCredentials(connection.username, connection.password)
       .withUrl(uri + "/private/" + connection.username)
       .withBody(base64(newpassword.getBytes("UTF-8")))
-      .addHeaders(("Old-password" , base64(connection.password)))
+      .addHeaders(("Old-password" , base64FromString(connection.password)))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -436,7 +436,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collectionName)
-      .addHeaders(("owner", base64(originalOwner)))
+      .addHeaders(("owner", base64FromString(originalOwner)))
       .withMethod(GET).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -463,7 +463,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collectionName)
-      .addHeaders(("owner", base64(owner)))
+      .addHeaders(("owner", base64FromString(owner)))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -486,7 +486,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/collections/" + collection.collectionName)
-      .addHeaders(("owner", base64(collection.owner)))
+      .addHeaders(("owner", base64FromString(collection.owner)))
       .withMethod(POST).send() // control response and add payload to post
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -527,7 +527,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       val response = requestBuilder
         .withCredentials(connection.username, connection.password)
         .withUrl(uri + "/collections/" + collectionName)
-        .addHeaders(("owner", base64(owner)))
+        .addHeaders(("owner", base64FromString(owner)))
         .withMethod(DELETE).send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
@@ -572,7 +572,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           .withCredentials(connection.username, connection.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + x._1)
           .withBody(serialize2byteArray(x._2))
-          .addHeaders(("owner", base64(owner)))
+          .addHeaders(("owner", base64FromString(owner)))
           .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")

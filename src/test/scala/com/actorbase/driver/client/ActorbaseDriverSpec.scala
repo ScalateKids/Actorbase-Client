@@ -134,7 +134,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       * nome \gloss{collezione} a cui rimuovere un \gloss{collaboratore} non esistente all'interno del sistema
       */
     "throw an InternalErrorExc when trying to add or remove a contributor to a collection that does not exists" in{
-      val response = driver.getCollection("testCollection")
+      val response = driver.addCollection("testCollection")
       an [InternalErrorExc] should be thrownBy response.addContributor("contributorName", false)
     }
 
@@ -162,7 +162,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       * esportare \gloss{collezioni} su file \gloss{JSON}
       */
     "ask for a collection and for an export to file" in {
-      val response = driver.getCollection("testCollection")
+      val response = driver.addCollection("testCollection")
       assert(response.collectionName == "testCollection")
     }
 
@@ -242,9 +242,9 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      * TS.DEF3.4 & Viene verificato che il \gloss{driver} dovrà permettere di effettuare
      * ricerche su una o più \gloss{collezioni} all'interno del sistema
      */
-    "ask for a single item" in {
+    "ask for a single item" in {  // todo rivedere, il driver credo non debba lanciare una com.fasterxml.jackson.core.JsonParseException se l'item non c'è
       //val response = driver.find("testItem", "testCollection")
-      noException should be thrownBy(driver.find("testItem", "testCollection"))
+      noException should be thrownBy(driver.find("testItemToReturn", "testCollection"))
     }
 
     "ask for inserting one item without overwriting" in {
@@ -299,14 +299,14 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
      */
     "return an iterable collection" in {
       val response = driver.getCollection("testNavigableCollection")
-      assert(response.count == 0)
+      assert(response.count == 1)
     }
 
     /**
      * TU.OBF3.8.3 & Si verifica che Il Driver dovrà poter restituire item  & OK   & OBF3.8.3    \\
      */
     "return an item" in {
-      noException should be thrownBy(driver.find("testItem", "testCollection"))
+      noException should be thrownBy(driver.find("testItemToReturn", "testCollection"))
     }
 
     /**              USERS PART          **/

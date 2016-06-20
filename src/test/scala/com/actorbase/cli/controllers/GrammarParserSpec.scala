@@ -62,11 +62,11 @@ class GrammarParserSpec extends CLIUnitSpec {
     assert(grammarParser.parseInput("createCollection testCollection") === true)
   }
 
-  it should "parse 'renameCollection collection to newname'" in {
+ /* it should "parse 'renameCollection collection to newname'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("createCollection testCollection to testName") === true)
   }
-
+*/
   it should "parse 'insert (key -> value ) to collection'" in {
     val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, "127.0.0.1", 9999)
     assert(grammarParser.parseInput("insert (key -> value ) to testCollection") === true)

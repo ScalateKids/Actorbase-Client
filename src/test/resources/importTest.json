@@ -2,6 +2,7 @@
 	"collectionName": "testCollection",
 	"data": {
 		"id": "testId",
-		"name": "AngiSpinello"
-	}
+		"name": "Angi item"
+	},
+	"owner": "angi"}
 }

@@ -133,7 +133,12 @@ object ActorbaseDriver extends Connector {
   /**
     * Simple case class used to pass around connection info
     */
-  case class Connection(username: String, password: String, address: String, port: Int)
+  case class Connection(private var user: String, private var pass: String, address: String, port: Int) {
+    def username: String = user
+    def password: String = pass
+    def setUsername(u: String): Unit = user = u
+    def setPassword(p: String): Unit = pass = p
+  }
 
 }
 
@@ -362,7 +367,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           x.asInstanceOf[String] match {
             case "WrongNewPassword" => throw WrongNewPasswordExc("The password inserted does not meet Actorbase criteria")
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username")
-            case "OK" =>
+            case "OK" => connection.setPassword(newpassword)
           }
         }
       case _ =>

@@ -36,15 +36,25 @@ import com.actorbase.driver.exceptions._
 
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.json4s.JsonDSL._
+import scala.concurrent.Future
 
 import scala.io.Source
-import scala.util.parsing.json._
 import scala.collection.immutable.TreeMap
 import java.net.URI
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case class SingleResponse(response: Any)
 
 case class ListResponse(list: List[String])
+
+class StringTupleSerializer extends CustomSerializer[(String, String)](format => ( {
+  case JObject(List(JField(k, JString(v)))) => (k, v)
+}, {
+  case (s: String, t: String) => (s -> t)
+}))
+
+case class ListTupleResponse(tuples: List[Map[String, String]])
 
 case class CollectionResponse(val owner: String, val collectionName: String, val data: Map[String, Any])
 
@@ -123,7 +133,12 @@ object ActorbaseDriver extends Connector {
   /**
     * Simple case class used to pass around connection info
     */
-  case class Connection(username: String, password: String, address: String, port: Int)
+  case class Connection(private var user: String, private var pass: String, address: String, port: Int) {
+    def username: String = user
+    def password: String = pass
+    def setUsername(u: String): Unit = user = u
+    def setPassword(p: String): Unit = pass = p
+  }
 
 }
 
@@ -352,7 +367,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           x.asInstanceOf[String] match {
             case "WrongNewPassword" => throw WrongNewPasswordExc("The password inserted does not meet Actorbase criteria")
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username")
-            case "OK" =>
+            case "OK" => connection.setPassword(newpassword)
           }
         }
       case _ =>
@@ -368,9 +383,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def listCollections : List[String] = {
-    implicit val formats = DefaultFormats
-    var collections = List.empty[String]
+  def listCollections : List[Map[String, String]] = {
+    implicit val formats = DefaultFormats + new StringTupleSerializer
+    var collections = List.empty[Map[String, String]]
     val response =
       requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections" withMethod GET send()
     response.statusCode match {
@@ -378,8 +393,8 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case OK =>
         response.body map { r =>
-          val ret = parse(r).extract[ListResponse]
-          collections :::= ret.list
+          val ret = parse(r).extract[ListTupleResponse]
+          collections :::= ret.tuples
         }
       case _ => collections :::= List()
     }
@@ -397,13 +412,35 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def getCollections: ActorbaseCollectionMap = {
-    var collections = TreeMap.empty[String, ActorbaseCollection]
+    var colls = TreeMap.empty[String, ActorbaseCollection]
     try {
-      listCollections map (x => collections += (x -> getCollection(x)))
+      listCollections map (x => colls += (x.head._2 -> getCollection(x.head._2, x.head._1)))
     } catch {
       case uce:UndefinedCollectionExc =>
     }
-    ActorbaseCollectionMap(collections)(connection, scheme)
+    ActorbaseCollectionMap(colls)(connection, scheme)
+  }
+
+  /**
+    * Return a list of collections, querying the system for the entire contents
+    * generating an ActorbaseCollectionMap
+    *
+    * @return an ActorbaseCollectionMap containing a map of collections
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
+    */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
+  def getCollections(collections: String*): ActorbaseCollectionMap = {
+    var colls = TreeMap.empty[String, ActorbaseCollection]
+    collections.foreach { c =>
+      try {
+        colls += (c -> getCollection(c))
+      } catch {
+        case uce:UndefinedCollectionExc =>
+      }
+    }
+    ActorbaseCollectionMap(colls)(connection, scheme)
   }
 
   /**
@@ -505,9 +542,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   def dropCollections: Unit = {
     if (connection.username != "admin")
-      listCollections map (x => dropCollections(x))
+      listCollections map (x => dropCollections(x.head._2))
     else listCollections map { x =>
-      listUsers map (u => dropCollectionsFrom(x)(u))
+      listUsers map (u => dropCollectionsFrom(x.head._2)(u))
     }
   }
 
@@ -600,6 +637,8 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   def importData(path: String): Unit = importFromFile(path)(connection.username)
 
+  def asyncImportData(path: String): Future[Unit] = Future { importFromFile(path)(connection.username) }
+
   /**
     * Export all the collections owned or in-contribution by the user on the filesystem
     * at a specified path in JSON format.
@@ -613,7 +652,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def exportToFile(path: String)(owner: String = connection.username): Unit = {
     listCollections map { x =>
       try {
-        getCollection(x, owner).export(path)
+        getCollection(x.head._2, owner).export(path)
       } catch {
         case uce:UndefinedCollectionExc =>
       }

@@ -300,8 +300,12 @@ case class ActorbaseCollection
     * @throws
     */
   def export(path: String): Unit = {
-    val printWriter = new PrintWriter(new File(path))
-    printWriter.write(serialize2JSON(this))
+    val exportTo = new File(path)
+    if (!exportTo.exists)
+      exportTo.getParentFile.mkdirs
+    val printWriter = new PrintWriter(exportTo)
+    // printWriter.write(serialize2JSON(this))
+    printWriter.write(toString)
     printWriter.close
   }
 
@@ -333,9 +337,9 @@ case class ActorbaseCollection
     */
   override def toString: String = {
     var headers = new TreeMap[String, Any]()
-    headers += ("collection" -> collectionName)
+    headers += ("collectionName" -> collectionName)
     headers += ("owner" -> owner)
-    headers += ("items" -> data)
+    headers += ("data" -> data)
     serialize2JSON4s(headers)
   }
 

@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -99,6 +99,12 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  override def toString: String = data.mkString
+  override def toString: String = {
+    var ret = ""
+    data.foreach {
+      case (k, v) => ret += "\n" + v.toString + "\n"
+    }
+    ret
+  }// data.mkString
 
 }

@@ -43,7 +43,7 @@ class ActorbasePrompt(connectionInfo: ActorbaseDriver.Connection) extends Prompt
     val user = connectionInfo.username
     val prompt =     user + "@" + addr + "$~: "
     os match {
-      case nix if (nix.contains("Linux") || nix.contains("Darwin")) => s"\u001B[1m" + prompt + "\u001B[0m"
+      case nix if (nix.contains("Linux") || nix.contains("Darwin") || nix.contains("Windows")) => s"\u001B[1m" + prompt + "\u001B[0m"
       case _ => prompt
     }
   }

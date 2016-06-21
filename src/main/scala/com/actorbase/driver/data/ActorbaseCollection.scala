@@ -74,7 +74,7 @@ case class ActorbaseCollection
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
           .withBody(serialize2byteArray(v))
-          .addHeaders(("owner", owner))
+          .addHeaders(("owner", base64FromString(owner)))
           .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -116,7 +116,7 @@ case class ActorbaseCollection
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
           .withBody(serialize2byteArray(v))
-          .addHeaders(("owner", owner))
+          .addHeaders(("owner", base64FromString(owner)))
           .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -228,7 +228,7 @@ case class ActorbaseCollection
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
       .withBody(base64(username.getBytes("UTF-8")))
-      .addHeaders(("permission", permission))
+      .addHeaders(("permission", base64FromString(permission)))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")

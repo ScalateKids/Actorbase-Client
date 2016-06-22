@@ -70,31 +70,35 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *
     * @return a String, "Item inserted" if the method succeeded, an error message is returned if the method failed
     */
-  def insert() : String = {
-    var result = "Item inserted."
-    params get "key" map { k =>
-      params get "value" map { v =>
-        params get "collection" map { c =>
-          val value = as[String](v) match {
-            case integer if integer matches("""^\d+$""") => integer.toInt
-            case double if double matches("""^\d+\.\d+""") => double.toDouble
-            case _ => as[String](v)
-          }
-          try {
-            if (as[String](c) contains ".") {
-              val collection = as[String](c).split(".")
-              driver.insertTo(collection(0), false, (as[String](k) -> value))(collection(1))
-            } else driver.insert(as[String](c), false, (as[String](k) -> value))
-          } catch {
-            case wce: WrongCredentialsExc => result =  "Credentials privilege level does not meet criteria needed to perform this operation."
-            case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
-            case dke: DuplicateKeyExc => result = "Key already stored"
+    def insert() : String = {
+      var result = "Item inserted."
+      params get "key" map { k =>
+        params get "value" map { v =>
+          params get "collection" map { c =>
+            params get "update" map { u =>
+              val value = as[String](v) match {
+                case integer if integer matches("""^\d+$""") => integer.toInt
+                case double if double matches("""^\d+\.\d+""") => double.toDouble
+                case _ => as[String](v)
+              }
+              try {
+                val update = as[Boolean](u)
+                if (as[String](c) contains ".") {
+                  val collection = as[String](c).split(".")
+                  driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
+                } else driver.insert(as[String](c), update, (as[String](k) -> value))
+              }
+              catch {
+                case wce: WrongCredentialsExc => result =  "Credentials privilege level does not meet criteria needed to perform this operation."
+                case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+                case dke: DuplicateKeyExc => result = "Key already stored"
+              }
+            }
           }
         }
       }
+      result
     }
-    result
-  }
 
   /**
     * Remove an item from the actorbase server.
@@ -254,16 +258,18 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String containing all the collections names the used has access to
     */
   def listCollections(): String = {  //TODO need test when the server will implement this feature
-    val (header1, header2) = ("AUTHOR", "COLLECTION")
+    val (header1, header2) = ("OWNER", "COLLECTION")
     var list = f"\n | $header1%-13s | $header2%13s | \n"
-    list += " -------------------------------\n"
+    list += " ---------------------------------\n"
     try {
       val collectionList = driver.listCollections
-      collectionList.foreach(c => list += f" | ${c.head._1}%-13s | ${c.head._2}%13s | \n")
+      if (collectionList.length > 0)
+        collectionList.foreach(c => list += f" | ${c.head._1}%-13s | ${c.head._2}%13s | \n")
+      else list = "No collections found"
     }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    catch {
+      case wce: WrongCredentialsExc => list = "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => list = "There was an internal server error, something wrong happened."
     }
     list
   }

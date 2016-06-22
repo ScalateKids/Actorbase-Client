@@ -208,6 +208,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case BadRequest => throw InternalErrorExc("There was an internal server error, somethin wrong happened")
           case OK =>
             response.body map { x =>
               x.asInstanceOf[String] match {

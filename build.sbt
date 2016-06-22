@@ -27,6 +27,8 @@ import com.actorbase.driver.client.api._
 import com.actorbase.driver.data._
 """
 
+javacOptions ++= Seq("-XX:+HeapDumpOnOutOfMemoryError")
+
 assemblyJarName in assembly := "Actorbase-Client.jar"
 mainClass in assembly := Some("com.actorbase.cli.views.CommandLoop")
 test in assembly := {}
@@ -51,7 +53,3 @@ assemblyMergeStrategy in assembly := {
       }
     case _ => MergeStrategy.first
 }
-
-
-
-

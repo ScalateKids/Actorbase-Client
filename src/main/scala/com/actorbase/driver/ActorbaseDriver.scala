@@ -37,7 +37,8 @@ import com.actorbase.driver.exceptions._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
 
 import scala.io.Source
 import scala.collection.immutable.TreeMap
@@ -421,6 +422,24 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     ActorbaseCollectionMap(colls)(connection, scheme)
   }
 
+  def asyncGetCollections: ActorbaseCollectionMap = {
+    var colls = TreeMap.empty[String, ActorbaseCollection]
+    val collections = listCollections map (x => (x.head._1 -> x.head._2))
+    val futureList = Future.traverse(collections)(elem =>
+      Future {
+        var collls = Map.empty[String, ActorbaseCollection]
+        try {
+          collls += (elem._2 -> getCollection(elem._2, elem._1))
+        } catch {
+          case uce:UndefinedCollectionExc =>
+        }
+        collls
+      })
+    val listOfFutures = futureList.map(x => x.map (colls ++= _))
+    Await.result(listOfFutures, Duration.Inf)
+    ActorbaseCollectionMap(colls)(connection, scheme)
+  }
+
   /**
     * Return a list of collections, querying the system for the entire contents
     * generating an ActorbaseCollectionMap
@@ -636,8 +655,6 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @return no return value
     */
   def importData(path: String): Unit = importFromFile(path)(connection.username)
-
-  def asyncImportData(path: String): Future[Unit] = Future { importFromFile(path)(connection.username) }
 
   /**
     * Export all the collections owned or in-contribution by the user on the filesystem

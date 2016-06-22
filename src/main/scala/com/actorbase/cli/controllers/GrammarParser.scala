@@ -46,13 +46,13 @@ import scala.util.parsing.combinator._
 class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConnection: ActorbaseDriver) extends JavaTokenParsers with Observable {
 
   // base arguments types
-  val types : Parser[String] = """Integer|Double|String|Binary""".r
-  val permissions : Parser[String] = """ReadOnly|ReadWrite""".r
-  val quotedString : Parser[String] = """['"].*['"]""".r
-  val literalString : Parser[String] = """.*""".r
-  val listString : Parser[String] = """[\S+,\s*\S+]+""".r
-  val keyString : Parser[String] = """\S+""".r
+  val permissions: Parser[String] = """ReadOnly|ReadWrite""".r
+  val quotedString: Parser[String] = """".*"""".r
+  val literalString: Parser[String] = """.*""".r
+  val listString: Parser[String] = """["\S+",\s*"\S+"]+""".r
+  val keyString: Parser[String] = """"\S+"""".r
 
+  def strip(s: Any): String = s.asInstanceOf[String].drop(1).dropRight(1)
   // chained commands
 
   /**
@@ -60,7 +60,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the login or logout command based on the user input.
     */
-  def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ literalString | "logout") ^^ {
+  def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ quotedString | "logout") ^^ {
     case "logout" => new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection))
     case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[String, Any]("username" -> args_1, "password" -> args_2), driverConnection))
   }
@@ -72,7 +72,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     */
   def changePasswordCommand : Parser[Command] = "changePassword" ~ keyString ~ keyString ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 =>
-      new ChangePasswordCommand(new CommandReceiver(Map[String, Any]("oldPsw" -> args_1, "newPsw" -> args_2, "repeatedPsw" -> args_3), driverConnection))
+      new ChangePasswordCommand(new CommandReceiver(Map[String, Any]("oldPsw" -> strip(args_1), "newPsw" -> strip(args_2), "repeatedPsw" -> strip(args_3)), driverConnection))
   }
 
   /**
@@ -81,7 +81,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the HelpCommand with the right parameters.
     */
   // ugly as hell, needs improvements
-  def helpCommand : Parser[Command] = "help" ~> keyString.? ^^ {
+  def helpCommand : Parser[Command] = "help" ~> literalString.? ^^ {
     case arg => new HelpCommand(new CommandReceiver(Map[String, Any]("command" -> arg), driverConnection))
   }
 
@@ -99,11 +99,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the right command based on the user input.
     */
   def collectionManagementCommand : Parser[Command] =
-    (("createCollection" | "deleteCollection") ~ literalString |
+    (("createCollection" | "deleteCollection") ~ quotedString |
       "listCollections") ^^ {
 
-      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> args_1), driverConnection))
-      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[String, Any]("Collection" -> args_1), driverConnection))
+      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> strip(args_1)), driverConnection))
+      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[String, Any]("Collection" -> strip(args_1)), driverConnection))
       case "listCollections" => new ListCollectionsCommand(new CommandReceiver(Map[String, Any]("list" -> None), driverConnection))
     }
 
@@ -114,7 +114,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     */
   def addCollaboratorCommand : Parser[Command] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 =>
-      new AddCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> args_1, "collection" -> args_2, "permissions" -> args_3), driverConnection))
+      new AddCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1), "collection" -> strip(args_2), "permissions" -> strip(args_3)), driverConnection))
   }
 
   /**
@@ -124,7 +124,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     */
   def removeCollaboratorCommand : Parser[Command] = "removeCollaborator" ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new RemoveCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> args_1, "collection" -> args_2), driverConnection))
+      new RemoveCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1), "collection" -> strip(args_2)), driverConnection))
   }
 
   /**
@@ -133,14 +133,14 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the ExportCommand with the right parameters.
     */
   // only works without spaces for now
-  def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ literalString ^^ {
+  def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ quotedString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new ExportCommand(new CommandReceiver(Map[String, Any]("p_list" -> args_1.split(",").toList, "f_path" -> args_2), driverConnection))
+      new ExportCommand(new CommandReceiver(Map[String, Any]("p_list" -> args_1.split(",").toList, "f_path" -> strip(args_2)), driverConnection))
   }
 
   def importCommand : Parser[Command] = "import " ~ (keyString) ^^ {
     case cmd_part_1 ~ args_1 =>
-      new ImportCommand(new CommandReceiver( Map[String, Any]("path" -> args_1), driverConnection))
+      new ImportCommand(new CommandReceiver( Map[String, Any]("path" -> strip(args_1)), driverConnection))
   }
 
   /********************************************************************************************************************/
@@ -153,14 +153,15 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the InsertItemCommand with the right parameters.
     */
   // TODO flag sovrascrittura
-  def insertItemCommand : Parser[Command] = "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ literalString ^^ {
-    case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~  args_3 =>
-      // val value = args_2 match {
-      //   case integer if integer matches("""^\d+$""") => integer.toInt
-      //   case double if double matches("""^\d+\.\d+""") => double.toDouble
-      //   case _ => args_2
-      // }
-      new InsertItemCommand(new CommandReceiver(Map[String, Any]("key" -> args_1, "value" -> args_2, "collection" -> args_3), driverConnection))
+  def insertItemCommand : Parser[Command] = {
+    "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ quotedString ^^ {
+      case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
+      new InsertItemCommand(
+        new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> false), driverConnection))
+      case "update" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
+      new InsertItemCommand(
+        new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> true), driverConnection))
+    }
   }
 
   // TODO insert item da file?
@@ -172,7 +173,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     */
   def removeItemCommand : Parser[Command] = "remove " ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new RemoveItemCommand(new CommandReceiver(Map[String, Any]("key" -> args_1, "collection" -> args_2), driverConnection))
+      new RemoveItemCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "collection" -> strip(args_2)), driverConnection))
   }
 
   /**
@@ -183,10 +184,10 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   // meh
   def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
     case "find" => new FindCommand(new CommandReceiver(Map[String, Any](), driverConnection))
-    case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("key" -> args_1), driverConnection))
+    case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1)), driverConnection))
     case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("collection" -> args_1.asInstanceOf[String].split(",").toList), driverConnection))
     case "find" ~ args_1 ~ "from"  ~ args_2 =>
-      new FindCommand(new CommandReceiver(Map[String, Any]("key" -> args_1, "collection" -> args_2.asInstanceOf[String].split(",").toList), driverConnection))
+      new FindCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "collection" -> args_2.asInstanceOf[String].split(",").toList), driverConnection))
   }
 
   /********************************************************************************************************************/
@@ -203,9 +204,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the right command based on the user input.
     */
   def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
-    case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[String, Any]("username" -> args_1), driverConnection))
-    case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[String, Any]("username" -> args_1), driverConnection))
-    case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[String, Any]("username" -> args_1), driverConnection))
+    case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
+    case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
+    case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
   }
 
   /**

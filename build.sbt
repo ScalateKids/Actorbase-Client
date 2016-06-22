@@ -25,6 +25,11 @@ initialCommands in console += """
 import com.actorbase.driver.ActorbaseDriver
 import com.actorbase.driver.client.api._
 import com.actorbase.driver.data._
+val admin = ActorbaseDriver("http://admin:Actorb4se@localhost:9999")
+admin.addUser("emacs")
+admin.addUser("vim")
+val emacs = ActorbaseDriver("http://emacs:Actorb4se@localhost:9999")
+val vim = ActorbaseDriver("http://vim:Actorb4se@localhost:9999")
 """
 
 javacOptions ++= Seq("-XX:+HeapDumpOnOutOfMemoryError")

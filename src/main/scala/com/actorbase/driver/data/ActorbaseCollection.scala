@@ -238,6 +238,7 @@ case class ActorbaseCollection
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
+            case "OK" =>
           }
         }
     }

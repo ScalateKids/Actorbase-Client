@@ -266,6 +266,13 @@ case class ActorbaseCollection
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+      case OK =>
+        response.body map { r =>
+          r.asInstanceOf[String] match {
+            case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
+            case "OK" =>
+          }
+        }
     }
   }
 

@@ -45,47 +45,42 @@ import spray.http.{ ContentType,  HttpEntity }
 
 import com.actorbase.driver.ActorbaseServerMock
 
-/***
- * Insert description here
- *
- * @param
- * @return
- * @throws
- */
+/**
+  * Class that contains all the tests for the driver package of Actorbase.
+  * The tests specifically are checking if the driver make the right requests
+  * to che Actorbase server when some methods are called.
+  */
 class ActorbaseDriverSpec extends WordSpec with Matchers{
 
+  /**
+    * Start an Actorbase mock server. this will simulate the responses that the
+    * real Actorbase server instance would make
+    */
   ActorbaseServerMock.startMock
 
   /**
-    * TS.DEF3 viene verificato che dovrà essere fornito un driver Scala per interfacciarsi con il database
-    * TU.DEF3.1.3
+    * This contains all the tests for the driver package.
     */
   "ActorbaseDriver instance" should {
 
-    "throw WrongCredentialsExc while trying to authenticate a non-existant user" in {
-      an [WrongCredentialsExc] should be thrownBy ActorbaseDriver("http://noexists:Actorb4se@127.0.0.1:8766")
-    }
-
+    /**
+      * TS.DEF3 viene verificato che dovrà essere fornito un driver Scala per interfacciarsi con il database
+      * TU.DEF3.1.3
+      */
     val driver = ActorbaseDriver("http://admin:Actorb4se@127.0.0.1:8766")
 
     /**
-      * TS.DEF3.1 & Viene verificato che il \gloss{driver} dovrà permettere
+      * TS.DEF3.1 & Viene verificato che il driver dovrà permettere
       * di effettuare l'autenticazione all'interno del sistema.
       */
     "authenticate to the server during creation" in {
       assert(driver.connection.username == "admin" && driver.connection.password == "Actorb4se")
     }
 
-
-    "make http request" in {
-      import com.actorbase.driver.client.ActorbaseClient
-      val client = new ActorbaseClient() with SSLClient
-      val requestBuilder = RequestBuilder()
-      val res: Response = client.send(requestBuilder withCredentials("admin", "Actorb4se") withUrl "http://127.0.0.1:9999/ping" withMethod GET)
-      res.statusCode should be(200)
+    "throw WrongCredentialsExc while trying to authenticate a non-existant user" in {
+      an [WrongCredentialsExc] should be thrownBy ActorbaseDriver("http://noexists:Actorb4se@127.0.0.1:8766")
     }
 
-    // to be *scommented* when the feature will return something
     "ask for insert item" in {
       noException should be thrownBy(driver.insertTo("testCollection", false, ("testItem" -> "testPayload"))())
     }
@@ -105,7 +100,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TS.DEF3.2.1 & Viene verificato che il driver dovrà permettere la creazione di una nuova \gloss{collezione}
+      * TS.DEF3.2.1 & Viene verificato che il driver dovrà permettere la creazione di una nuova collezione
       */
     "ask for creating a collection" in {
       val response = driver.addCollection("testCollection")
@@ -114,8 +109,8 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
 
     /**
-      *  TU.DEF3.2.1.2 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso di nome
-      *  \gloss{collezione} già censito durante la procedura di creazione
+      *  TU.DEF3.2.1.2 & Si verifica che Il driver dovrà lanciare un'eccezione in caso di nome
+      *  collezione già censito durante la procedura di creazione
       */
     "throw an InternalErrorExc when trying to create a collection already inside the system" in {
       an [InternalErrorExc] should be thrownBy driver.addCollection("alreadyInside")
@@ -123,18 +118,18 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
 
     /**
-      * TU.DEF3.2.3.2 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso di inserimento
-      * nome \gloss{collezione} da cancellare non esistente all'interno del sistema
+      * TU.DEF3.2.3.2 & Si verifica che il driver dovrà lanciare un'eccezione in caso di inserimento
+      * nome collezione da cancellare non esistente all'interno del sistema
       */
     "throw an InternalErrorExc when trying to remove a collection that does not exists" in {
       an [InternalErrorExc] should be thrownBy driver.dropCollections("notExistent")
     }
 
     /**
-      * TU.DEF3.2.5.3 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso di inserimento
-      * nome \gloss{collezione} a cui aggiungere un \gloss{collaboratore} non esistente all'interno del sistema
-      * TU.DEF3.2.6.3 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso di inserimento
-      * nome \gloss{collezione} a cui rimuovere un \gloss{collaboratore} non esistente all'interno del sistema
+      * TU.DEF3.2.5.3 & Si verifica che il driver dovrà lanciare un'eccezione in caso di inserimento
+      * nome collezione a cui aggiungere un collaboratore non esistente all'interno del sistema
+      * TU.DEF3.2.6.3 & Si verifica che il driver dovrà lanciare un'eccezione in caso di inserimento
+      * nome collezione a cui rimuovere un collaboratore non esistente all'interno del sistema
       */
     "throw an InternalErrorExc when trying to add or remove a contributor to a collection that does not exists" in{
       val response = driver.addCollection("testCollection")
@@ -142,9 +137,8 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TU.DEF3.2.5.4 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso di inserimento
+      * TU.DEF3.2.5.4 & Si verifica che il driver dovrà lanciare un'eccezione in caso di inserimento
       * username non presente all'interno del sistema durante la procedura di aggiunta collaboratore collezione
-      *
       */
     "throw an UndefinedCollectionExc when trying to add a contributor to a collection that does not exists" in{
       an [UndefinedCollectionExc] should be thrownBy driver.getCollection("testCollection2")
@@ -152,17 +146,16 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
     /**
       * TU.DEF3.2.7.3 Si verifica che il driver dovrà esportare tutto il contenuto del
-      * sistema in caso di inserimento di una lista nomi \gloss{collezioni} vuota
+      * sistema in caso di inserimento di una lista nomi collezioni vuota
       */
     "ask for all the database collections" in {
-      // import com.actorbase.driver.data.ActorbaseCollectionMap
       val response = driver.getCollections
       assert(response.count == 0)
     }
 
     /**
-      * TS.DEF3.2.7 & Viene verificato che il \gloss{driver} dovrà permettere di
-      * esportare \gloss{collezioni} su file \gloss{JSON}
+      * TS.DEF3.2.7 & Viene verificato che il dovrà permettere di
+      * esportare collezioni su file JSON
       */
     "ask for a collection and for an export to file" in {
       val response = driver.addCollection("testCollection")
@@ -178,8 +171,8 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TS.DEF3.2.5 & Viene verificato che il \gloss{driver} dovrà permettere di
-      * aggiungere \gloss{collaboratori} ad una \gloss{collezione} del sistema
+      * TS.DEF3.2.5 & Viene verificato che il driver dovrà permettere di
+      * aggiungere collaboratori ad una collezione del sistema
       */
     /**
       "add a contributor to a collection" in {
@@ -188,8 +181,8 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       } */
 
     /**
-      * TS.DEF3.2.6 & Viene verificato che il \gloss{driver} dovrà permettere
-      * di rimuovere un \gloss{collaboratore} da una \gloss{collezione} del sistema
+      * TS.DEF3.2.6 & Viene verificato che il driver dovrà permettere
+      * di rimuovere un collaboratore da una collezione del sistema
       */
     /**
       "remove a contributor from a collection" in {
@@ -201,7 +194,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     /*** ITEM PART ***/
 
     /**
-      * TU.DEF3.3 & Si verifica che Il \gloss{driver} dovrà permettere di eseguire comandi per poter
+      * TU.DEF3.3 & Si verifica che il driver dovrà permettere di eseguire comandi per poter
       * eseguire operazioni sugli items
       */
 
@@ -214,36 +207,36 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TU.DEF3.3.1.2.3 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso
-      * di inserimento di un \gloss{path} che punta ad un file \gloss{JSON} non correttamente formato
+      * TU.DEF3.3.1.2.3 & Si verifica che il driver dovrà lanciare un'eccezione in caso
+      * di inserimento di un path che punta ad un file JSON non correttamente formato
       */
     "should throw a MalformedFileExc exception while importing from a file that does not exists" in {
       an [MalformedFileExc] should be thrownBy(driver.importData("src/test/resources/malformedFile.json"))
     }
 
     /**
-      * TU.DEF3.3.1.4 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione in caso di
-      * inserimento di un \gloss{item} con \gloss{flag} di sovrascrittura non attivo e una chiave
-      * già esistente all'interno della \gloss{collezione}
+      * TU.DEF3.3.1.4 & Si verifica che il driver dovrà lanciare un'eccezione in caso di
+      * inserimento di un item con flag di sovrascrittura non attivo e una chiave
+      * già esistente all'interno della collezione
       */
 
 
     /**
-      * TU.DEF3.3.2.3 & Si verifica che Il \gloss{driver} dovrà lanciare un'eccezione nel caso di
-      * inserimento di un nome \gloss{collezione} non esistente all'interno del sistema durante la
-      * procedura di cancellazione \gloss{item}
+      * TU.DEF3.3.2.3 & Si verifica che il driver dovrà lanciare un'eccezione nel caso di
+      * inserimento di un nome collezione non esistente all'interno del sistema durante la
+      * procedura di cancellazione item
       */
     "ask throw a UndefinedCollection exception while trying to remove an item from a collection that does not exists" in {
       an [InternalErrorExc] should be thrownBy(driver.removeFrom("notExistent", "testItem"))()
     }
 
     /**
-      * TS.DEF3.3.1 & Viene verificato che il \gloss{driver} dovrà permettere di
-      * inserire un nuovo \gloss{item}
-      * TS.DEF3.3.1.1 & Viene verificato che il \gloss{driver} dovrà permettere di
-      * inserire un nuovo \gloss{item} specificandone gli attributi
-      * TS.DEF3.4 & Viene verificato che il \gloss{driver} dovrà permettere di effettuare
-      * ricerche su una o più \gloss{collezioni} all'interno del sistema
+      * TS.DEF3.3.1 & Viene verificato che il driver dovrà permettere di
+      * inserire un nuovo item
+      * TS.DEF3.3.1.1 & Viene verificato che il driver dovrà permettere di
+      * inserire un nuovo item specificandone gli attributi
+      * TS.DEF3.4 & Viene verificato che il driver dovrà permettere di effettuare
+      * ricerche su una o più collezioni all'interno del sistema
       */
     "ask for a single item" in {  // todo rivedere, il driver credo non debba lanciare una com.fasterxml.jackson.core.JsonParseException se l'item non c'è
                                   //val response = driver.find("testItem", "testCollection")
@@ -262,7 +255,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TS.DEF3.3.2 & Viene verificato che il \gloss{driver} dovrà permettere di cancellare uno o più \gloss{item} dal sistema
+      * TS.DEF3.3.2 & Viene verificato che il driver dovrà permettere di cancellare uno o più item dal sistema
       */
     "ask for deleting one item" in {
       val response = driver.removeFrom("testCollection", "testItem")()
@@ -271,7 +264,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
 
     /**
       * TS.DEF3.3.1.2 & Viene verificato che il driver dovrà
-      * permettere di inserire nuovi item da file JSON
+      * permettere di inserire nuovi item importandoli da file JSON
       */
     "import items from file" in {
       noException should be thrownBy(driver.importData("src/test/resources/importTest.json"))
@@ -281,7 +274,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     /**    ITERABLE RESPONSE PART      **/
 
     /**
-      * TS.DEF3.8 & Viene verificato che il \gloss{Driver} dovrà strutturare
+      * TS.DEF3.8 & Viene verificato che il Driver dovrà strutturare
       * i dati in output in maniera navigabile
       */
     /**
@@ -298,7 +291,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       }*/
 
     /**
-      * TU.OBF3.8.2 & Si verifica che Il \gloss{Driver} dovrà poter restituire \gloss{collezioni} navigabili
+      * TU.OBF3.8.2 & Si verifica che Il Driver dovrà poter restituire collezioni navigabili
       */
     "return an iterable collection" in {
       val response = driver.getCollection("testNavigableCollection")
@@ -306,7 +299,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TU.OBF3.8.3 & Si verifica che Il Driver dovrà poter restituire item  & OK   & OBF3.8.3    \\
+      * TU.OBF3.8.3 & Si verifica che il driver dovrà poter restituire item
       */
     "return an item" in {
       noException should be thrownBy(driver.find("testItemToReturn", "testCollection"))
@@ -315,11 +308,11 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     /**              USERS PART          **/
 
     /**
-      * TU.OBF3.6 si verifica che Il driver dovrà permettere di effettuare operazioni di
+      * TU.OBF3.6 si verifica che il driver dovrà permettere di effettuare operazioni di
       * gestione degli utente all'interno del sistema da parte di un utente amministratore
       */
     /**
-      * TS.DEF3.6.1 & Viene verificato che il \gloss{driver} dovrà permettere
+      * TS.DEF3.6.1 & Viene verificato che il driver dovrà permettere
       * a utenti amministratori di aggiungere un nuovo utente al sistema
       */
     "add a user to the system" in {
@@ -327,7 +320,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TS.DEF3.6.2 & Viene verificato che il \gloss{driver} dovrà
+      * TS.DEF3.6.2 & Viene verificato che il driver dovrà
       * permettere a utenti amministratori di rimuovere un utente dal sistema
       */
     "remove a user to the system" in {
@@ -335,7 +328,7 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
     }
 
     /**
-      * TS.DEF3.6.3 & Viene verificato che il \gloss{driver} dovrà permettere a utenti
+      * TS.DEF3.6.3 & Viene verificato che il driver dovrà permettere a utenti
       * amministratori di effettuare il reset della password ad un utente all'interno del sistema
       */
     "reset a password of a user" in {
@@ -346,6 +339,8 @@ class ActorbaseDriverSpec extends WordSpec with Matchers{
       * TS.DEF3.7 & Viene verificato che il driver dovrà permettere di
       * modificare la propria password
       */
-
+    "change the password of a user" in {
+      noException should be thrownBy(driver.changePassword("newP4ssword"))
+    }
   }
 }

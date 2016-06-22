@@ -258,7 +258,11 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def removeContributor(username: String): Unit = {
-    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/contributors/" + collectionName + "/" + username withMethod DELETE send()
+    val response = requestBuilder
+      .withCredentials(conn.username, conn.password)
+      .withUrl(uri + "/contributors/" + collectionName)
+      .withBody(base64(username.getBytes("UTF-8")))
+      .withMethod(DELETE).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")

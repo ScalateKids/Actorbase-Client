@@ -70,7 +70,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the ChangePasswordCommand with the right parameters.
     */
-  def changePasswordCommand : Parser[Command] = "change[pP]assword".r ~ keyString ~ keyString ~ keyString ^^ {
+  def changePasswordCommand : Parser[Command] = "changePassword" ~ keyString ~ keyString ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ args_2 ~ args_3 =>
       new ChangePasswordCommand(new CommandReceiver(Map[String, Any]("oldPsw" -> strip(args_1), "newPsw" -> strip(args_2), "repeatedPsw" -> strip(args_3)), driverConnection))
   }
@@ -99,12 +99,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the right command based on the user input.
     */
   def collectionManagementCommand : Parser[Command] =
-    (("create[cC]ollection".r | "delete[cC]ollection".r ) ~ quotedString |
-      "list[cC]ollections".r ) ^^ {
+    (("createCollection" | "deleteCollection") ~ quotedString |
+      "listCollections") ^^ {
 
       case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> strip(args_1)), driverConnection))
-//      case "createcollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> args_1), driverConnection))
-      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[String, Any]("Collection" -> strip(args_1)), driverConnection))
+      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[String, Any]("collection" -> strip(args_1)), driverConnection))
       case "listCollections" => new ListCollectionsCommand(new CommandReceiver(Map[String, Any]("list" -> None), driverConnection))
     }
 
@@ -113,7 +112,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the AddCollaboratorCommand with the right parameters.
     */
-  def addCollaboratorCommand : Parser[Command] = "add[cC]ollaborator".r ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
+  def addCollaboratorCommand : Parser[Command] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 =>
       new AddCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1), "collection" -> strip(args_2), "permissions" -> strip(args_3)), driverConnection))
   }
@@ -123,7 +122,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the RemoveCollaboratorCommand with the right parameters.
     */
-  def removeCollaboratorCommand : Parser[Command] = "remove[cC]ollaborator".r ~ keyString ~ "from " ~ keyString ^^ {
+  def removeCollaboratorCommand : Parser[Command] = "removeCollaborator" ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
       new RemoveCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1), "collection" -> strip(args_2)), driverConnection))
   }
@@ -172,7 +171,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the RemoveItemCommand with the right parameters.
     */
-  def removeItemCommand : Parser[Command] = "remove" ~ keyString ~ "from " ~ keyString ^^ {
+  def removeItemCommand : Parser[Command] = "remove " ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
       new RemoveItemCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "collection" -> strip(args_2)), driverConnection))
   }
@@ -204,7 +203,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the right command based on the user input.
     */
-  def userManagementCommand : Parser[Command] = ("add[uU]ser".r | "remove[uU]ser".r | "reset[pP]assword".r) ~ keyString ^^ {
+  def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
     case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
     case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
     case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))

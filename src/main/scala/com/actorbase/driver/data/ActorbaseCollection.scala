@@ -34,7 +34,7 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.exceptions._
 
-import scalaj.http.HttpConstants._
+// import scalaj.http.HttpConstants._
 
 import java.io.{File, PrintWriter}
 import scala.collection.immutable.TreeMap
@@ -73,8 +73,8 @@ case class ActorbaseCollection
         val response = requestBuilder
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
-          .withBody(serialize2byteArray(v))
-          .addHeaders(("owner", base64FromString(owner)))
+          .withBody(serialize(v))
+          .addHeaders(("owner", toBase64FromString(owner)))
           .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -115,8 +115,8 @@ case class ActorbaseCollection
         val response = requestBuilder
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
-          .withBody(serialize2byteArray(v))
-          .addHeaders(("owner", base64FromString(owner)))
+          .withBody(serialize(v))
+          .addHeaders(("owner", toBase64FromString(owner)))
           .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -227,8 +227,8 @@ case class ActorbaseCollection
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
-      .withBody(base64(username.getBytes("UTF-8")))
-      .addHeaders(("permission", base64FromString(permission)))
+      .withBody(toBase64(username.getBytes("UTF-8")))
+      .addHeaders(("permission", toBase64FromString(permission)))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -261,7 +261,7 @@ case class ActorbaseCollection
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
-      .withBody(base64(username.getBytes("UTF-8")))
+      .withBody(toBase64(username.getBytes("UTF-8")))
       .withMethod(DELETE).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -352,7 +352,7 @@ case class ActorbaseCollection
     headers += ("collectionName" -> collectionName)
     headers += ("owner" -> owner)
     headers += ("data" -> data)
-    serialize2JSON4s(headers)
+    toJSON(headers)
   }
 
 }

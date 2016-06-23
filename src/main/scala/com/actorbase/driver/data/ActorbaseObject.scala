@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -114,6 +114,6 @@ case class ActorbaseObject[B >: Any](elems: Map[String, B]) extends Map[String, 
     *
     * @return a String representing the ActorbaseObject JSON formatted
     */
-  override def toString: String = serialize2JSON4s(this)
+  override def toString: String = toJSON(this)
 
 }

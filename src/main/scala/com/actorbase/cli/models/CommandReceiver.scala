@@ -282,14 +282,22 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     */
   def deleteCollection() : String = { //TODO need test when the server will implement this feature
     val name = params.get("Collection").get.asInstanceOf[String]
-    try {
-      driver.dropCollections(name)
+    var response = ""
+    try{
+      if(name == ""){
+        driver.dropCollections
+        response = "Deleted all collections"
+      }
+      else {
+        driver.dropCollectionsFrom(name)()
+        response = name + " deleted"
+      }
     }
     catch{
       case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
     }
-    "deleted"
+    response
   }
 
   /**

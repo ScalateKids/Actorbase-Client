@@ -102,9 +102,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     (("create[cC]ollection".r | "delete[cC]ollection".r ) ~ quotedString |
       "list[cC]ollections".r ) ^^ {
 
-      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> args_1), driverConnection))
+      case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> strip(args_1)), driverConnection))
 //      case "createcollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> args_1), driverConnection))
-      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[String, Any]("Collection" -> args_1), driverConnection))
+      case "deleteCollection" ~ args_1 => new DeleteCollectionCommand(new CommandReceiver(Map[String, Any]("Collection" -> strip(args_1)), driverConnection))
       case "listCollections" => new ListCollectionsCommand(new CommandReceiver(Map[String, Any]("list" -> None), driverConnection))
     }
 

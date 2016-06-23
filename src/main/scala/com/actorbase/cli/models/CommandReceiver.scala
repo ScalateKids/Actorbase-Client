@@ -70,7 +70,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *
     * @return a String, "Item inserted" if the method succeeded, an error message is returned if the method failed
     */
-    def insert() : String = {
+    def insert(): String = {
       var result = "Item inserted."
       params get "key" map { k =>
         params get "value" map { v =>
@@ -84,12 +84,12 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               try {
                 val update = as[Boolean](u)
                 if (as[String](c) contains ".") {
-                  val collection = as[String](c).split(".")
+                  val collection = as[String](c).split("\\.")
                   driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
                 } else driver.insert(as[String](c), update, (as[String](k) -> value))
               }
               catch {
-                case wce: WrongCredentialsExc => result =  "Credentials privilege level does not meet criteria needed to perform this operation."
+                case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
                 case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
                 case dke: DuplicateKeyExc => result = "Key already stored"
               }

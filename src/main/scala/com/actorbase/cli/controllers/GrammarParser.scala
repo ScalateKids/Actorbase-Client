@@ -60,8 +60,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the login or logout command based on the user input.
     */
-  def authManagementCommand : Parser[Command] = ("login" ~ keyString ~ quotedString | "logout") ^^ {
-    case "logout" => new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection))
+  def authManagementCommand : Parser[Command] = "login" ~ keyString ~ quotedString ^^ {
+//    case "logout" => new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection))
     case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[String, Any]("username" -> args_1, "password" -> args_2), driverConnection))
   }
 
@@ -203,10 +203,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the right command based on the user input.
     */
-  def userManagementCommand : Parser[Command] = ("addUser" | "removeUser" | "resetPassword") ~ keyString ^^ {
+  def userManagementCommand : Parser[Command] = (("addUser" | "removeUser" | "resetPassword") ~ keyString | "listUsers") ^^ {
     case "addUser" ~ args_1 => new AddUserCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
     case "removeUser" ~ args_1 => new RemoveUserCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
     case "resetPassword" ~ args_1 => new ResetPasswordCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1)), driverConnection))
+    case "listUsers" => new ListUsersCommand(new CommandReceiver(Map[String, Any]("" -> ""), driverConnection))
   }
 
   /**
@@ -236,8 +237,8 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     val os = System.getProperty("os.name")
     var status : Boolean = true
     val reader : ConsoleReader = new ConsoleReader()
-    if(input matches("(quit|exit)\\s*")) {
-      commandInvoker.storeAndExecute(new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection)))
+    if(input matches("(q|quit|exit|logout)\\s*")) {
+      // commandInvoker.storeAndExecute(new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection)))
       status = false
     }
     else {
@@ -264,7 +265,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
           val repeatPassword = reader.readLine(">> repeat password: ", '*')
           line += " " + """\w*""".r.findFirstIn(repeatPassword).get
         }
-        case quit if quit matches("(q|quit|exit)\\s*") => status = false
+        case quit if quit matches("(q|quit|exit|logout)\\s*") => status = false
         case _ => line
       }
       setState("") // reset controller state

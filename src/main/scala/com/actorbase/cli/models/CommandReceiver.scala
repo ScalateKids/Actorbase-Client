@@ -148,9 +148,16 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *
     * @return a String, "logout succeeded" if the method succeeded, an error message is returned if the method failed
     */
-  def logout() : String = { //TODO ?
-                            // driver.logout
-    "[LOGOUT]\nSuccessfully logged out from actorbase"
+  def listUsers(): String = {
+    var result = "\n"
+    try {
+      result = driver.listUsers.mkString("\n")
+    } catch {
+      case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+      case uae: UsernameAlreadyExistsExc=> result = "Username already exists in the system Actorbase"
+    }
+    result
   }
 
   /**

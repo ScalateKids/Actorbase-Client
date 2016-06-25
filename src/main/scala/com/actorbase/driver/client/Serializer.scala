@@ -31,6 +31,7 @@ package com.actorbase.driver.client
 // import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream }
 import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
 import java.util.Base64
+import java.net.URLEncoder
 // import scala.pickling._, Defaults._
 
 import org.json4s._
@@ -45,6 +46,8 @@ import org.json4s.jackson.JsonMethods._
   * deserialization, including array of bytes and JSON
   */
 trait Serializer {
+
+  def urlEncode(s: String): String = URLEncoder.encode(s, "UTF-8")
 
   def toBase64(in: Array[Byte]): String = Base64.getUrlEncoder.encodeToString(in)
 

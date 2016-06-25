@@ -50,6 +50,7 @@ import scala.collection.generic.FilterMonadic
   */
 case class ActorbaseCollection
   (val owner: String, var collectionName: String,
+    var contributors: Map[String, Boolean] = Map.empty[String, Boolean],
     var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection, implicit val scheme: String)
     extends Connector {
 
@@ -83,7 +84,7 @@ case class ActorbaseCollection
         }
       }
     }
-    ActorbaseCollection(owner, collectionName, data)
+    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -125,7 +126,7 @@ case class ActorbaseCollection
         }
       }
     }
-    ActorbaseCollection(owner, collectionName, data)
+    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -152,7 +153,7 @@ case class ActorbaseCollection
         }
       }
     }
-    ActorbaseCollection(owner, collectionName, data)
+    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -224,6 +225,7 @@ case class ActorbaseCollection
   @throws(classOf[UsernameAlreadyExistsExc])
   def addContributor(username: String, write: Boolean = false): Unit = {
     val permission = if (!write) "read" else "readwrite"
+    if (!contributors.contains(username)) contributors += (username -> write)
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
@@ -258,6 +260,7 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def removeContributor(username: String): Unit = {
+    if (contributors contains username) contributors -= username
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
@@ -351,6 +354,7 @@ case class ActorbaseCollection
     var headers = new TreeMap[String, Any]()
     headers += ("collectionName" -> collectionName)
     headers += ("owner" -> owner)
+    headers += ("contributors" -> contributors)
     headers += ("data" -> data)
     toJSON(headers)
   }

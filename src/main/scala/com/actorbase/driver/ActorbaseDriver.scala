@@ -57,7 +57,7 @@ case class ListResponse(list: List[String])
 
 case class ListTupleResponse(tuples: List[Map[String, String]])
 
-case class CollectionResponse(val owner: String, val collectionName: String, val data: Map[String, Any])
+case class CollectionResponse(owner: String, collectionName: String, contributors: Map[String, Boolean], data: Map[String, Any])
 
 object ActorbaseDriver extends Connector {
 
@@ -509,7 +509,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case OK => response.body map (b => ret = parse(b).extract[CollectionResponse])
       case _ =>
     }
-    ActorbaseCollection(ret.owner, ret.collectionName, TreeMap(ret.data.toArray:_*))(connection, scheme)
+    ActorbaseCollection(ret.owner, ret.collectionName, ret.contributors, TreeMap(ret.data.toArray:_*))(connection, scheme)
   }
 
 
@@ -526,7 +526,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def addCollection(collectionName: String, owner: String = connection.username): ActorbaseCollection = {
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
-      .withUrl(uri + "/collections/" + collectionName)
+      .withUrl(uri + "/collections/" + urlEncode(collectionName))
       .addHeaders(("owner", toBase64FromString(owner)))
       .withMethod(POST).send()
     response.statusCode match {
@@ -723,6 +723,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/contributors/" + collection)
+      .withBody(toBase64(username.getBytes("UTF-8")))
       .addHeaders(("owner", toBase64FromString(originalOwner)))
       .withMethod(POST).send()
     response.statusCode match {
@@ -765,6 +766,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/contributors/" + collection)
+      .withBody(toBase64(username.getBytes("UTF-8")))
       .addHeaders(("owner", toBase64FromString(originalOwner)))
       .withMethod(DELETE).send()
     response.statusCode match {

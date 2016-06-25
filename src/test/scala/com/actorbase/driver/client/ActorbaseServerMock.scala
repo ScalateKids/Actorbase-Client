@@ -38,9 +38,10 @@ object ActorbaseServerMock {
   implicit val system = ActorSystem()
 
   def startMock: Unit = {
+
     val actorbaseMockServices = httpServerMock(system).bind(8766).block
 
-    actorbaseMockServices expect get and path("/testscalaj") and respond using status(200) end()
+    actorbaseMockServices expect get and path("/ping") and respond using status(200) end()
 
     actorbaseMockServices expect post and path("/auth/admin") and respond using entity ( HttpEntity (
       // contentType = ContentType(`text/plain`, `UTF-8`),
@@ -68,6 +69,9 @@ object ActorbaseServerMock {
       * items routes
       */
     actorbaseMockServices expect get and path("/collections/testCollection/testItem") and respond using status(200) end()
+    actorbaseMockServices expect get and path("/collections/testCollection/testItemToReturn") and respond using entity (
+      HttpEntity ( string = """{ "key": "value" }""" )
+    ) and status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
@@ -78,7 +82,7 @@ object ActorbaseServerMock {
     actorbaseMockServices expect get and path("contributors/testCollection") and respond using status(200) end()
     actorbaseMockServices expect post and path("contributors/testCollection/read") and respond using status(200) end()
 
-    /** 
+    /**
       * contributors routes
       */
     actorbaseMockServices expect get and path("/collections/contributorCollection") and respond using status(200) end()
@@ -89,18 +93,18 @@ object ActorbaseServerMock {
       * users routes
       */
     //actorbaseMockServices expect get and path("/users/username") and respond using status(200) end()
-    actorbaseMockServices expect post and path("/users/username") and respond using entity ( HttpEntity ( 
+    actorbaseMockServices expect post and path("/users/username") and respond using entity ( HttpEntity (
       string = """OK""")) and status(200) end()
-    actorbaseMockServices expect delete and path("/users/username") and respond using entity ( HttpEntity ( 
+    actorbaseMockServices expect delete and path("/users/username") and respond using entity ( HttpEntity (
       string = """OK""")) and status(200) end()
-    actorbaseMockServices expect put and path("/users/username") and respond using entity ( HttpEntity ( 
+    actorbaseMockServices expect put and path("/users/username") and respond using entity ( HttpEntity (
       string = """OK""")) and status(200) end()
 
     /**
       * other routes
       */
     actorbaseMockServices expect get and path("/collections/testNavigableCollection") and respond using entity ( HttpEntity (
-      string = """{ "collection" : "testCollection", "map" : { "key" -> "palyload" }, "owner" : "" }"""
+      string = """{ "collectionName" : "testCollection", "data" : { "key": "value"} , "owner" : "admin" }"""
     )) and status(200) end()
 
 
@@ -114,4 +118,3 @@ object ActorbaseServerMock {
     actorbaseMockServices expect post and path("/contributors/testCollection2") and respond using status(500) end()
   }
 }
-

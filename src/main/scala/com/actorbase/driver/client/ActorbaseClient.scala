@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -61,9 +61,9 @@ class ActorbaseClient extends Client {
   override def send(request: Request): Response = {
     val response = request.method match {
       case GET    => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).options(options).asString
-      case POST   => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None".getBytes)).options(options).asString
-      case PUT    => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None".getBytes)).method("PUT").options(options).asString
-      case DELETE => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).method("DELETE").options(options).asString
+      case POST   => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None")).options(options).asString
+      case PUT    => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None")).method("PUT").options(options).asString
+      case DELETE => Http(request.uri).auth(request.user, request.password).header(request.headers._1, request.headers._2).postData(request.body.getOrElse("None")).method("DELETE").options(options).asString
     }
     Response(response.code, Some(response.body.asInstanceOf[String]))
   }

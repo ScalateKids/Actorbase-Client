@@ -35,20 +35,26 @@ import com.actorbase.driver.exceptions._
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConversions._
 import java.io.FileNotFoundException
-// import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.actorbase.driver.ActorbaseDriver
+import scala.util.{ Failure, Success }
 
-object CommandReceiver {
+// object CommandReceiver {
 
-  /**
-    * Driver singleton instance to send command and receive response
-    */
-  def actorbaseDriver(hostname: String, port: Int, username: String,  password: String): ActorbaseDriver =
-    ActorbaseDriver("http://" + username + ":" + password + "@" + hostname + ":" + port)
+// implicit def anyToString(m: Map[String, Any]): Map[String, String] = m.asInstanceOf[Map[String, String]]
+//   /**
+//     * Driver singleton instance to send command and receive response
+//     */
+//   def actorbaseDriver(hostname: String, port: Int, username: String,  password: String): ActorbaseDriver =
+//     ActorbaseDriver("http://" + username + ":" + password + "@" + hostname + ":" + port)
 
+// }
+
+sealed trait Helper {
+  def as[A <: Any](o: Any): A = o.asInstanceOf[A]
 }
-
 /**
   * Receiver class, process input arguments sent by the controller
   * using a driver reference to send requests to a listening
@@ -57,32 +63,42 @@ object CommandReceiver {
   * @param params a map containing the parameters that are used
   *                for the methods.
   */
-class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], username: String, password: String = "Actorb4se") {
-
-  private var driver = CommandReceiver.actorbaseDriver(hostname, port, username, password)
+class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends Helper {
 
   /**
     * Insert an item to the actorbase server.
     *
     * @return a String, "Item inserted" if the method succeeded, an error message is returned if the method failed
     */
-
-  def insert() : String = {
-    var result = "Item inserted."
-    params get "key" map { k =>
-      params get "value" map { v =>
-        params get "collection" map { c =>
-          try {
-            driver.insert(c.asInstanceOf[String], false, (k.asInstanceOf[String] -> v))
-          } catch {
-            case wce: WrongCredentialsExc => result =  "Credentials privilege level does not meet criteria needed to perform this operation."
-            case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+    def insert(): String = {
+      var result = "Item inserted."
+      params get "key" map { k =>
+        params get "value" map { v =>
+          params get "collection" map { c =>
+            params get "update" map { u =>
+              val value = as[String](v) match {
+                case integer if integer matches("""^\d+$""") => integer.toInt
+                case double if double matches("""^\d+\.\d+""") => double.toDouble
+                case _ => as[String](v)
+              }
+              try {
+                val update = as[Boolean](u)
+                if (as[String](c) contains ".") {
+                  val collection = as[String](c).split("\\.")
+                  driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
+                } else driver.insert(as[String](c), update, (as[String](k) -> value))
+              }
+              catch {
+                case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+                case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+                case dke: DuplicateKeyExc => result = "Key already stored"
+              }
+            }
           }
         }
       }
+      result
     }
-    result
-  }
 
   /**
     * Remove an item from the actorbase server.
@@ -90,15 +106,21 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     * @return a String, "Item removed" if the method succeeded, an error message is returned if the method failed
     */
   def removeItem() : String = {
-    val key = params.get("key").get.asInstanceOf[String]
-    val collection = params.get("collection").get.asInstanceOf[String]
-
-    try {
-      driver.remove(collection, key)
-    }
-    catch {
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    params get "key" map { ka =>
+      params get "collection" map { ca =>
+        val c = as[String](ca)
+        val k = as[String](ka)
+        try {
+          if (c contains ".") {
+            val collection = c.split("\\.")
+            driver.removeFrom(collection(0), k)(collection(1))
+          } else driver.remove(c, k)
+        }
+        catch {
+          case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+          case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+        }
+      }
     }
     "Item removed"
   }
@@ -110,14 +132,14 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     * @return a String, "login succeeded" if the method succeeded, an error message is returned if the method failed
     */
   def login() : String = {
-    val username =  params.get("username").get.asInstanceOf[String]
-    val password = params.get("password").get.asInstanceOf[String]
-    try {
-      driver = driver.authenticate(username, password)
-    } catch {
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    }
+    // val username =  params.get("username").get.asInstanceOf[String]
+    // val password = params.get("password").get.asInstanceOf[String]
+    // try {
+    //   driver = driver.authenticate(username, password)
+    // } catch {
+    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    // }
     "Login successful"
   }
 
@@ -126,9 +148,16 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *
     * @return a String, "logout succeeded" if the method succeeded, an error message is returned if the method failed
     */
-  def logout() : String = { //TODO ?
-                            // driver.logout
-    "[LOGOUT]\nSuccessfully logged out from actorbase"
+  def listUsers(): String = {
+    var result = "\n"
+    try {
+      result = driver.listUsers.mkString("\n")
+    } catch {
+      case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+      case uae: UsernameAlreadyExistsExc=> result = "Username already exists in the system Actorbase"
+    }
+    result
   }
 
   /**
@@ -139,32 +168,36 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *
     * @return a String representing the output from the server instance of Actorbase
     */
-  def find() : String = { //TODO THIS HAS TO BE FINISHED
+  def find(): String = {
     var response = ""
     try {
       params.get("key") match {
         case None =>
           params.get("collection") match {
             case None =>
+              // get all collections
               response = driver.getCollections.toString
             case Some(c) =>
-              //TODO if its a list should call another method, or change this in the driver
-              response = driver.getCollection(c.asInstanceOf[List[String]](0)).toString
+              // get collections contained into a list
+              response = driver.getCollections(as[List[String]](c).toSeq:_*).toString
           }
         case Some(k) =>
           params.get("collection") match {
             case None =>
-            //TODO find key from all database
+              // find key from all database
+              val allCollections = driver.listCollections map (x => x.head._2)
+              response = driver.find(k.asInstanceOf[String], allCollections.toSeq:_*).toString
             case Some(c) =>
-              // val actColl = driver.getCollection( c.asInstanceOf[List[String]](0) )
-              // response = actColl.findOne( k.toString ).toString
-              val actColl = driver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*)
-              response = actColl.toString
+              // find key from a list of collections
+              response = driver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*).toString
           }
       }
     }
     catch {
       case uce: UndefinedCollectionExc => response = "Undefined collection"
+        // if (driver.connection.username == "admin")
+          // response = driver.getCollections.toString
+        // else response = "Undefined collection"
       case wce: WrongCredentialsExc => response = "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => response = "There was an internal server error, something wrong happened."
     }
@@ -178,8 +211,8 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     * @return a String representing the help message
     */
   // ugly as hell
-  def help() : String = {   //TODO dovrebbe mostrare solo i comandi del privilegio relativo all'account
-    var result : String = "\n"//"[HELP]\n"
+  def help() : String = {
+    var result : String = "\n"
     params.get("command").get match {
       case None =>
         ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
@@ -212,16 +245,17 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *
     * @return a String, "Collection created" if the method succeeded, an error message is returned if the method failed
     */
-  def createCollection() : String = {
-    val name = params.get("name").get.asInstanceOf[String]
-    try {
-      driver.addCollection(name)
+  def createCollection(): String = {
+    var name = ""
+    params get "name" map { c =>
+      name = as[String](c)
+      try {
+        driver.addCollection(name)
+      } catch {
+        case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+        case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      }
     }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    }
-
     "collection " + name + " created"
   }
 
@@ -230,18 +264,21 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *
     * @return a String containing all the collections names the used has access to
     */
-  def listCollections() : String = {  //TODO need test when the server will implement this feature
+  def listCollections(): String = {  //TODO need test when the server will implement this feature
+    val (header1, header2) = ("OWNER", "COLLECTION")
+    var list = f"\n | $header1%-13s | $header2%13s | \n"
+    list += " ---------------------------------\n"
     try {
       val collectionList = driver.listCollections
-      //collectionList.foreach(println)
-      var list = ""
-      collectionList.foreach(c => list = list + c + "\n")
-      list
+      if (collectionList.length > 0)
+        collectionList.foreach(c => list += f" | ${c.head._1}%-13s | ${c.head._2}%13s | \n")
+      else list = "No collections found"
     }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    catch {
+      case wce: WrongCredentialsExc => list = "Credentials privilege level does not meet criteria needed to perform this operation."
+      case iec: InternalErrorExc => list = "There was an internal server error, something wrong happened."
     }
+    list
   }
 
   /**
@@ -251,14 +288,23 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *         if the method failed
     */
   def deleteCollection() : String = { //TODO need test when the server will implement this feature
-    val name = params.get("Collection").get.asInstanceOf[String]
-    try {
-      driver.dropCollections(name)
+    params get "collection" map { c =>
+      try {
+        driver.dropCollections(as[String](c))
+      }
+      catch {
+        case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+        case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+      }
     }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    }
+    // val name = params.get("Collection").get.asInstanceOf[String]
+    // try {
+    //   driver.dropCollections(name)
+    // }
+    // catch{
+    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    // }
     "deleted"
   }
 
@@ -270,18 +316,40 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     */
   def addCollaborator() : String = {   //TODO
     var result: String = ""
-    val collection = params.get("collection").get.asInstanceOf[String]
-    val username = params.get("username").get.asInstanceOf[String]
-    val permission = params.get("permissions").get.asInstanceOf[String]
-    val p = if (permission == "read") false else true
-    try {
-      driver.getCollection(collection).addContributor(username, p)
-    } catch {
-      case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
-      case uue: UndefinedUsernameExc => result = "Contributor username not found."
-      case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+    params get "collection" map { c =>
+      params get "username" map { u =>
+        params get "permissions" map { p =>
+          val collection = as[String](c)
+          val username = as[String](u)
+          val permission = if (as[String](p) == "read") false else true
+          try {
+            if (collection contains ".") {
+                val coll = collection.split("\\.")
+                driver.addContributorTo(username, coll(1), permission, coll(2))
+            }
+            driver.addContributorTo(username, collection, permission)
+            result = s"$username added to collection $collection"
+          } catch {
+            case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+            case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+            case uue: UndefinedUsernameExc => result = "Contributor username not found."
+            case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+          }
+        }
+      }
     }
+    // val collection = params.get("collection").get.asInstanceOf[String]
+    // val username = params.get("username").get.asInstanceOf[String]
+    // val permission = params.get("permissions").get.asInstanceOf[String]
+    // val p = if (permission == "read") false else true
+    // try {
+    //   driver.getCollection(collection).addContributor(username, p)
+    // } catch {
+    //   case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+    //   case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+    //   case uue: UndefinedUsernameExc => result = "Contributor username not found."
+    //   case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+    // }
     result
   }
 
@@ -293,16 +361,37 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     */
   def removeCollaborator() : String = {   //TODO
     var result: String = ""
-    val collection = params.get("collection").get.asInstanceOf[String]
-    val username = params.get("username").get.asInstanceOf[String]
-    val permission = params.get("permissions").get.asInstanceOf[String]
-    val p = if (permission == "read") false else true
-    try {
-      driver.getCollection(collection).removeContributor(username)
-    } catch {
-      case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+    params get "collection" map { c =>
+      params get "username" map { u =>
+        params get "permissions" map { p =>
+          val collection = as[String](c)
+          val username = as[String](u)
+          val permission = if (as[String](p) == "read") false else true
+          try {
+            if (collection contains ".") {
+                val coll = collection.split("\\.")
+                driver.removeContributorFrom(username, coll(1), permission, coll(2))
+            }
+            driver.addContributorTo(username, collection, permission)
+            result = s"$username added to collection $collection"
+          } catch {
+            case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+            case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+            case uue: UndefinedUsernameExc => result = "Contributor username not found."
+            case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+          }
+        }
+      }
     }
+    // var result: String = ""
+    // val collection = params.get("collection").get.asInstanceOf[String]
+    // val username = params.get("username").get.asInstanceOf[String]
+    // try {
+    //   driver.getCollection(collection).removeContributor(username)
+    // } catch {
+    //   case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+    //   case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+    // }
     result
   }
 
@@ -313,19 +402,33 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     *         if the method failed
     */
   def changePassword() : String = {
-    try{
-      val oldPsw = params.get("oldPsw").get.asInstanceOf[String]
-      val newPsw = params.get("newPsw").get.asInstanceOf[String]
-      driver.changePassword(newPsw)
-
-      "Password changed"
+    params get "oldPsw" map { o =>
+      params get "newPsw" map { n =>
+        try {
+          driver.changePassword(as[String](n))
+        }
+        catch {
+          case wce: WrongCredentialsExc => "Credentials privilege level does not meet criteria needed to perform this operation."
+          case iec: InternalErrorExc => "There was an internal server error, something wrong happened."
+          case wnp: WrongNewPasswordExc => "The password inserted does not meet Actorbase criteria"
+          case uue: UndefinedUsernameExc => "Undefined username"
+        }
+      }
     }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-      case wnp: WrongNewPasswordExc => return "The password inserted does not meet Actorbase criteria"
-      case uue: UndefinedUsernameExc => return "Undefined username"
-    }
+    "Password changed"
+    // try{
+    //   val oldPsw = params.get("oldPsw").get.asInstanceOf[String]
+    //   val newPsw = params.get("newPsw").get.asInstanceOf[String]
+    //   driver.changePassword(newPsw)
+    //
+    //   "Password changed"
+    // }
+    // catch{
+    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+    //   case wnp: WrongNewPasswordExc => return "The password inserted does not meet Actorbase criteria"
+    //   case uue: UndefinedUsernameExc => return "Undefined username"
+    // }
   }
 
   /**
@@ -398,7 +501,7 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
   def export() : String = {
     //val list = params.get("p_list").asInstanceOf[List[String]]
     //val path = params.get("f_path").asInstanceOf[String]
-    try{
+    try {
       val path = params.get("f_path").get.asInstanceOf[String]
       driver.exportData(path)
     }
@@ -417,17 +520,25 @@ class CommandReceiver(hostname: String, port: Int, params: Map[Any, Any], userna
     * @return a String, "imported" if the method succeded, an error message if it fails
     */
 
-  def importFrom() : String = {
-    try{
-      val path = params.get("path").get.asInstanceOf[String]
-      driver.importData(path)
-    }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-      case mfe: MalformedFileExc => return "Malformed json file"
-      case fnfe: FileNotFoundException => return "file not found"
+  def importFrom(): String = {
+    params get "path" map { p =>
+      Future {
+        try {
+          // val path = params.get("path").get.asInstanceOf[String]
+          driver.importData(as[String](p))
+        }
+        catch{
+          case wce: WrongCredentialsExc => "Credentials privilege level does not meet criteria needed to perform this operation."
+          case iec: InternalErrorExc => "There was an internal server error, something wrong happened."
+          case mfe: MalformedFileExc => "Malformed json file"
+          case fnfe: FileNotFoundException => "file not found"
+        }
+      } onComplete {
+        case Success(i) => "[job complete]"
+        case Failure(f) => f.getMessage
+      }
     }
     "imported"
   }
+
 }

@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -45,9 +45,12 @@ case class ActorbaseCollectionMap private
     * @throws
     */
   def find(keys: String*): ActorbaseCollection = {
-    var coll = new TreeMap[String, Any]()
-    data map {collection => collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))}
-    ActorbaseCollection("anonymous", "findResults", coll)(conn, scheme)
+    var (coll, contr) = (new TreeMap[String, Any](), Map.empty[String, Boolean])
+    data map { collection =>
+      collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))
+      contr ++= collection._2.contributors
+    }
+    ActorbaseCollection("anonymous", "findResults", contr, coll)(conn, scheme)
   }
 
   /**
@@ -99,6 +102,12 @@ case class ActorbaseCollectionMap private
     * @return
     * @throws
     */
-  override def toString: String = data.mkString
+  override def toString: String = {
+    var ret = ""
+    data.foreach {
+      case (k, v) => ret += "\n" + v.toString + "\n"
+    }
+    ret
+  }// data.mkString
 
 }

@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -50,6 +50,7 @@ class ActorbaseBanner() {
     val ar = System.getProperty("os.arch")
     val jv = System.getProperty("java.version")
     banner += s"\nActorbase CLI $version\n$un@$os $ov on $ar, Java version: $jv\n"
+    banner += "Welcome to Actorbase version 1.0.0\nType help for more information.\n"
     banner.toString() + "\n"
   }
 }

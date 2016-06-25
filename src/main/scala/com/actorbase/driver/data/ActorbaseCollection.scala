@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -33,6 +33,8 @@ import com.actorbase.driver.client.Connector
 import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.exceptions._
+
+// import scalaj.http.HttpConstants._
 
 import java.io.{File, PrintWriter}
 import scala.collection.immutable.TreeMap
@@ -48,6 +50,7 @@ import scala.collection.generic.FilterMonadic
   */
 case class ActorbaseCollection
   (val owner: String, var collectionName: String,
+    var contributors: Map[String, Boolean] = Map.empty[String, Boolean],
     var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection, implicit val scheme: String)
     extends Connector {
 
@@ -71,8 +74,8 @@ case class ActorbaseCollection
         val response = requestBuilder
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
-          .withBody(serialize2byteArray(v))
-          .addHeaders(("owner", owner))
+          .withBody(serialize(v))
+          .addHeaders(("owner", toBase64FromString(owner)))
           .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -81,7 +84,7 @@ case class ActorbaseCollection
         }
       }
     }
-    ActorbaseCollection(owner, collectionName, data)
+    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -113,8 +116,8 @@ case class ActorbaseCollection
         val response = requestBuilder
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
-          .withBody(serialize2byteArray(v))
-          .addHeaders(("owner", owner))
+          .withBody(serialize(v))
+          .addHeaders(("owner", toBase64FromString(owner)))
           .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -123,7 +126,7 @@ case class ActorbaseCollection
         }
       }
     }
-    ActorbaseCollection(owner, collectionName, data)
+    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -150,7 +153,7 @@ case class ActorbaseCollection
         }
       }
     }
-    ActorbaseCollection(owner, collectionName, data)
+    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -222,11 +225,12 @@ case class ActorbaseCollection
   @throws(classOf[UsernameAlreadyExistsExc])
   def addContributor(username: String, write: Boolean = false): Unit = {
     val permission = if (!write) "read" else "readwrite"
+    if (!contributors.contains(username)) contributors += (username -> write)
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
-      .withBody(serialize2byteArray(username))
-      .addHeaders(("permission", permission))
+      .withBody(toBase64(username.getBytes("UTF-8")))
+      .addHeaders(("permission", toBase64FromString(permission)))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -236,6 +240,7 @@ case class ActorbaseCollection
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
+            case "OK" =>
           }
         }
     }
@@ -255,10 +260,22 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def removeContributor(username: String): Unit = {
-    val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/contributors/" + collectionName + "/" + username withMethod DELETE send()
+    if (contributors contains username) contributors -= username
+    val response = requestBuilder
+      .withCredentials(conn.username, conn.password)
+      .withUrl(uri + "/contributors/" + collectionName)
+      .withBody(toBase64(username.getBytes("UTF-8")))
+      .withMethod(DELETE).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+      case OK =>
+        response.body map { r =>
+          r.asInstanceOf[String] match {
+            case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
+            case "OK" =>
+          }
+        }
     }
   }
 
@@ -298,8 +315,12 @@ case class ActorbaseCollection
     * @throws
     */
   def export(path: String): Unit = {
-    val printWriter = new PrintWriter(new File(path))
-    printWriter.write(serialize2JSON(this))
+    val exportTo = new File(path)
+    if (!exportTo.exists)
+      exportTo.getParentFile.mkdirs
+    val printWriter = new PrintWriter(exportTo)
+    // printWriter.write(serialize2JSON(this))
+    printWriter.write(toString)
     printWriter.close
   }
 
@@ -331,10 +352,11 @@ case class ActorbaseCollection
     */
   override def toString: String = {
     var headers = new TreeMap[String, Any]()
-    headers += ("collection" -> collectionName)
+    headers += ("collectionName" -> collectionName)
     headers += ("owner" -> owner)
-    headers += ("items" -> data)
-    serialize2JSON4s(headers)
+    headers += ("contributors" -> contributors)
+    headers += ("data" -> data)
+    toJSON(headers)
   }
 
 }

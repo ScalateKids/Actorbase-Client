@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -76,7 +76,7 @@ object RestMethods {
     * a request
     *
     */
-  case class Request(method: Method, uri: String, user: String, password: String, headers: (String, String) = ("",""), body: Option[Array[Byte]] = None)
+  case class Request(method: Method, uri: String, user: String, password: String, headers: (String, String) = ("",""), body: Option[String] = None)
 
   /**
     * Simple class representing an HTTP response

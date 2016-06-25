@@ -76,7 +76,7 @@ object RestMethods {
     * a request
     *
     */
-  case class Request(method: Method, uri: String, user: String, password: String, headers: (String, String) = ("",""), body: Option[String] = None)
+  case class Request(method: Method, uri: String, user: String, password: String, headers: Seq[(String, String)] = Seq(), body: Option[String] = None)
 
   /**
     * Simple class representing an HTTP response

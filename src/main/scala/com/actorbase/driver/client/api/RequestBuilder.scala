@@ -43,7 +43,7 @@ case class RequestBuilder(
   url: Option[String],
   user: Option[String],
   password: Option[String],
-  headers: (String, String),
+  headers: Seq[(String, String)],
   body: Option[String]) {
 
   /**
@@ -103,7 +103,7 @@ case class RequestBuilder(
     * @param hs a tuple2[String, String] representing an header in form of key-value pair
     * @return an Instance of the class RequestBuilder
     */
-  def addHeaders(hs: (String, String)) = copy(headers = hs)
+  def addHeaders(hs: (String, String)*) = copy(headers = headers ++ hs)
 
   /**
     * Convert the current object of type RequestBuilder to an object of type
@@ -138,7 +138,7 @@ case class RequestBuilder(
   */
 object RequestBuilder {
 
-  val emptyBuilder = RequestBuilder(None, None, None, None, ("", ""), None)
+  val emptyBuilder = RequestBuilder(None, None, None, None, Seq(), None)
 
   /**
     * Apply method

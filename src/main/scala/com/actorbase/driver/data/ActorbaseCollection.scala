@@ -75,7 +75,7 @@ case class ActorbaseCollection
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
           .withBody(serialize(v))
-          .addHeaders(("owner", toBase64FromString(owner)))
+          .addHeaders("owner" -> toBase64FromString(owner))
           .withMethod(POST).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -117,7 +117,7 @@ case class ActorbaseCollection
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
           .withBody(serialize(v))
-          .addHeaders(("owner", toBase64FromString(owner)))
+          .addHeaders("owner" -> toBase64FromString(owner))
           .withMethod(PUT).send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -230,7 +230,7 @@ case class ActorbaseCollection
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
       .withBody(toBase64(username.getBytes("UTF-8")))
-      .addHeaders(("permission", toBase64FromString(permission)))
+      .addHeaders("permission" -> toBase64FromString(permission), "owner" -> toBase64FromString(conn.username))
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -240,6 +240,7 @@ case class ActorbaseCollection
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
+            case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
             case "OK" =>
           }
         }
@@ -264,6 +265,7 @@ case class ActorbaseCollection
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
+      .addHeaders("owner" -> toBase64FromString(conn.username))
       .withBody(toBase64(username.getBytes("UTF-8")))
       .withMethod(DELETE).send()
     response.statusCode match {
@@ -273,6 +275,7 @@ case class ActorbaseCollection
         response.body map { r =>
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
+            case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
             case "OK" =>
           }
         }

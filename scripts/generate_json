@@ -1,7 +1,4 @@
 #!/usr/bin/perl
-#
-#
-#
 
 use warnings;
 use strict;
@@ -23,7 +20,7 @@ my $sample = <<"JSON";
 JSON
 
 my $pre = <<"PRE";
-{"collectionName": "json1","owner": "admin","data": {
+{"collectionName": "json1", "contributors": [], "owner": "admin","data": {
 PRE
 
 my $post = "}}";

@@ -646,7 +646,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
           case BadRequest => throw InternalErrorExc("Invalid or malformed request")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-          case _ =>
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "OK" =>
+              }
+            }
         }
       }
     } catch {
@@ -658,16 +664,6 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case und: UndefinedCollectionExc => throw und
     }
   }
-
-  /**
-    * Uncurring version of the importFromFile method, import a sequence of
-    * collections from a JSON file located into the filesystem at a given path,
-    * but fallback owner to the current one.
-    *
-    * @param path a String representing a folder into the filesystem
-    * @return no return value
-    */
-  // def importData(path: String): Unit = importFromFile(path)(connection.username)
 
   /**
     * Export all the collections owned or in-contribution by the user on the filesystem

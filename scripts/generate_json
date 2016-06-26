@@ -26,7 +26,7 @@ PRE
 my $post = "}}";
 my $json = "";
 
-for(0..2000) {
+for(0..50000) {
     $json .= '"' . generate_unique_id . '"' . $sample . ','
 }
 

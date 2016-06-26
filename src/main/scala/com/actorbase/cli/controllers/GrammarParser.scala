@@ -112,7 +112,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the AddCollaboratorCommand with the right parameters.
     */
-  def addCollaboratorCommand : Parser[Command] = "addCollaborator " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
+  def addCollaboratorCommand : Parser[Command] = "addContributor " ~ keyString ~ "to " ~ keyString ~ permissions ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 ~ args_3 =>
       new AddCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1), "collection" -> strip(args_2), "permissions" -> strip(args_3)), driverConnection))
   }
@@ -122,7 +122,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the RemoveCollaboratorCommand with the right parameters.
     */
-  def removeCollaboratorCommand : Parser[Command] = "removeCollaborator" ~ keyString ~ "from " ~ keyString ^^ {
+  def removeCollaboratorCommand : Parser[Command] = "removeContributor" ~ keyString ~ "from " ~ keyString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
       new RemoveCollaboratorCommand(new CommandReceiver(Map[String, Any]("username" -> strip(args_1), "collection" -> strip(args_2)), driverConnection))
   }
@@ -181,7 +181,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the FindCommand with the right parameters.
     */
-  // meh
   def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
     case "find" => new FindCommand(new CommandReceiver(Map[String, Any](), driverConnection))
     case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1)), driverConnection))

@@ -92,7 +92,6 @@ object ActorbaseServerMock {
     /**
       * users routes
       */
-    //actorbaseMockServices expect get and path("/users/username") and respond using status(200) end()
     actorbaseMockServices expect post and path("/users/username") and respond using entity ( HttpEntity (
       string = """OK""")) and status(200) end()
     actorbaseMockServices expect delete and path("/users/username") and respond using entity ( HttpEntity (

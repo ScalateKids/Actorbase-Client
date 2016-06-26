@@ -59,23 +59,35 @@ object CLISpecs {
     val actorbaseMockServices = httpServerMock(system).bind(9999).block
 
     actorbaseMockServices expect post and path("/auth/admin") and respond using entity ( HttpEntity (
-      // contentType = ContentType(`text/plain`, `UTF-8`),
       string = "Admin"
     )) end()
 
-    actorbaseMockServices expect post and path("/auth/noexists") and respond using entity ( HttpEntity (
-      // contentType = ContentType(`text/plain`, `UTF-8`),
+    actorbaseMockServices expect post and path("/auth/wrongUsername") and respond using entity ( HttpEntity (
       string = "None"
     )) end()
 
     actorbaseMockServices expect get and path("/listcollection") and respond using status(200) end()
 
+    /**
+      * Collections routes
+      */
     actorbaseMockServices expect get and path("/collections/testCollection") and respond using status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
 
+    /**
+      * collaborator routes
+      */
+    actorbaseMockServices expect get and path("contributors/testCollection") and respond using status(200) end()
+    actorbaseMockServices expect get and path("contributors/notExistingCollection") and respond using status(500) end()
+    actorbaseMockServices expect post and path("contributors/testCollection/read") and respond using status(200) end()
+
+
     actorbaseMockServices expect get and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
+
+    actorbaseMockServices expect delete and path("/collections/NotExistingCollection/testItem") and respond using status(500) end()
+
     actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
 

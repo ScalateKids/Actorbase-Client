@@ -288,25 +288,19 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String, "Collection deleted" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def deleteCollection() : String = { //TODO need test when the server will implement this feature
+  def deleteCollection() : String = {
+    var response = "deleted"
     params get "collection" map { c =>
       try {
         driver.dropCollections(as[String](c))
       }
       catch {
+        case uc: UndefinedCollectionExc => return "Undefined collection."
         case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
         case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
       }
     }
-    // val name = params.get("Collection").get.asInstanceOf[String]
-    // try {
-    //   driver.dropCollections(name)
-    // }
-    // catch{
-    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    // }
-    "deleted"
+    response
   }
 
   /**
@@ -364,23 +358,20 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     var result: String = ""
     params get "collection" map { c =>
       params get "username" map { u =>
-        params get "permissions" map { p =>
-          val collection = as[String](c)
-          val username = as[String](u)
-          val permission = if (as[String](p) == "read") false else true
-          try {
-            if (collection contains ".") {
-              val coll = collection.split("\\.")
-              driver.removeContributorFrom(username, coll(1), permission, coll(2))
-            }
-            driver.addContributorTo(username, collection, permission)
-            result = s"$username added to collection $collection"
-          } catch {
-            case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
-            case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
-            case uue: UndefinedUsernameExc => result = "Contributor username not found."
-            case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+        val collection = as[String](c)
+        val username = as[String](u)
+        try {
+          if (collection contains ".") {
+            val coll = collection.split("\\.")
+            driver.removeContributorFrom(username, coll(1), coll(2))
           }
+          driver.removeContributorFrom(username, collection)
+          result = s"$username removed from collection $collection"
+        } catch {
+          case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+          case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+          case uue: UndefinedUsernameExc => result = "Contributor username not found."
+          case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
         }
       }
     }

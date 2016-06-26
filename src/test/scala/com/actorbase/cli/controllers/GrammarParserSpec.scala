@@ -32,6 +32,8 @@ import com.actorbase.cli.CLISpecs.CLIUnitSpec
 
 import com.actorbase.cli.views.ResultView
 import com.actorbase.cli.models.CommandInvoker
+import com.actorbase.cli.models.CommandReceiver
+import com.actorbase.driver.ActorbaseDriver
 import scala.util.{ Failure, Success }
 
 /**
@@ -51,6 +53,7 @@ class GrammarParserSpec extends CLIUnitSpec {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
         assert(grammarParser.parseInput("listCollections") === true)
       }
+
 
       it should "parse 'addCollaborator user to collection read'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
@@ -72,11 +75,6 @@ class GrammarParserSpec extends CLIUnitSpec {
         assert(grammarParser.parseInput("createCollection testCollection") === true)
       }
 
-      /* it should "parse 'renameCollection collection to newname'" in {
-       val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
-       assert(grammarParser.parseInput("createCollection testCollection to testName") === true)
-       }
-       */
       it should "parse 'insert (key -> value ) to collection'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
         assert(grammarParser.parseInput("insert (key -> value ) to testCollection") === true)
@@ -156,6 +154,27 @@ class GrammarParserSpec extends CLIUnitSpec {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
         assert(grammarParser.parseInput("quit") === false)
       }
+
+    /**
+      * Error case handling tests
+      */
+
+      /*it should "return an error message while trying to login with wrong credentials" in {
+        val params = Map[String,Any]("username" -> "wrongUsername", "password" -> "wrongPassword")
+        val gr: CommandReceiver = new CommandReceiver(params, d)
+        val response = gr.login
+        println(response+"\n\n")
+        response should be("UndefinedCollection")
+    }*/
+
+      it should "return an error message while trying to login with wrong credentials" in {
+        val params = Map[String,Any]("username" -> "wrongUsername", "password" -> "wrongPassword")
+        val gr: CommandReceiver = new CommandReceiver(params, d)
+        val response = gr.login
+        println(response+"\n\n")
+        response should be("UndefinedCollection")
+      }
+
 
     case Failure(e) => println(e.getMessage)
 

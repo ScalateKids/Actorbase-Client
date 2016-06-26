@@ -755,7 +755,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[MalformedFileExc])
-  def removeContributorFrom(username: String, collection: String, writePermission: Boolean, owner: String = connection.username): Unit = {
+  def removeContributorFrom(username: String, collection: String, owner: String = connection.username): Unit = {
     val response = requestBuilder
       .withCredentials(connection.username, connection.password)
       .withUrl(uri + "/contributors/" + collection)

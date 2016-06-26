@@ -34,8 +34,6 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.exceptions._
 
-// import scalaj.http.HttpConstants._
-
 import java.io.{File, PrintWriter}
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
@@ -67,6 +65,8 @@ case class ActorbaseCollection
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedCollectionExc])
+  @throws(classOf[DuplicateKeyExc])
   def insert(kv: (String, Any)*): ActorbaseCollection = {
     for((k, v) <- kv) {
       if(!data.contains(k)) {
@@ -80,6 +80,15 @@ case class ActorbaseCollection
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case _ =>
+              }
+            }
           case _ =>
         }
       }
@@ -108,6 +117,7 @@ case class ActorbaseCollection
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedCollectionExc])
   def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
       if(data.contains(k)) {
@@ -122,6 +132,13 @@ case class ActorbaseCollection
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case _ =>
+              }
+            }
           case _ =>
         }
       }
@@ -141,6 +158,7 @@ case class ActorbaseCollection
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedCollectionExc])
   def remove(keys: String*): ActorbaseCollection = {
     keys.foreach { key =>
       if(data.contains(key)) {
@@ -149,6 +167,13 @@ case class ActorbaseCollection
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
           case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case _ =>
+              }
+            }
           case _ =>
         }
       }

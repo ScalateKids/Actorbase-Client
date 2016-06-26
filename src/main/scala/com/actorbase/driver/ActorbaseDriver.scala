@@ -321,6 +321,12 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
         case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+        // case NotFound =>
+        //   response.body map { x =>
+        //     x.asInstanceOf[String] match {
+        //       case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+        //     }
+        //   }
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
         case OK =>
           response.body map { content =>
@@ -634,6 +640,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       val mapObject = parse(json).extract[CollectionResponse]
       val collectionName = mapObject.collectionName
       val buffer = mapObject.data
+      val contributors = mapObject.contributors
       val owner = mapObject.owner
       buffer map { x =>
         val response = requestBuilder
@@ -655,8 +662,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             }
         }
       }
+      contributors map ( x => addContributorTo(x._1, collectionName, x._2, owner))
     } catch {
-      case jpe: com.fasterxml.jackson.core.JsonParseException => throw MalformedFileExc("Malformed json file")
+      case jpe: com.fasterxml.jackson.core.JsonParseException => throw jpe// throw MalformedFileExc("Malformed json file")
       case nse: NoSuchElementException => throw MalformedFileExc("Malformed json file")
       case wce: WrongCredentialsExc => throw wce
       case mfe: MalformedFileExc => throw mfe
@@ -675,7 +683,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws InternalErrorExc in case of internal server error
     * @throws MalformedFileExc in case of a not well balanced JSON file or a non-existant file at the given path
     */
-  def exportToFile(path: String)(owner: String = connection.username): Unit = {
+  def exportData(path: String, owner: String = connection.username): Unit = {
     listCollections map { x =>
       try {
         getCollection(x.head._2, owner).export(path)
@@ -684,16 +692,6 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       }
     }
   }
-
-  /**
-    * Uncurried version of the method exportToFile, export all the collections owned or in-contribution by the user on the
-    * filesystem at a specified path in JSON format, but fallback owner to the
-    * current one.
-    *
-    * @param path a String representing a folder into the filesystem
-    * @return no return value
-    */
-  def exportData(path: String): Unit = exportToFile(path)(connection.username)
 
   /**
     * Add a contributor to a collection, without preventively query the server-side of the

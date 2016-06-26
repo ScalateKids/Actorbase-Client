@@ -55,6 +55,7 @@ import scala.util.{ Failure, Success }
 sealed trait Helper {
   def as[A <: Any](o: Any): A = o.asInstanceOf[A]
 }
+
 /**
   * Receiver class, process input arguments sent by the controller
   * using a driver reference to send requests to a listening
@@ -70,35 +71,35 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *
     * @return a String, "Item inserted" if the method succeeded, an error message is returned if the method failed
     */
-    def insert(): String = {
-      var result = "Item inserted."
-      params get "key" map { k =>
-        params get "value" map { v =>
-          params get "collection" map { c =>
-            params get "update" map { u =>
-              val value = as[String](v) match {
-                case integer if integer matches("""^\d+$""") => integer.toInt
-                case double if double matches("""^\d+\.\d+""") => double.toDouble
-                case _ => as[String](v)
-              }
-              try {
-                val update = as[Boolean](u)
-                if (as[String](c) contains ".") {
-                  val collection = as[String](c).split("\\.")
-                  driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
-                } else driver.insert(as[String](c), update, (as[String](k) -> value))
-              }
-              catch {
-                case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
-                case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
-                case dke: DuplicateKeyExc => result = "Key already stored"
-              }
+  def insert(): String = {
+    var result = "Item inserted."
+    params get "key" map { k =>
+      params get "value" map { v =>
+        params get "collection" map { c =>
+          params get "update" map { u =>
+            val value = as[String](v) match {
+              case integer if integer matches("""^\d+$""") => integer.toInt
+              case double if double matches("""^\d+\.\d+""") => double.toDouble
+              case _ => as[String](v)
+            }
+            try {
+              val update = as[Boolean](u)
+              if (as[String](c) contains ".") {
+                val collection = as[String](c).split("\\.")
+                driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
+              } else driver.insert(as[String](c), update, (as[String](k) -> value))
+            }
+            catch {
+              case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
+              case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
+              case dke: DuplicateKeyExc => result = "Key already stored"
             }
           }
         }
       }
-      result
     }
+    result
+  }
 
   /**
     * Remove an item from the actorbase server.
@@ -195,9 +196,9 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     }
     catch {
       case uce: UndefinedCollectionExc => response = "Undefined collection"
-        // if (driver.connection.username == "admin")
-          // response = driver.getCollections.toString
-        // else response = "Undefined collection"
+      // if (driver.connection.username == "admin")
+      // response = driver.getCollections.toString
+      // else response = "Undefined collection"
       case wce: WrongCredentialsExc => response = "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => response = "There was an internal server error, something wrong happened."
     }
@@ -324,8 +325,8 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
           val permission = if (as[String](p) == "read") false else true
           try {
             if (collection contains ".") {
-                val coll = collection.split("\\.")
-                driver.addContributorTo(username, coll(1), permission, coll(2))
+              val coll = collection.split("\\.")
+              driver.addContributorTo(username, coll(1), permission, coll(2))
             }
             driver.addContributorTo(username, collection, permission)
             result = s"$username added to collection $collection"
@@ -369,8 +370,8 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
           val permission = if (as[String](p) == "read") false else true
           try {
             if (collection contains ".") {
-                val coll = collection.split("\\.")
-                driver.removeContributorFrom(username, coll(1), permission, coll(2))
+              val coll = collection.split("\\.")
+              driver.removeContributorFrom(username, coll(1), permission, coll(2))
             }
             driver.addContributorTo(username, collection, permission)
             result = s"$username added to collection $collection"

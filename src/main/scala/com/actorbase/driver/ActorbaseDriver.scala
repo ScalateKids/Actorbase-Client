@@ -627,13 +627,14 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[MalformedFileExc])
-  def importFromFile(path: String)(owner: String = connection.username): Unit = {
+  def importData(path: String): Unit = {
     implicit val formats = DefaultFormats
     try {
       val json = Source.fromFile(path).getLines.mkString
       val mapObject = parse(json).extract[CollectionResponse]
       val collectionName = mapObject.collectionName
       val buffer = mapObject.data
+      val owner = mapObject.owner
       buffer map { x =>
         val response = requestBuilder
           .withCredentials(connection.username, connection.password)
@@ -666,7 +667,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @param path a String representing a folder into the filesystem
     * @return no return value
     */
-  def importData(path: String): Unit = importFromFile(path)(connection.username)
+  // def importData(path: String): Unit = importFromFile(path)(connection.username)
 
   /**
     * Export all the collections owned or in-contribution by the user on the filesystem

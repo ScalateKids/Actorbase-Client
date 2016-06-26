@@ -102,14 +102,9 @@ class GrammarParserSpec extends CLIUnitSpec {
         assert(grammarParser.parseInput("find from testCollection") === true)
       }
 
-      it should "parse 'find from'" in {
+      it should "parse 'find'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
-        assert(grammarParser.parseInput("find from ") === true)
-      }
-
-      it should "parse 'logout' command" in {
-        val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
-        assert(grammarParser.parseInput("logout") === true)
+        assert(grammarParser.parseInput("find") === true)
       }
 
       it should "parse a single key as first argument in export command e.g. 'export key to path'" in {
@@ -145,6 +140,11 @@ class GrammarParserSpec extends CLIUnitSpec {
       it should "parse 'resetPassword user'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
         assert(grammarParser.parseInput("resetPassword testUser") === true)
+      }
+      
+      it should "parse 'logout' command" in {
+        val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
+        assert(grammarParser.parseInput("logout") === false)
       }
 
       it should "parse 'exit'" in {

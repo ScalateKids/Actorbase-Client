@@ -216,6 +216,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
               x.asInstanceOf[String] match {
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
                 case _ =>
               }
             }
@@ -659,7 +660,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
                 case "OK" =>
               }
-            }            
+            }
         }
       }
       contributors map ( x => addContributorTo(x._1, collectionName, x._2, owner))

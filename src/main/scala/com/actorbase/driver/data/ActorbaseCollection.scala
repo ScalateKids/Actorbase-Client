@@ -70,26 +70,27 @@ case class ActorbaseCollection
   def insert(kv: (String, Any)*): ActorbaseCollection = {
     for((k, v) <- kv) {
       // if(!data.contains(k)) {
-        val response = requestBuilder
-          .withCredentials(conn.username, conn.password)
-          .withUrl(uri + "/collections/" + collectionName + "/" + k)
-          .withBody(serialize(v))
-          .addHeaders("owner" -> toBase64FromString(owner))
-          .withMethod(POST).send()
-        response.statusCode match {
-          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
-          case OK =>
-            response.body map { x =>
-              x.asInstanceOf[String] match {
-                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-                case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
-                case _ => data += (k -> v)
-              }
+      val response = requestBuilder
+        .withCredentials(conn.username, conn.password)
+        .withUrl(uri + "/collections/" + collectionName + "/" + k)
+        .withBody(serialize(v))
+        .addHeaders("owner" -> toBase64FromString(owner))
+        .withMethod(POST).send()
+      response.statusCode match {
+        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+        case OK =>
+          response.body map { x =>
+            x.asInstanceOf[String] match {
+              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+              case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+              case _ => data += (k -> v)
             }
-          case _ =>
-        }
+          }
+        case _ =>
+      }
       // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
@@ -120,26 +121,27 @@ case class ActorbaseCollection
   def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
       // if(data.contains(k)) {
-        val response = requestBuilder
-          .withCredentials(conn.username, conn.password)
-          .withUrl(uri + "/collections/" + collectionName + "/" + k)
-          .withBody(serialize(v))
-          .addHeaders("owner" -> toBase64FromString(owner))
-          .withMethod(PUT).send()
-        response.statusCode match {
-          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-          case OK =>
-            response.body map { x =>
-              x.asInstanceOf[String] match {
-                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-                case _ =>
-                  data -= k
-                  data += (k -> v)
-              }
+      val response = requestBuilder
+        .withCredentials(conn.username, conn.password)
+        .withUrl(uri + "/collections/" + collectionName + "/" + k)
+        .withBody(serialize(v))
+        .addHeaders("owner" -> toBase64FromString(owner))
+        .withMethod(PUT).send()
+      response.statusCode match {
+        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        case OK =>
+          response.body map { x =>
+            x.asInstanceOf[String] match {
+              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+              case _ =>
+                data -= k
+                data += (k -> v)
             }
-          case _ =>
-        }
+          }
+        case _ =>
+      }
       // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
@@ -161,19 +163,20 @@ case class ActorbaseCollection
   def remove(keys: String*): ActorbaseCollection = {
     keys.foreach { key =>
       // if(data.contains(key)) {
-        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
-        response.statusCode match {
-          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-          case OK =>
-            response.body map { x =>
-              x.asInstanceOf[String] match {
-                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-                case _ => data -= key
-              }
+      val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+      response.statusCode match {
+        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        case OK =>
+          response.body map { x =>
+            x.asInstanceOf[String] match {
+              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+              case _ => data -= key
             }
-          case _ =>
-        }
+          }
+        case _ =>
+      }
       // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)

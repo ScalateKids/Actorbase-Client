@@ -513,20 +513,14 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
 
   def importFrom(): String = {
     params get "path" map { p =>
-      Future {
-        try {
-          // val path = params.get("path").get.asInstanceOf[String]
-          driver.importData(as[String](p))
-        }
-        catch{
-          case wce: WrongCredentialsExc => "Credentials privilege level does not meet criteria needed to perform this operation."
-          case iec: InternalErrorExc => "There was an internal server error, something wrong happened."
-          case mfe: MalformedFileExc => "Malformed json file"
-          case fnfe: FileNotFoundException => "file not found"
-        }
-      } onComplete {
-        case Success(i) => "[job complete]"
-        case Failure(f) => f.getMessage
+      try {
+        driver.importData(as[String](p))
+      }
+      catch {
+        case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+        case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+        case mfe: MalformedFileExc => return "Malformed json file"
+        case fnfe: FileNotFoundException => return "File not found"
       }
     }
     "imported"

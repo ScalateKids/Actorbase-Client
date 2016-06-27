@@ -69,8 +69,7 @@ case class ActorbaseCollection
   @throws(classOf[DuplicateKeyExc])
   def insert(kv: (String, Any)*): ActorbaseCollection = {
     for((k, v) <- kv) {
-      if(!data.contains(k)) {
-        data += (k -> v)
+      // if(!data.contains(k)) {
         val response = requestBuilder
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
@@ -86,12 +85,12 @@ case class ActorbaseCollection
               x.asInstanceOf[String] match {
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
-                case _ =>
+                case _ => data += (k -> v)
               }
             }
           case _ =>
         }
-      }
+      // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
@@ -120,9 +119,7 @@ case class ActorbaseCollection
   @throws(classOf[UndefinedCollectionExc])
   def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
-      if(data.contains(k)) {
-        data -= k
-        data += (k -> v)
+      // if(data.contains(k)) {
         val response = requestBuilder
           .withCredentials(conn.username, conn.password)
           .withUrl(uri + "/collections/" + collectionName + "/" + k)
@@ -137,11 +134,13 @@ case class ActorbaseCollection
               x.asInstanceOf[String] match {
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case _ =>
+                  data -= k
+                  data += (k -> v)
               }
             }
           case _ =>
         }
-      }
+      // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
@@ -161,8 +160,7 @@ case class ActorbaseCollection
   @throws(classOf[UndefinedCollectionExc])
   def remove(keys: String*): ActorbaseCollection = {
     keys.foreach { key =>
-      if(data.contains(key)) {
-        data -= key
+      // if(data.contains(key)) {
         val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
         response.statusCode match {
           case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -171,12 +169,12 @@ case class ActorbaseCollection
             response.body map { x =>
               x.asInstanceOf[String] match {
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-                case _ =>
+                case _ => data -= key
               }
             }
           case _ =>
         }
-      }
+      // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
@@ -208,7 +206,7 @@ case class ActorbaseCollection
     *
     *
     * @param keys a vararg String representing a sequence of keys to be retrieved
-    * @return an object of type ActorbaseObject
+    v* @return an object of type ActorbaseObject
     */
   def find[A >: Any](keys: String*): ActorbaseObject[A] = {
     var coll = TreeMap[String, Any]().empty
@@ -250,7 +248,6 @@ case class ActorbaseCollection
   @throws(classOf[UsernameAlreadyExistsExc])
   def addContributor(username: String, write: Boolean = false): Unit = {
     val permission = if (!write) "read" else "readwrite"
-    if (!contributors.contains(username)) contributors += (username -> write)
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
@@ -266,7 +263,7 @@ case class ActorbaseCollection
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
             case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
-            case "OK" =>
+            case "OK" => if (!contributors.contains(username)) contributors += (username -> write)
           }
         }
     }
@@ -286,7 +283,6 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def removeContributor(username: String): Unit = {
-    if (contributors contains username) contributors -= username
     val response = requestBuilder
       .withCredentials(conn.username, conn.password)
       .withUrl(uri + "/contributors/" + collectionName)
@@ -301,7 +297,7 @@ case class ActorbaseCollection
           r.asInstanceOf[String] match {
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
-            case "OK" =>
+            case "OK" => if (contributors contains username) contributors -= username
           }
         }
     }

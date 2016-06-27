@@ -72,7 +72,9 @@ object ActorbaseServerMock {
     actorbaseMockServices expect get and path("/collections/testCollection/testItemToReturn") and respond using entity (
       HttpEntity ( string = """{ "key": "value" }""" )
     ) and status(200) end()
-    actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using status(200) end()
+    actorbaseMockServices expect post and path("/collections/testCollection/testItem") and respond using entity (HttpEntity (
+      string = "OK"
+    )) and status(200) end()
     actorbaseMockServices expect put and path("/collections/testCollection/testItem") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection/testItem") and respond using status(200) end()
 

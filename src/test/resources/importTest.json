@@ -1,8 +1,8 @@
 {
-	"collectionName": "testCollection",
-	"data": {
-		"id": "testId",
-		"name": "Angi item"
-	},
-	"owner": "angi"}
+  "collectionName": "testCollection",
+  "contributors": {},
+  "data": {
+    "testItem": "testValue"
+  },
+  "owner": "angi"
 }

@@ -212,31 +212,30 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String representing the help message
     */
   // ugly as hell
-  def help() : String = {
-    var result : String = "\n"
-    params.get("command").get match {
-      case None =>
-        ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
-          entry =>
+  def help(): String = {
+    var result: String = "\n"
+    params get "command" map { c =>
+      ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
+        entry =>
+        if(entry.getKey == c.toString) {
           result += f"  ${
             entry.getKey
           }%-25s${
             entry.getValue.unwrapped
           }\n"
         }
-      case Some(c) =>
-        ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
-          entry =>
-          if(entry.getKey == c.toString) {
-            result += f"  ${
-              entry.getKey
-            }%-25s${
-              entry.getValue.unwrapped
-            }\n"
-          }
-        }
+      }
+    } getOrElse {
+      ConfigFactory.load ("commands.conf").getConfig ("commands").entrySet.foreach {
+        entry =>
+        result += f"  ${
+          entry.getKey
+        }%-25s${
+          entry.getValue.unwrapped
+        }\n"
+      }
     }
-    if(result == "")
+    if(result == "\n")
       result += "Command not found, to have a list of commands available type <help>"
     result
   }

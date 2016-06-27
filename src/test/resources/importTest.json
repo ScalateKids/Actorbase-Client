@@ -1,8 +1,10 @@
 {
 	"collectionName": "testCollection",
 	"data": {
-		"id": "testId",
-		"name": "Angi item"
+		"testImportItem": "value"
 	},
-	"owner": "angi"}
+	"contributors": {
+		"angi": true
+	},
+	"owner": "angi"
 }

@@ -659,7 +659,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
                 case "OK" =>
               }
-            }
+            }            
         }
       }
       contributors map ( x => addContributorTo(x._1, collectionName, x._2, owner))

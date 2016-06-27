@@ -167,14 +167,14 @@ class GrammarParserSpec extends CLIUnitSpec {
         response should be("UndefinedCollection")
     }*/
 
-      it should "return an error message while trying to login with wrong credentials" in {
+    /*  it should "return an error message while trying to login with wrong credentials" in {
         val params = Map[String,Any]("username" -> "wrongUsername", "password" -> "wrongPassword")
         val gr: CommandReceiver = new CommandReceiver(params, d)
         val response = gr.login
         println(response+"\n\n")
         response should be("UndefinedCollection")
       }
-
+*/
 
     case Failure(e) => println(e.getMessage)
 

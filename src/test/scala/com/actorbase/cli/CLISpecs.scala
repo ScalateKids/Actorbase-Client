@@ -71,7 +71,10 @@ object CLISpecs {
     /**
       * Collections routes
       */
-    actorbaseMockServices expect get and path("/collections/testCollection") and respond using status(200) end()
+    //actorbaseMockServices expect get and path("/collections/testCollection") and respond using status(200) end()
+    actorbaseMockServices expect get and path("/collections/testCollection") and respond using entity ( HttpEntity (
+      string = """{ "collectionName" : "testCollection", "data" : { }, "owner" : "" }"""
+    )) and status(200) end()
     actorbaseMockServices expect post and path("/collections/testCollection") and respond using status(200) end()
     actorbaseMockServices expect delete and path("/collections/testCollection") and respond using status(200) end()
 

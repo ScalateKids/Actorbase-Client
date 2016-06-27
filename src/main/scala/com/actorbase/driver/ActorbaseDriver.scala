@@ -664,7 +664,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       }
       contributors map ( x => addContributorTo(x._1, collectionName, x._2, owner))
     } catch {
-      case jpe: com.fasterxml.jackson.core.JsonParseException => throw MalformedFileExc("Malformed json file") //throw jpe
+      case jpe: com.fasterxml.jackson.core.JsonParseException => throw MalformedFileExc("Malformed json file")
       case nse: NoSuchElementException => throw MalformedFileExc("Malformed json file")
       case wce: WrongCredentialsExc => throw wce
       case mfe: MalformedFileExc => throw mfe

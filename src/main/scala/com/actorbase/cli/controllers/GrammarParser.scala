@@ -48,7 +48,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   // base arguments types
   val permissions: Parser[String] = """ReadOnly|ReadWrite""".r
   val quotedString: Parser[String] = """".*"""".r
-  val literalString: Parser[String] = """.*""".r
+  val literalString: Parser[String] = """.+""".r
   val listString: Parser[String] = """["\S+",\s*"\S+"]+""".r
   val keyString: Parser[String] = """"\S+"""".r
 
@@ -61,7 +61,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the login or logout command based on the user input.
     */
   def authManagementCommand : Parser[Command] = "login" ~ keyString ~ quotedString ^^ {
-//    case "logout" => new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection))
+    //    case "logout" => new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection))
     case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[String, Any]("username" -> args_1, "password" -> args_2), driverConnection))
   }
 
@@ -81,8 +81,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the HelpCommand with the right parameters.
     */
   // ugly as hell, needs improvements
-  def helpCommand : Parser[Command] = "help" ~> literalString.? ^^ {
-    case arg => new HelpCommand(new CommandReceiver(Map[String, Any]("command" -> arg), driverConnection))
+  def helpCommand : Parser[Command] = ("help" ~ literalString | "help") ^^ {
+    case "help" => new HelpCommand(new CommandReceiver(Map[String, Any](), driverConnection))
+    case "help" ~ arg => new HelpCommand(new CommandReceiver(Map[String, Any]("command" -> arg), driverConnection))
   }
 
   /********************************************************************************************************************/
@@ -156,11 +157,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   def insertItemCommand : Parser[Command] = {
     "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ quotedString ^^ {
       case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
-      new InsertItemCommand(
-        new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> false), driverConnection))
+        new InsertItemCommand(
+          new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> false), driverConnection))
       case "update" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
-      new InsertItemCommand(
-        new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> true), driverConnection))
+        new InsertItemCommand(
+          new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> true), driverConnection))
     }
   }
 

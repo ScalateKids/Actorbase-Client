@@ -33,20 +33,16 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 
 /**
-  * Insert description here
+  * This class is used to add some features to the admins of Actorbase.
   *
-  * @param
-  * @return
-  * @throws
   */
 trait AdminServices extends Connector {
 
   /**
-    * Insert description here
+    * Add an user to the actorbase system
     *
-    * @param
-    * @return
-    * @throws
+    * @param username a string representing the username of the user to add
+    * @return true if the user was added to the system, false otherwise
     */
   def addUser(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
     val uri: String = scheme + connection.address + ":" + connection.port
@@ -56,11 +52,10 @@ trait AdminServices extends Connector {
   }
 
   /**
-    * Insert description here
+    * Remove an user from the actorbase system
     *
-    * @param
-    * @return
-    * @throws
+    * @param username a string representing the username of the user to remove from the system
+    * @return true if the user was removed from the system, false otherwise
     */
   def removeUser(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
     val uri: String = scheme + connection.address + ":" + connection.port
@@ -70,11 +65,10 @@ trait AdminServices extends Connector {
   }
 
   /**
-    * Insert description here
+    * Reset the password of an username to the default actorbase password
     *
-    * @param
-    * @return
-    * @throws
+    * @param username a string representing the username of the user
+    * @return true if the password was reset, false otherwise
     */
   def resetPassword(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {
     val uri: String = scheme + connection.address + ":" + connection.port

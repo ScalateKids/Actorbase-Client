@@ -45,7 +45,7 @@ import scala.util.{ Failure, Success }
   */
 class GrammarParserSpec extends CLIUnitSpec {
 
-  DriverConnection.getDriver("localhost", 9999, "admin", "Actorb4se") match {
+  DriverConnection.getDriver("localhost", 9994, "admin", "Actorb4se") match {
 
     case Success(d) =>
 
@@ -55,19 +55,19 @@ class GrammarParserSpec extends CLIUnitSpec {
       }
 
 
-      it should "parse 'addCollaborator user to collection read'" in {
+      it should "parse 'addContributor user to collection read'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
-        assert(grammarParser.parseInput("addCollaborator testUser to testCOllection read") === true)
+        assert(grammarParser.parseInput("addContributor testUser to testCollection read") === true)
       }
 
-      it should "parse 'addCollaborator user to collection readwrite'" in {
+      it should "parse 'addContributor user to collection readwrite'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
-        assert(grammarParser.parseInput("addCollaborator testUser to testCOllection readwrite") === true)
+        assert(grammarParser.parseInput("addContributor testUser to testCollection readwrite") === true)
       }
 
-      it should "parse 'removeCollaborator user from collection'" in {
+      it should "parse 'removeContributor user from collection'" in {
         val grammarParser = new GrammarParser(new CommandInvoker, new ResultView, d)
-        assert(grammarParser.parseInput("removeCollaborator testUser from testCOllection") === true)
+        assert(grammarParser.parseInput("removeContributor testUser from testCollection") === true)
       }
 
       it should "parse 'createCollection collection'" in {

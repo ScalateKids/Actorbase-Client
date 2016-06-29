@@ -25,13 +25,13 @@ initialCommands in console += """
 import com.actorbase.driver.ActorbaseDriver
 import com.actorbase.driver.client.api._
 import com.actorbase.driver.data._
-val admin = ActorbaseDriver("http://admin:Actorb4se@192.168.43.63:9999")
+val admin = ActorbaseDriver("http://admin:Actorb4se@127.0.0.1:9999")
 admin.addUser("a")
 admin.addUser("b")
 admin.addUser("c")
-val a = ActorbaseDriver("http://a:Actorb4se@192.168.43.63:9999")
-val b = ActorbaseDriver("http://b:Actorb4se@192.168.43.63:9999")
-val c = ActorbaseDriver("http://c:Actorb4se@192.168.43.63:9999")
+val a = ActorbaseDriver("http://a:Actorb4se@127.0.0.1:9999")
+val b = ActorbaseDriver("http://b:Actorb4se@127.0.0.1:9999")
+val c = ActorbaseDriver("http://c:Actorb4se@127.0.0.1:9999")
 """
 
 javacOptions ++= Seq("-XX:+HeapDumpOnOutOfMemoryError")

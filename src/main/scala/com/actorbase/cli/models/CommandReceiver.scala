@@ -264,7 +264,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *
     * @return a String containing all the collections names the used has access to
     */
-  def listCollections(): String = {  //TODO need test when the server will implement this feature
+  def listCollections(): String = {
     val (header1, header2) = ("OWNER", "COLLECTION")
     var list = f"\n | $header1%-13s | $header2%13s | \n"
     list += " ---------------------------------\n"
@@ -308,7 +308,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String, "Collaborator added" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def addCollaborator() : String = {   //TODO
+  def addCollaborator() : String = {
     var result: String = ""
     params get "collection" map { c =>
       params get "username" map { u =>
@@ -353,7 +353,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String, "Collaborator removed" if the method succeeded, an error message is returned
     *         if the method failed
     */
-  def removeCollaborator() : String = {   //TODO
+  def removeCollaborator() : String = {
     var result: String = ""
     params get "collection" map { c =>
       params get "username" map { u =>

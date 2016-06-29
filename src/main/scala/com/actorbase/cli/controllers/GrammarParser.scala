@@ -21,6 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
+  *
   * @author Scalatekids
   * @version 1.0
   * @since 1.0
@@ -52,7 +53,13 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   val listString: Parser[String] = """["\S+",\s*"\S+"]+""".r
   val keyString: Parser[String] = """"\S+"""".r
 
-  def strip(s: Any): String = s.asInstanceOf[String].drop(1).dropRight(1)
+  def strip(s: Any): String = {
+    if(s.asInstanceOf[String].takeRight(1) == "\"" && s.asInstanceOf[String].take(1) == "\"") {
+      return s.asInstanceOf[String].drop(1).dropRight(1)
+    }
+    s.asInstanceOf[String]
+  }
+
   // chained commands
 
   /**
@@ -153,7 +160,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     *
     * @return a Parser[Command] representing the InsertItemCommand with the right parameters.
     */
-  // TODO flag sovrascrittura
   def insertItemCommand : Parser[Command] = {
     "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ quotedString ^^ {
       case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
@@ -164,8 +170,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
           new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> true), driverConnection))
     }
   }
-
-  // TODO insert item da file?
 
   /**
     * Method to parse the removeItemCommand with the parameters passed by the user
@@ -185,9 +189,9 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   def findCommand : Parser[Command] = ("find" ~ keyString ~ "from" ~ (listString | keyString) | "find from" ~ (listString | keyString) | "find" ~ keyString | "find" ) ^^ {
     case "find" => new FindCommand(new CommandReceiver(Map[String, Any](), driverConnection))
     case "find" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1)), driverConnection))
-    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("collection" -> args_1.asInstanceOf[String].split(",").toList), driverConnection))
+    case "find from" ~ args_1 => new FindCommand(new CommandReceiver(Map[String, Any]("collection" -> args_1.asInstanceOf[String].split(",").map(x => strip(x)).toList), driverConnection))
     case "find" ~ args_1 ~ "from"  ~ args_2 =>
-      new FindCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "collection" -> args_2.asInstanceOf[String].split(",").toList), driverConnection))
+      new FindCommand(new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "collection" -> args_2.asInstanceOf[String].split(",").map(x => strip(x)).toList), driverConnection))
   }
 
   /********************************************************************************************************************/

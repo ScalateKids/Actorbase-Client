@@ -86,7 +86,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               val update = as[Boolean](u)
               if (as[String](c) contains ".") {
                 val collection = as[String](c).split("\\.")
-                driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
+                driver.insertTo(collection(1), update, (as[String](k) -> value))(collection(0))
               } else driver.insert(as[String](c), update, (as[String](k) -> value))
             }
             catch {
@@ -114,7 +114,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         try {
           if (c contains ".") {
             val collection = c.split("\\.")
-            driver.removeFrom(collection(0), k)(collection(1))
+            driver.removeFrom(collection(1), k)(collection(0))
           } else driver.remove(c, k)
         }
         catch {
@@ -523,10 +523,12 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         driver.importData(as[String](p))
       }
       catch {
+        case fnfe: FileNotFoundException => return "File not found"
         case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
         case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
         case mfe: MalformedFileExc => return "Malformed json file"
-        case fnfe: FileNotFoundException => return "File not found"
+        case uun: UndefinedUsernameExc => return "Undefined username"
+        case dk: DuplicateKeyExc => return "Duplicated key request found"
       }
     }
     "imported"

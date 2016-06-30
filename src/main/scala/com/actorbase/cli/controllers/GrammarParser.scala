@@ -161,7 +161,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the InsertItemCommand with the right parameters.
     */
   def insertItemCommand : Parser[Command] = {
-    "insert" ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ quotedString ^^ {
+    ("insert" | "update") ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ quotedString ^^ {
       case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
         new InsertItemCommand(
           new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> false), driverConnection))

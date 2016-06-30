@@ -52,20 +52,20 @@ case class SingleResponse(response: Any)
 case class ListResponse(list: List[String])
 
 // class StringTupleSerializer extends CustomSerializer[Map[String, (String, Long)]](format => (
-  // {
-    // case JObject(JField("tuples", JArray(List(JObject(List((v,JArray(List(JString(s), JInt(t)))))))))) => new ListMapResponse(List(Map(v -> (s -> t.longValue))))
-    // case JObject(List((v,JArray(List(JString(s), JInt(t)))))) => Map(v -> (s -> t.longValue))
-      // case JArray(List(JObject(List((a,JArray(List(JString(j), JInt(u)))))))) => List(Map(a -> (j -> u.longValue)))
-      // case JObject(List((v,JObject(List((s,JInt(t))))))) => List(Map(v -> (s -> t.longValue)))
-      // case JObject(JField(s, JInt(t))) => (s -> t.longValue)
-  // }, {
-    // case x: Map[String, (String, Long)] =>
-      // x.map { y =>
-        // JObject(List((y._1,JArray(List(JString(y._2._1), JInt(y._2._2))))))
-      // }
-      // case x: Tuple2[String, Long] => JObject(JField(x._1, JInt(BigInt(x._2))))
-      // JObject(JField("tuples", JArray(List(JObject(List((x.,JArray(List(JString(s), JInt(t))))))))))
-  // }))
+// {
+// case JObject(JField("tuples", JArray(List(JObject(List((v,JArray(List(JString(s), JInt(t)))))))))) => new ListMapResponse(List(Map(v -> (s -> t.longValue))))
+// case JObject(List((v,JArray(List(JString(s), JInt(t)))))) => Map(v -> (s -> t.longValue))
+// case JArray(List(JObject(List((a,JArray(List(JString(j), JInt(u)))))))) => List(Map(a -> (j -> u.longValue)))
+// case JObject(List((v,JObject(List((s,JInt(t))))))) => List(Map(v -> (s -> t.longValue)))
+// case JObject(JField(s, JInt(t))) => (s -> t.longValue)
+// }, {
+// case x: Map[String, (String, Long)] =>
+// x.map { y =>
+// JObject(List((y._1,JArray(List(JString(y._2._1), JInt(y._2._2))))))
+// }
+// case x: Tuple2[String, Long] => JObject(JField(x._1, JInt(BigInt(x._2))))
+// JObject(JField("tuples", JArray(List(JObject(List((x.,JArray(List(JString(s), JInt(t))))))))))
+// }))
 
 // class StringTupleSerializer extends CustomSerializer[(String, Long)](format => ({
 //   case JArray(List(JString(s), JInt(t))) => (s -> t.longValue)

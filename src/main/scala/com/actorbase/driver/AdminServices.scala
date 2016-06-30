@@ -67,7 +67,7 @@ trait AdminServices extends Connector {
   /**
     * Reset the password of an username to the default actorbase password
     *
-    * @param username a string representing the username of the user
+    * @param username a string representing the username of the user that need the password reset
     * @return true if the password was reset, false otherwise
     */
   def resetPassword(username: String)(implicit connection: ActorbaseDriver.Connection, scheme: String): Boolean = {

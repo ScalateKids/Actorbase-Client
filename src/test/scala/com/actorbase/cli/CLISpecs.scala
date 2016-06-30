@@ -56,7 +56,7 @@ object CLISpecs {
 
     import com.netaporter.precanned.dsl.fancy._
 
-    val actorbaseMockServices = httpServerMock(system).bind(9999).block
+    val actorbaseMockServices = httpServerMock(system).bind(9994).block
 
     actorbaseMockServices expect post and path("/auth/admin") and respond using entity ( HttpEntity (
       string = "Admin"

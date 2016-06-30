@@ -86,7 +86,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               val update = as[Boolean](u)
               if (as[String](c) contains ".") {
                 val collection = as[String](c).split("\\.")
-                driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
+                driver.insertTo(collection(1), update, (as[String](k) -> value))(collection(0))
               } else driver.insert(as[String](c), update, (as[String](k) -> value))
             }
             catch {

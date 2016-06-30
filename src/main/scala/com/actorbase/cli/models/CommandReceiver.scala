@@ -191,7 +191,11 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               response = driver.find(k.asInstanceOf[String], allCollections.toSeq:_*).toString
             case Some(c) =>
               // find key from a list of collections
-              response = driver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*).toString
+			  c.asInstanceOf[List[String]].foreach{
+				val collection = as[String](c).split("\\.")
+			    response += driver.findFrom(k.asInstanceOf[String], c.collection(1))(collection(0)).toString
+			  }
+			  response
           }
       }
     }

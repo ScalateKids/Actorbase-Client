@@ -181,17 +181,32 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               response = driver.getCollections.toString
             case Some(c) =>
               // get collections contained into a list
-              response = driver.getCollections(as[List[String]](c).toSeq:_*).toString
+              as[List[String]](c).foreach(x => {
+                if (x contains ".") {
+                  val splitted = x.split("\\.")
+                  response += driver.getCollection( splitted(1), splitted(0) ).toString+"\n"
+                }
+                else 
+                  response += driver.getCollection( x ).toString+"\n"
+              })
           }
         case Some(k) =>
           params.get("collection") match {
             case None =>
               // find key from all database
               val allCollections = driver.listCollections map (x => x.head._2.head)
-              response = driver.find(k.asInstanceOf[String], allCollections.toSeq:_*).toString
+              println(allCollections)
+              //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
             case Some(c) =>
               // find key from a list of collections
-              response = driver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*).toString
+      			  c.asInstanceOf[List[String]].foreach{ x => 
+                if(x contains "."){
+        				  val collection = x.split("\\.")
+        			    response += (driver.findFrom(k.asInstanceOf[String], collection(1))(collection(0))).toString+"\n"
+                }
+                else 
+                  response += (driver.findFrom(k.asInstanceOf[String], x)() ).toString+"\n"
+      			  }
           }
       }
     }
@@ -321,19 +336,21 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         params get "permissions" map { p =>
           val collection = as[String](c)
           val username = as[String](u)
-          val permission = if (as[String](p) == "read") false else true
+          val permission = if (as[String](p) == "ReadOnly") false else true
           try {
             if (collection contains ".") {
               val coll = collection.split("\\.")
-              driver.addContributorTo(username, coll(1), permission, coll(2))
+              driver.addContributorTo(username, coll(1), permission, coll(0))
             }
-            driver.addContributorTo(username, collection, permission)
+            else 
+              driver.addContributorTo(username, collection, permission)
             result = s"$username added to collection $collection"
           } catch {
             case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
             case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
             case uue: UndefinedUsernameExc => result = "Contributor username not found."
             case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+            case uc: UndefinedCollectionExc => result = "Undefined collection."
           }
         }
       }
@@ -356,7 +373,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
   /**
     * Remove a collaborator from a collection in the server instance of Actorbase.
     *
-    * @return a String, "Collaborator removed" if the method succeeded, an error message is returned
+    * @return a String, "username removed from collection" if the method succeeded, an error message is returned
     *         if the method failed
     */
   def removeCollaborator() : String = {
@@ -368,15 +385,17 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         try {
           if (collection contains ".") {
             val coll = collection.split("\\.")
-            driver.removeContributorFrom(username, coll(1), coll(2))
+            driver.removeContributorFrom(username, coll(1), coll(0))
           }
-          driver.removeContributorFrom(username, collection)
+          else 
+            driver.removeContributorFrom(username, collection)
           result = s"$username removed from collection $collection"
         } catch {
           case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
           case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
           case uue: UndefinedUsernameExc => result = "Contributor username not found."
           case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
+          case uc: UndefinedCollectionExc => result = "Undefined collection."
         }
       }
     }

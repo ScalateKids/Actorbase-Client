@@ -495,14 +495,29 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[InternalErrorExc])
   def getCollections(collections: String*): ActorbaseCollectionMap = {
     var colls = TreeMap.empty[String, ActorbaseCollection]
-    collections.foreach { c =>
+    listCollections map {
+      x => 
+        collections.foreach(c => { 
+            if(c == x.head._2.head){
+              try{
+                colls += (c -> getCollection(c, x.head._1))
+              } 
+              catch {
+                case uce:UndefinedCollectionExc =>
+              }
+            }
+          }
+        )
+    }
+    ActorbaseCollectionMap(colls)(connection, scheme)    
+   /* collections.foreach { c =>
       try {
         colls += (c -> getCollection(c))
       } catch {
         case uce:UndefinedCollectionExc =>
       }
     }
-    ActorbaseCollectionMap(colls)(connection, scheme)
+    ActorbaseCollectionMap(colls)(connection, scheme)*/
   }
 
   /**
@@ -783,6 +798,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
             case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+            case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
             case "OK" =>
           }
         }
@@ -824,6 +840,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
             case "UndefinedUsername" => throw UndefinedUsernameExc("Undefined username: Actorbase does not contains such credential")
             case "UsernameAlreadyExists" => throw UsernameAlreadyExistsExc("Username already in contributors for the given collection")
             case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+            case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
             case "OK" =>
           }
         }

@@ -181,35 +181,32 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               response = driver.getCollections.toString
             case Some(c) =>
               // get collections contained into a list
-              val colls = as[List[String]](c)
-              //var collections = List[String]()
-              colls.foreach(x => {
+              as[List[String]](c).foreach(x => {
                 if (x contains ".") {
-                  //collections ::= x.substring(x.indexOf(".")+1, x.length)
                   val splitted = x.split("\\.")
                   response += driver.getCollection( splitted(1), splitted(0) ).toString+"\n"
                 }
                 else 
                   response += driver.getCollection( x ).toString+"\n"
-                  //collections ::= x
               })
-              response
-              //println(collections)
-              //response = driver.getCollections(collections.toSeq:_*).toString
           }
         case Some(k) =>
           params.get("collection") match {
             case None =>
               // find key from all database
               val allCollections = driver.listCollections map (x => x.head._2.head)
-              response = driver.find(k.asInstanceOf[String], allCollections.toSeq:_*).toString
+              println(allCollections)
+              //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
             case Some(c) =>
               // find key from a list of collections
-			  c.asInstanceOf[List[String]].foreach{
-				val collection = as[String](c).split("\\.")
-			    response += driver.findFrom(k.asInstanceOf[String], c.collection(1))(collection(0)).toString
-			  }
-			  response
+      			  c.asInstanceOf[List[String]].foreach{ x => 
+                if(x contains "."){
+        				  val collection = x.split("\\.")
+        			    response += (driver.findFrom(k.asInstanceOf[String], collection(1))(collection(0))).toString+"\n"
+                }
+                else 
+                  response += (driver.findFrom(k.asInstanceOf[String], x)() ).toString+"\n"
+      			  }
           }
       }
     }

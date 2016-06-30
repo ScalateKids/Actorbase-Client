@@ -268,7 +268,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
   def listCollections(): String = {
     val divisor = 1024 * 1024
     val (header1, header2, header3) = ("OWNER", "COLLECTION", "SIZE")
-    var list = f"\n $header1%-14s | $header2%14s | $header3%14s \n"
+    var list = f"\n $header1%-14s | $header2%14s | $header3%7s \n"
     list += " -------------------------------------------------\n"
     try {
       val collectionList = driver.listCollections

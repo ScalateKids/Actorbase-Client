@@ -187,7 +187,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
           params.get("collection") match {
             case None =>
               // find key from all database
-              val allCollections = driver.listCollections map (x => x.head._2)
+              val allCollections = driver.listCollections map (x => x.head._2.head)
               response = driver.find(k.asInstanceOf[String], allCollections.toSeq:_*).toString
             case Some(c) =>
               // find key from a list of collections
@@ -266,13 +266,18 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String containing all the collections names the used has access to
     */
   def listCollections(): String = {
-    val (header1, header2) = ("OWNER", "COLLECTION")
-    var list = f"\n | $header1%-13s | $header2%13s | \n"
-    list += " ---------------------------------\n"
+    val divisor = 1024 * 1024
+    val (header1, header2, header3) = ("OWNER", "COLLECTION", "SIZE")
+    var list = f"\n $header1%-14s | $header2%14s | $header3%14s \n"
+    list += " -------------------------------------------------\n"
     try {
       val collectionList = driver.listCollections
-      if (collectionList.length > 0)
-        collectionList.foreach(c => list += f" | ${c.head._1}%-13s | ${c.head._2}%13s | \n")
+      if (collectionList.length > 0) {
+        collectionList.foreach { c =>
+          val mb = Math.round((c.head._2.last.toDouble / divisor) * 100000) / 100000
+          list += f" ${c.head._1}%-14s | ${c.head._2.head}%14s | ${mb}%.6f MB\n"
+        }
+      }
       else list = "No collections found"
     }
     catch {

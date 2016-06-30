@@ -50,7 +50,7 @@ import com.actorbase.driver.ActorbaseServerMock
   * The tests specifically are checking if the driver make the right requests
   * to che Actorbase server when some methods are called.
   */
-class ActorbaseDriverSpec extends WordSpec with Matchers{
+class ActorbaseDriverSpec extends WordSpec with Matchers {
 
   /**
     * Start an Actorbase mock server. this will simulate the responses that the

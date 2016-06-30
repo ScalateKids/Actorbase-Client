@@ -35,8 +35,10 @@ import com.actorbase.driver.data.{ ActorbaseCollection, ActorbaseCollectionMap, 
 import com.actorbase.driver.exceptions._
 
 import org.json4s._
+// import JsonAST._
 import org.json4s.jackson.JsonMethods._
-// import org.json4s.JsonDSL._
+import org.json4s.jackson.Serialization
+import org.json4s.JsonDSL._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
 
@@ -49,13 +51,40 @@ case class SingleResponse(response: Any)
 
 case class ListResponse(list: List[String])
 
+// class StringTupleSerializer extends CustomSerializer[Map[String, (String, Long)]](format => (
+  // {
+    // case JObject(JField("tuples", JArray(List(JObject(List((v,JArray(List(JString(s), JInt(t)))))))))) => new ListMapResponse(List(Map(v -> (s -> t.longValue))))
+    // case JObject(List((v,JArray(List(JString(s), JInt(t)))))) => Map(v -> (s -> t.longValue))
+      // case JArray(List(JObject(List((a,JArray(List(JString(j), JInt(u)))))))) => List(Map(a -> (j -> u.longValue)))
+      // case JObject(List((v,JObject(List((s,JInt(t))))))) => List(Map(v -> (s -> t.longValue)))
+      // case JObject(JField(s, JInt(t))) => (s -> t.longValue)
+  // }, {
+    // case x: Map[String, (String, Long)] =>
+      // x.map { y =>
+        // JObject(List((y._1,JArray(List(JString(y._2._1), JInt(y._2._2))))))
+      // }
+      // case x: Tuple2[String, Long] => JObject(JField(x._1, JInt(BigInt(x._2))))
+      // JObject(JField("tuples", JArray(List(JObject(List((x.,JArray(List(JString(s), JInt(t))))))))))
+  // }))
+
+// class StringTupleSerializer extends CustomSerializer[(String, Long)](format => ({
+//   case JArray(List(JString(s), JInt(t))) => (s -> t.longValue)
+//   // case JObject(List((v,JObject(List((s,JInt(t))))))) => List(Map(v -> (s -> t.longValue)))
+// }, {
+//   case _ => null
+// }))
+// class StringTupleSerializer extends CustomSerializer[(String, String)](format => ( {
+//   case JObject(List(JField(k, JString(v)))) => (k, v)
+// }, {
+//   case (s: String, t: String) => (s -> t)
+// }))
 // class StringTupleSerializer extends CustomSerializer[(String, String)](format => ( {
 //   case JObject(List(JField(k, JString(v)))) => (k, v)
 // }, {
 //   case (s: String, t: String) => (s -> t)
 // }))
 
-case class ListTupleResponse(tuples: List[Map[String, String]])
+case class ListMapResponse(tuples: List[Map[String, List[String]]])
 
 case class CollectionResponse(owner: String, collectionName: String, contributors: Map[String, Boolean] = Map.empty[String, Boolean], data: Map[String, Any] = Map.empty[String, Any])
 
@@ -397,9 +426,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def listCollections : List[Map[String, String]] = {
-    implicit val formats = DefaultFormats
-    var collections = List.empty[Map[String, String]]
+  def listCollections : List[Map[String, List[String]]] = {
+    implicit val formats = Serialization.formats(NoTypeHints)
+    var collections = List.empty[Map[String, List[String]]]
     val response =
       requestBuilder withCredentials(connection.username, connection.password) withUrl uri + "/collections" withMethod GET send()
     response.statusCode match {
@@ -408,7 +437,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case OK =>
         response.body map { r =>
-          val ret = parse(r).extract[ListTupleResponse]
+          val ret = parse(r).extract[ListMapResponse]
           collections :::= ret.tuples
         }
       case _ => collections :::= List()
@@ -429,30 +458,30 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def getCollections: ActorbaseCollectionMap = {
     var colls = TreeMap.empty[String, ActorbaseCollection]
     try {
-      listCollections map (x => colls += (x.head._2 -> getCollection(x.head._2, x.head._1)))
+      listCollections map (x => colls += (x.head._2.head -> getCollection(x.head._2.head, x.head._1)))
     } catch {
       case uce:UndefinedCollectionExc =>
     }
     ActorbaseCollectionMap(colls)(connection, scheme)
   }
 
-  def asyncGetCollections: ActorbaseCollectionMap = {
-    var colls = TreeMap.empty[String, ActorbaseCollection]
-    val collections = listCollections map (x => (x.head._1 -> x.head._2))
-    val futureList = Future.traverse(collections)(elem =>
-      Future {
-        var collls = Map.empty[String, ActorbaseCollection]
-        try {
-          collls += (elem._2 -> getCollection(elem._2, elem._1))
-        } catch {
-          case uce:UndefinedCollectionExc =>
-        }
-        collls
-      })
-    val listOfFutures = futureList.map(x => x.map (colls ++= _))
-    Await.result(listOfFutures, Duration.Inf)
-    ActorbaseCollectionMap(colls)(connection, scheme)
-  }
+  // def asyncGetCollections: ActorbaseCollectionMap = {
+  //   var colls = TreeMap.empty[String, ActorbaseCollection]
+  //   val collections = listCollections map (x => (x.head._1 -> x.head._2.head))
+  //   val futureList = Future.traverse(collections)(elem =>
+  //     Future {
+  //       var collls = Map.empty[String, ActorbaseCollection]
+  //       try {
+  //         collls += (elem._2._1 -> getCollection(elem._2.head, elem._1))
+  //       } catch {
+  //         case uce:UndefinedCollectionExc =>
+  //       }
+  //       collls
+  //     })
+  //   val listOfFutures = futureList.map(x => x.map (colls ++= _))
+  //   Await.result(listOfFutures, Duration.Inf)
+  //   ActorbaseCollectionMap(colls)(connection, scheme)
+  // }
 
   /**
     * Return a list of collections, querying the system for the entire contents
@@ -578,9 +607,9 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   def dropCollections: Unit = {
     if (connection.username != "admin")
-      listCollections map (x => dropCollections(x.head._2))
+      listCollections map (x => dropCollections(x.head._2.head))
     else listCollections map { x =>
-      listUsers map (u => dropCollectionsFrom(x.head._2)(u))
+      listUsers map (u => dropCollectionsFrom(x.head._2.head)(u))
     }
   }
 
@@ -687,7 +716,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def exportData(path: String, owner: String = connection.username): Unit = {
     listCollections map { x =>
       try {
-        getCollection(x.head._2, owner).export(path)
+        getCollection(x.head._2.head, owner).export(path)
       } catch {
         case uce:UndefinedCollectionExc =>
       }

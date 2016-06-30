@@ -242,7 +242,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     var status : Boolean = true
     val reader : ConsoleReader = new ConsoleReader()
     if(input matches("(q|quit|exit|logout)\\s*")) {
-      // commandInvoker.storeAndExecute(new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection)))
       status = false
     }
     else {
@@ -263,11 +262,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
         }
         case change if change matches("changePassword\\s*") => {
           val oldPassword = reader.readLine(">> password: ", '*')
-          line += " " + """.*""".r.findFirstIn(oldPassword).get
+          """\w*""".r.findFirstIn(oldPassword) map (x => line += " " + "\"" + x + "\"")
           val newPassword = reader.readLine(">> new password: ", '*')
-          line += " " + """\w*""".r.findFirstIn(newPassword).get
+          """\w*""".r.findFirstIn(newPassword) map (x => line += " " + "\"" + x + "\"")
           val repeatPassword = reader.readLine(">> repeat password: ", '*')
-          line += " " + """\w*""".r.findFirstIn(repeatPassword).get
+          """\w*""".r.findFirstIn(repeatPassword) map (x => line += " " + "\"" + x + "\"")
         }
         case quit if quit matches("(q|quit|exit|logout)\\s*") => status = false
         case _ => line

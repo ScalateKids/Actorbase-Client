@@ -114,7 +114,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         try {
           if (c contains ".") {
             val collection = c.split("\\.")
-            driver.removeFrom(collection(0), k)(collection(1))
+            driver.removeFrom(collection(1), k)(collection(0))
           } else driver.remove(c, k)
         }
         catch {

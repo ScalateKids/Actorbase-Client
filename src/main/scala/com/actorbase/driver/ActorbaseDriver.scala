@@ -625,17 +625,41 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def dropCollectionsFrom(collections: String*)(owner: String = connection.username): Unit = {
-    collections.foreach { collectionName =>
-      val response = requestBuilder
-        .withCredentials(connection.username, connection.password)
-        .withUrl(uri + "/collections/" + collectionName)
-        .addHeaders("owner" -> toBase64FromString(owner))
-        .withMethod(DELETE).send()
-      response.statusCode match {
-        case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
-        case BadRequest => throw InternalErrorExc("Invalid or malformed request")
-        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-        case _ =>
+    if (collections.length == 1) {
+      collections.foreach { collectionName =>
+        val response = requestBuilder
+          .withCredentials(connection.username, connection.password)
+          .withUrl(uri + "/collections/" + collectionName)
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(DELETE).send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response.body map { r =>
+              r.asInstanceOf[String] match {
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Insufficient permissions")
+                case _ =>
+              }
+            }
+          case _ =>
+        }
+      }
+    } else {
+      collections.foreach { collectionName =>
+        val response = requestBuilder
+          .withCredentials(connection.username, connection.password)
+          .withUrl(uri + "/collections/" + collectionName)
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(DELETE).send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Attempted a request without providing valid credentials")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case _ =>
+        }
       }
     }
   }

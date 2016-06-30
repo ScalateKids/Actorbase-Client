@@ -300,9 +300,9 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         driver.dropCollections(as[String](c))
       }
       catch {
-        case uc: UndefinedCollectionExc => return "Undefined collection."
-        case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-        case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+        case uc: UndefinedCollectionExc => response = "Undefined collection."
+        case wce: WrongCredentialsExc => response = "Credentials privilege level does not meet criteria needed to perform this operation."
+        case iec: InternalErrorExc => response = "There was an internal server error, something wrong happened."
       }
     }
     response

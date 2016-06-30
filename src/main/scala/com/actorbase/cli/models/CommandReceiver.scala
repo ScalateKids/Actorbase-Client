@@ -274,7 +274,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
       val collectionList = driver.listCollections
       if (collectionList.length > 0) {
         collectionList.foreach { c =>
-          val mb = Math.round((c.head._2.last.toDouble / divisor) * 100000) / 100000
+          val mb = c.head._2.last.toDouble / divisor
           list += f" ${c.head._1}%-14s | ${c.head._2.head}%14s | ${mb}%.6f MB\n"
         }
       }

@@ -86,7 +86,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               val update = as[Boolean](u)
               if (as[String](c) contains ".") {
                 val collection = as[String](c).split("\\.")
-                driver.insertTo(collection(0), update, (as[String](k) -> value))(collection(1))
+                driver.insertTo(collection(1), update, (as[String](k) -> value))(collection(0))
               } else driver.insert(as[String](c), update, (as[String](k) -> value))
             }
             catch {
@@ -114,7 +114,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         try {
           if (c contains ".") {
             val collection = c.split("\\.")
-            driver.removeFrom(collection(0), k)(collection(1))
+            driver.removeFrom(collection(1), k)(collection(0))
           } else driver.remove(c, k)
         }
         catch {
@@ -205,7 +205,11 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               response = driver.find(k.asInstanceOf[String], allCollections.toSeq:_*).toString
             case Some(c) =>
               // find key from a list of collections
-              response = driver.find(k.asInstanceOf[String], c.asInstanceOf[List[String]].toSeq: _*).toString
+			  c.asInstanceOf[List[String]].foreach{
+				val collection = as[String](c).split("\\.")
+			    response += driver.findFrom(k.asInstanceOf[String], c.collection(1))(collection(0)).toString
+			  }
+			  response
           }
       }
     }
@@ -314,9 +318,9 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         driver.dropCollections(as[String](c))
       }
       catch {
-        case uc: UndefinedCollectionExc => return "Undefined collection."
-        case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-        case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+        case uc: UndefinedCollectionExc => response = "Undefined collection."
+        case wce: WrongCredentialsExc => response = "Credentials privilege level does not meet criteria needed to perform this operation."
+        case iec: InternalErrorExc => response = "There was an internal server error, something wrong happened."
       }
     }
     response

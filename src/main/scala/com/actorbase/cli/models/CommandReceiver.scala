@@ -194,8 +194,14 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
           params.get("collection") match {
             case None =>
               // find key from all database
-              val allCollections = driver.listCollections map (x => x.head._2.head)
+              val allCollections = driver.listCollections map (x => x.head._2.head -> x.head._1)
               println(allCollections)
+              allCollections.foreach( x => {
+                val obj = (driver.findFrom(k.asInstanceOf[String], x._1)(x._2))
+                if(obj != new com.actorbase.driver.data.ActorbaseObject(Map[String,Any]()))
+                  response += obj.toString+"\n"                
+                }
+              )
               //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
             case Some(c) =>
               // find key from a list of collections

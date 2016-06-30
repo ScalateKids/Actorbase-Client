@@ -523,10 +523,12 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         driver.importData(as[String](p))
       }
       catch {
+        case fnfe: FileNotFoundException => return "File not found"
         case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
         case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
         case mfe: MalformedFileExc => return "Malformed json file"
-        case fnfe: FileNotFoundException => return "File not found"
+        case uun: UndefinedUsernameExc => return "Undefined username"
+        case dk: DuplicateKeyExc => return "Duplicated key request found"
       }
     }
     "imported"

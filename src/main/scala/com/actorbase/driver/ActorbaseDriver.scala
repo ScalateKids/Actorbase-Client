@@ -51,39 +51,6 @@ case class SingleResponse(response: Any)
 
 case class ListResponse(list: List[String])
 
-// class StringTupleSerializer extends CustomSerializer[Map[String, (String, Long)]](format => (
-// {
-// case JObject(JField("tuples", JArray(List(JObject(List((v,JArray(List(JString(s), JInt(t)))))))))) => new ListMapResponse(List(Map(v -> (s -> t.longValue))))
-// case JObject(List((v,JArray(List(JString(s), JInt(t)))))) => Map(v -> (s -> t.longValue))
-// case JArray(List(JObject(List((a,JArray(List(JString(j), JInt(u)))))))) => List(Map(a -> (j -> u.longValue)))
-// case JObject(List((v,JObject(List((s,JInt(t))))))) => List(Map(v -> (s -> t.longValue)))
-// case JObject(JField(s, JInt(t))) => (s -> t.longValue)
-// }, {
-// case x: Map[String, (String, Long)] =>
-// x.map { y =>
-// JObject(List((y._1,JArray(List(JString(y._2._1), JInt(y._2._2))))))
-// }
-// case x: Tuple2[String, Long] => JObject(JField(x._1, JInt(BigInt(x._2))))
-// JObject(JField("tuples", JArray(List(JObject(List((x.,JArray(List(JString(s), JInt(t))))))))))
-// }))
-
-// class StringTupleSerializer extends CustomSerializer[(String, Long)](format => ({
-//   case JArray(List(JString(s), JInt(t))) => (s -> t.longValue)
-//   // case JObject(List((v,JObject(List((s,JInt(t))))))) => List(Map(v -> (s -> t.longValue)))
-// }, {
-//   case _ => null
-// }))
-// class StringTupleSerializer extends CustomSerializer[(String, String)](format => ( {
-//   case JObject(List(JField(k, JString(v)))) => (k, v)
-// }, {
-//   case (s: String, t: String) => (s -> t)
-// }))
-// class StringTupleSerializer extends CustomSerializer[(String, String)](format => ( {
-//   case JObject(List(JField(k, JString(v)))) => (k, v)
-// }, {
-//   case (s: String, t: String) => (s -> t)
-// }))
-
 case class ListMapResponse(tuples: List[Map[String, List[String]]])
 
 case class CollectionResponse(owner: String, collectionName: String, contributors: Map[String, Boolean] = Map.empty[String, Boolean], data: Map[String, Any] = Map.empty[String, Any])
@@ -351,12 +318,6 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
         case BadRequest => throw InternalErrorExc("Invalid or malformed request")
-        // case NotFound =>
-        //   response.body map { x =>
-        //     x.asInstanceOf[String] match {
-        //       case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
-        //     }
-        //   }
         case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
         case OK =>
           response.body map { content =>
@@ -496,28 +457,28 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def getCollections(collections: String*): ActorbaseCollectionMap = {
     var colls = TreeMap.empty[String, ActorbaseCollection]
     listCollections map {
-      x => 
-        collections.foreach(c => { 
-            if(c == x.head._2.head){
-              try{
-                colls += (c -> getCollection(c, x.head._1))
-              } 
-              catch {
-                case uce:UndefinedCollectionExc =>
-              }
-            }
+      x =>
+      collections.foreach(c => {
+        if(c == x.head._2.head){
+          try{
+            colls += (c -> getCollection(c, x.head._1))
           }
-        )
-    }
-    ActorbaseCollectionMap(colls)(connection, scheme)    
-   /* collections.foreach { c =>
-      try {
-        colls += (c -> getCollection(c))
-      } catch {
-        case uce:UndefinedCollectionExc =>
+          catch {
+            case uce:UndefinedCollectionExc =>
+          }
+        }
       }
+      )
     }
-    ActorbaseCollectionMap(colls)(connection, scheme)*/
+    ActorbaseCollectionMap(colls)(connection, scheme)
+    /* collections.foreach { c =>
+     try {
+     colls += (c -> getCollection(c))
+     } catch {
+     case uce:UndefinedCollectionExc =>
+     }
+     }
+     ActorbaseCollectionMap(colls)(connection, scheme)*/
   }
 
   /**

@@ -347,7 +347,7 @@ case class ActorbaseCollection
       try{
         exportTo.getParentFile.mkdirs
         } catch {
-          case np: NullPointerException => 
+          case np: NullPointerException =>
         }
     val printWriter = new PrintWriter(exportTo)
     // printWriter.write(serialize2JSON(this))

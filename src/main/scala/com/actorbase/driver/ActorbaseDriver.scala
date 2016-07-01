@@ -752,10 +752,13 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws InternalErrorExc in case of internal server error
     * @throws MalformedFileExc in case of a not well balanced JSON file or a non-existant file at the given path
     */
-  def exportData(path: String, owner: String = connection.username): Unit = {
-    listCollections map { x =>
+  def exportData(path: String, collections: List[Tuple2[String, String]])(owner: String = connection.username): Unit = {
+    var first = true
+    collections.foreach { x =>
       try {
-        getCollection(x.head._2.head, owner).export(path, true)
+        getCollection(x._1, x._2).export(path, !first)
+        if(first)
+          first = false
       } catch {
         case uce:UndefinedCollectionExc =>
       }

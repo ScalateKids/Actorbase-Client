@@ -513,18 +513,22 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
 
   /**
     * Export actorbase data into a file. Based on params this method can export:
-    *  _a key in one or more collections;
     *  _one or more collections;
     *
     * @return a String, "Exported" if the method succeeded, an error message is returned
     *         if the method failed
     */
   def export() : String = {
-    //val list = params.get("p_list").asInstanceOf[List[String]]
     //val path = params.get("f_path").asInstanceOf[String]
     try {
       val path = params.get("f_path").get.asInstanceOf[String]
-      driver.exportData(path)
+      val list = params.get("p_list").asInstanceOf[List[String]]
+      var collList = List(Tuple2[String,String])
+      list.foreach { x =>
+        val collection = as[String](x).split("\\.")
+        collList :+= (collection(1), collection(0))
+      }
+      driver.exportData(path, collList)
     }
     catch{
       case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."

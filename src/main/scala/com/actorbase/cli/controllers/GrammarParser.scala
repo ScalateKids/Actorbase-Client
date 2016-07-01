@@ -141,9 +141,11 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the ExportCommand with the right parameters.
     */
   // only works without spaces for now
-  def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ quotedString ^^ {
+  def exportCommand : Parser[Command] = ("export " ~ (keyString | listString) ~ "to" ~ quotedString | "export to" ~ quotedString) ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new ExportCommand(new CommandReceiver(Map[String, Any]("p_list" -> args_1.split(",").toList, "f_path" -> strip(args_2)), driverConnection))
+      new ExportCommand(new CommandReceiver(Map[String, Any]("p_list" -> args_1.asInstanceOf[String].split(",").map(x => strip(x)).toList, "f_path" -> strip(args_2)), driverConnection))
+    case cmd_part_1 ~ args_1 =>
+      new ExportCommand(new CommandReceiver(Map[String, Any]("f_path" -> strip(args_1)), driverConnection))
   }
 
   def importCommand : Parser[Command] = "import " ~ (keyString) ^^ {
@@ -161,7 +163,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the InsertItemCommand with the right parameters.
     */
   def insertItemCommand : Parser[Command] = {
-    ("insert" | "update") ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ quotedString ^^ {
+    ("insert" | "update") ~ "(" ~ keyString ~ "->" ~ keyString ~ ")" ~ "to" ~ keyString ^^ {
       case "insert" ~ "(" ~ args_1 ~ "->" ~ args_2 ~ ")" ~ "to" ~ args_3 =>
         new InsertItemCommand(
           new CommandReceiver(Map[String, Any]("key" -> strip(args_1), "value" -> strip(args_2), "collection" -> strip(args_3), "update" -> false), driverConnection))

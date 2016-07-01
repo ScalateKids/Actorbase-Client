@@ -195,7 +195,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
             case None =>
               // find key from all database
               val allCollections = driver.listCollections map (x => x.head._2.head -> x.head._1)
-              println(allCollections)
               allCollections.foreach( x => {
                 val obj = (driver.findFrom(k.asInstanceOf[String], x._1)(x._2))
                 if(obj != new com.actorbase.driver.data.ActorbaseObject(Map[String,Any]()))
@@ -514,24 +513,44 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
 
   /**
     * Export actorbase data into a file. Based on params this method can export:
-    *  _a key in one or more collections;
     *  _one or more collections;
     *
     * @return a String, "Exported" if the method succeeded, an error message is returned
     *         if the method failed
     */
   def export() : String = {
-    //val list = params.get("p_list").asInstanceOf[List[String]]
-    //val path = params.get("f_path").asInstanceOf[String]
-    try {
-      val path = params.get("f_path").get.asInstanceOf[String]
-      driver.exportData(path)
-    }
-    catch{
-      case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-      case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-      case uue: UndefinedUsernameExc => return "Undefined username: Actorbase does not contains such credential"
-      case uae: UsernameAlreadyExistsExc => return "Username already exists in the system Actorbase"
+    val path = params.get("f_path").get.asInstanceOf[String]
+    var collList = List.empty[Tuple2[String,String]]
+    params.get("p_list") match {
+      case Some(c) =>
+        try {
+          val list = c.asInstanceOf[List[String]]
+          list.foreach { x =>
+            if (x contains ".") {
+              val collection = as[String](x).split("\\.")
+              collList ::= (collection(1) -> collection(0))
+            }
+            else
+              collList ::= (x -> "")
+          }
+          driver.exportData(path, collList)()
+        }
+        catch {
+          case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+          case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+          case uue: UndefinedUsernameExc => return "Undefined username: Actorbase does not contains such credential"
+          case uae: UsernameAlreadyExistsExc => return "Username already exists in the system Actorbase"
+        }
+      case None =>
+        try {
+          driver.exportData(path)()
+        }
+        catch {
+          case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
+          case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
+          case uue: UndefinedUsernameExc => return "Undefined username: Actorbase does not contains such credential"
+          case uae: UsernameAlreadyExistsExc => return "Username already exists in the system Actorbase"
+        }
     }
     "exported"
   }

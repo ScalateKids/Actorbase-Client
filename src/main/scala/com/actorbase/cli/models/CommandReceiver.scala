@@ -519,7 +519,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *         if the method failed
     */
   def export() : String = {
-    val path = params.get("f_path").asInstanceOf[String]
+    val path = params.get("f_path").get.asInstanceOf[String]
     var collList = List.empty[Tuple2[String,String]]
     params.get("p_list") match {
       case Some(c) =>

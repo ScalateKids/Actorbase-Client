@@ -520,15 +520,19 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     */
   def export() : String = {
     //val path = params.get("f_path").asInstanceOf[String]
+    var collList = List.empty[Tuple2[String,String]]
     try {
       val path = params.get("f_path").get.asInstanceOf[String]
-      val list = params.get("p_list").asInstanceOf[List[String]]
-      var collList = List(Tuple2[String,String])
+      val list = params.get("p_list").get.asInstanceOf[List[String]]
       list.foreach { x =>
-        val collection = as[String](x).split("\\.")
-        collList :+= (collection(1), collection(0))
+        if (x contains ".") {
+          val collection = as[String](x).split("\\.")
+          collList ::= (collection(1) -> collection(0))
+        }
+        else
+          collList ::= (x -> "")
       }
-      driver.exportData(path, collList)
+      driver.exportData(path, collList)()
     }
     catch{
       case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."

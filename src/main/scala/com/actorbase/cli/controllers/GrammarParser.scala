@@ -143,7 +143,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   // only works without spaces for now
   def exportCommand : Parser[Command] = "export " ~ (keyString | listString) ~ "to" ~ quotedString ^^ {
     case cmd_part_1 ~ args_1 ~ cmd_part_2 ~ args_2 =>
-      new ExportCommand(new CommandReceiver(Map[String, Any]("p_list" -> args_1.split(",").toList, "f_path" -> strip(args_2)), driverConnection))
+      new ExportCommand(new CommandReceiver(Map[String, Any]("p_list" -> args_1.split(",").map(x => strip(x)).toList, "f_path" -> strip(args_2)), driverConnection))
   }
 
   def importCommand : Parser[Command] = "import " ~ (keyString) ^^ {

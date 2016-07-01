@@ -756,7 +756,10 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     var first = true
     collections.foreach { x =>
       try {
-        getCollection(x._1, x._2).export(path, !first)
+        if(x._2 != "")
+          getCollection(x._1, x._2).export(path, !first)
+        else
+          getCollection(x._1, owner).export(path, !first)
         if(first)
           first = false
       } catch {

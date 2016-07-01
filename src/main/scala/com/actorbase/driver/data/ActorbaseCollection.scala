@@ -34,7 +34,7 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.exceptions._
 
-import java.io.{File, PrintWriter}
+import java.io.{FileOutputStream, File, PrintWriter}
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
 
@@ -338,10 +338,11 @@ case class ActorbaseCollection
     *
     * @param path a String representing the path on the filesystem where
     * the JSON file will be saved
+    * @param  append if false this method will overwrite the file that's already in the given path,
+    *                   if true it will append the exported collection to the end of the file
     * @return no return value
-    * @throws
     */
-  def export(path: String): Unit = {
+  def export(path: String, append: Boolean = false): Unit = {
     val exportTo = new File(path)
     if (!exportTo.exists)
       try{
@@ -349,10 +350,18 @@ case class ActorbaseCollection
         } catch {
           case np: NullPointerException => 
         }
-    val printWriter = new PrintWriter(exportTo)
     // printWriter.write(serialize2JSON(this))
-    printWriter.write(toString)
-    printWriter.close
+    if(!append){ //if append is false it overwrites everything on the file
+      val printWriter = new PrintWriter(exportTo)
+      printWriter.write(toString)
+      printWriter.close
+    }
+    else{ //append==true, it adds the collection to the end of the file
+     val printWriter = new PrintWriter(new FileOutputStream(exportTo, true))
+      printWriter.append(toString)
+      printWriter.close
+    }
+
   }
 
   /**

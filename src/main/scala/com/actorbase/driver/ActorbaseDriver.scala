@@ -755,7 +755,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def exportData(path: String, owner: String = connection.username): Unit = {
     listCollections map { x =>
       try {
-        getCollection(x.head._2.head, owner).export(path)
+        getCollection(x.head._2.head, owner).export(path, true)
       } catch {
         case uce:UndefinedCollectionExc =>
       }

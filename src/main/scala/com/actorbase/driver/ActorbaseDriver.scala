@@ -21,6 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
+  *
   * @author Scalatekids
   * @version 1.0
   * @since 1.0
@@ -752,18 +753,31 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     * @throws InternalErrorExc in case of internal server error
     * @throws MalformedFileExc in case of a not well balanced JSON file or a non-existant file at the given path
     */
-  def exportData(path: String, collections: List[Tuple2[String, String]])(owner: String = connection.username): Unit = {
+  def exportData(path: String, collections: List[Tuple2[String, String]] = List[Tuple2[String,String]]())(owner: String = connection.username): Unit = {
     var first = true
-    collections.foreach { x =>
-      try {
-        if(x._2 != "")
-          getCollection(x._1, x._2).export(path, !first)
-        else
-          getCollection(x._1, owner).export(path, !first)
-        if(first)
-          first = false
-      } catch {
-        case uce:UndefinedCollectionExc =>
+    if(collections.isEmpty) {
+      listCollections map { x =>
+        try {
+          getCollection(x.head._2.head, owner).export(path, !first)
+          if (first)
+            first = false
+        } catch {
+          case uce: UndefinedCollectionExc =>
+        }
+      }
+    }
+    else {
+      collections.foreach { x =>
+        try {
+          if (x._2 != "")
+            getCollection(x._1, x._2).export(path, !first)
+          else
+            getCollection(x._1, owner).export(path, !first)
+          if (first)
+            first = false
+        } catch {
+          case uce: UndefinedCollectionExc =>
+        }
       }
     }
   }

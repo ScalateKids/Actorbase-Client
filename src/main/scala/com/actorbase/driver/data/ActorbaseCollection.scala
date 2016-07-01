@@ -359,6 +359,7 @@ case class ActorbaseCollection
     else{ //append==true, it adds the collection to the end of the file
      val printWriter = new PrintWriter(new FileOutputStream(exportTo, true))
       printWriter.append(toString)
+      printWriter.append("\n")
       printWriter.close
     }
 

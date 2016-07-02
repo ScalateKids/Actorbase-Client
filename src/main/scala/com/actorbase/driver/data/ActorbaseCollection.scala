@@ -354,16 +354,14 @@ case class ActorbaseCollection
     if(!append){ //if append is false it overwrites everything on the file
       val printWriter = new PrintWriter(exportTo)
       printWriter.write(toString)
-      printWriter.append("\n")
       printWriter.close
     }
     else{ //append==true, it adds the collection to the end of the file
-     val printWriter = new PrintWriter(new FileOutputStream(exportTo, true))
+      val printWriter = new PrintWriter(new FileOutputStream(exportTo, true))
+      printWriter.append(",\n")
       printWriter.append(toString)
-      printWriter.append("\n")
       printWriter.close
     }
-
   }
 
   /**

@@ -34,10 +34,18 @@ import com.actorbase.driver.client.api.RestMethods._
 import com.actorbase.driver.client.api.RestMethods.Status._
 import com.actorbase.driver.exceptions._
 
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.Serialization
+import org.json4s.JsonDSL._
 import java.io.{FileOutputStream, File, PrintWriter}
 import scala.collection.immutable.TreeMap
 import scala.collection.generic.FilterMonadic
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration.Duration
 
+case class SingleResponse(response: Any)
 
 /**
   * Class representing a single collection of the database at the current state,
@@ -52,6 +60,7 @@ case class ActorbaseCollection
     var data: TreeMap[String, Any] = new TreeMap[String, Any]())(implicit val conn: Connection, implicit val scheme: String)
     extends Connector {
 
+  implicit val formats = DefaultFormats
   val uri: String = scheme + conn.address + ":" + conn.port
 
   /**
@@ -96,6 +105,38 @@ case class ActorbaseCollection
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
+  def asyncInsert(kv: (String, Any)*): ActorbaseCollection = {
+    val futureList = Future.traverse(kv)(keyVal =>
+      Future {
+        (keyVal._1 -> keyVal._2 -> requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + keyVal._1)
+          .withBody(serialize(keyVal._2))
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(POST).send())
+      })
+    val listOfFutures = futureList.map { x =>
+      x map { response =>
+        response._2.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case OK =>
+            response._2.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case _ => data += (response._1._1 -> response._1._2)
+              }
+            }
+          case _ =>
+        }
+      }
+    }
+    Await.result(listOfFutures, Duration.Inf)
+    ActorbaseCollection(owner, collectionName, contributors, data)
+  }
   /**
     * Insert a new key-value tuple, representing an ActorbaseObject to the
     * collection reflecting local changes to remote collection on server-side
@@ -147,6 +188,41 @@ case class ActorbaseCollection
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
+  def asyncUpdate(kv: (String, Any)*): ActorbaseCollection = {
+    val futureList = Future.traverse(kv)(keyVal =>
+      Future {
+        (keyVal._1 -> keyVal._2 -> requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + keyVal._1)
+          .withBody(serialize(keyVal._2))
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(PUT).send())
+      })
+    val listOfFutures = futureList.map { x =>
+      x map { response =>
+        response._2.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case OK =>
+            response._2.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case _ =>
+                  data -= response._1._1
+                  data += (response._1._1 -> response._1._2)
+              }
+            }
+          case _ =>
+        }
+      }
+    }
+    Await.result(listOfFutures, Duration.Inf)
+    ActorbaseCollection(owner, collectionName, contributors, data)
+  }
+
   /**
     * Remove an arbitrary variable number of key-value tuple from the collection
     * reflecting local changes to remote collection on server-side
@@ -182,6 +258,32 @@ case class ActorbaseCollection
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
+  def asyncRemove(keys: String*): ActorbaseCollection = {
+    val futureList = Future.traverse(keys)(key =>
+      Future {
+        (key -> requestBuilder.withCredentials(conn.username, conn.password).withUrl(uri + "/collections/" + collectionName + "/" + key).withMethod(DELETE).send())
+      })
+    val listOfFutures = futureList.map { x =>
+      x map { response =>
+        response._2.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response._2.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case _ => data -= response._1
+              }
+            }
+          case _ =>
+        }
+      }
+    }
+    Await.result(listOfFutures, Duration.Inf)
+    ActorbaseCollection(owner, collectionName, contributors, data)
+  }
+
   /**
     * Remove a key-value tuple, representing an ActorbaseObject from the
     * collection reflecting local changes to remote collection on server-side
@@ -201,25 +303,77 @@ case class ActorbaseCollection
     * @return an object of type ActorbaseObject
     * @throws
     */
-  def find[A >: Any]: ActorbaseObject[A] = ActorbaseObject(data)
+  def find[A >: Any]: ActorbaseObject[A] = find()
 
   /**
     * Find an arbitrary number of elements inside the collection, returning an
-    * ActorbaseObject
+    * ActorbaseObject, return all then contents of the collection if the vararg
+    * passed asinstanceof parameter is empty
     *
     *
     * @param keys a vararg String representing a sequence of keys to be retrieved
     v* @return an object of type ActorbaseObject
     */
   def find[A >: Any](keys: String*): ActorbaseObject[A] = {
-    var coll = TreeMap[String, Any]().empty
-    keys.foreach { key =>
-      if (data.contains(key))
-        data.filterKeys(_ == key) map ( head => coll += head )
+    if(keys.length == 0) ActorbaseObject(data)
+    else {
+      var buffer = TreeMap[String, Any]().empty
+      keys.foreach { key =>
+        if (data.contains(key))
+          data get key map (k => buffer += (key -> k))
+        else {
+          val response = requestBuilder
+            .withCredentials(conn.username, conn.password)
+            .withUrl(uri + "/collections/" + collectionName + "/" + key)
+            .addHeaders("owner" -> toBase64FromString(owner))
+            .withMethod(GET).send()
+          response.statusCode match {
+            case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+            case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+            case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+            case OK =>
+              response.body map { content =>
+                val ret = parse(content).extract[SingleResponse]
+                buffer += (key -> ret.response)
+              }
+            case _ =>
+          }
+        }
+      }
+      data ++= buffer
+      ActorbaseObject(buffer.toMap)
     }
-    ActorbaseObject(coll.toMap)
   }
 
+  def asyncFind[A >: Any](keys: String*): ActorbaseObject[A] = {
+    var buffer = TreeMap.empty[String, Any]
+    val futureList = Future.traverse(keys)(key =>
+      Future {
+        (key -> requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + key)
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(GET).send())
+      })
+    val listOfFutures = futureList.map { x =>
+      x map { response =>
+        response._2.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response._2.body map { content =>
+              val ret = parse(content).extract[SingleResponse]
+              buffer += (response._1 -> ret.response)
+            }
+          case _ =>
+        }
+      }
+    }
+    Await.result(listOfFutures, Duration.Inf)
+    data ++= buffer
+    ActorbaseObject(buffer.toMap)
+  }
   /**
     * Find an element inside the collection, returning an ActorbaseObject
     * representing the key/value pair
@@ -230,7 +384,26 @@ case class ActorbaseCollection
   def findOne[A >: Any](key: String): Option[ActorbaseObject[A]] = {
     if (data.contains(key))
       Some(ActorbaseObject(key -> data.get(key).getOrElse(None)))
-    else None
+    else {
+      var buffer: Option[ActorbaseObject[A]] = None
+      val response = requestBuilder
+        .withCredentials(conn.username, conn.password)
+        .withUrl(uri + "/collections/" + collectionName + "/" + key)
+        .addHeaders("owner" -> toBase64FromString(owner))
+        .withMethod(GET).send()
+      response.statusCode match {
+        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+        case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+        case OK =>
+          response.body map { content =>
+            val ret = parse(content).extract[SingleResponse]
+            buffer = Some(ActorbaseObject(key -> ret.response))
+          }
+        case _ =>
+      }
+      buffer
+    }
   }
 
   /**
@@ -347,9 +520,9 @@ case class ActorbaseCollection
     if (!exportTo.exists)
       try{
         exportTo.getParentFile.mkdirs
-        } catch {
-          case np: NullPointerException =>
-        }
+      } catch {
+        case np: NullPointerException =>
+      }
     // printWriter.write(serialize2JSON(this))
     if(!append){ //if append is false it overwrites everything on the file
       val printWriter = new PrintWriter(exportTo)

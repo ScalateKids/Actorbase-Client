@@ -36,7 +36,6 @@ import com.actorbase.driver.data.{ ActorbaseCollection, ActorbaseCollectionMap, 
 import com.actorbase.driver.exceptions._
 
 import org.json4s._
-// import JsonAST._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization
 import org.json4s.JsonDSL._
@@ -152,6 +151,8 @@ object ActorbaseDriver extends Connector {
   *
   */
 class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val scheme: String = "http://") extends Connector {
+
+  implicit val formats = DefaultFormats
 
   val uri: String = scheme + connection.address + ":" + connection.port
 
@@ -308,26 +309,56 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   def findFrom[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
-    implicit val formats = DefaultFormats
+    if(collections.length <= 1) {
+      var buffer = Map.empty[String, Any]
+      collections.foreach { collectionName =>
+        val response = requestBuilder
+          .withCredentials(connection.username, connection.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + key)
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(GET).send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response.body map { content =>
+              val ret = parse(content).extract[SingleResponse]
+              buffer += (collectionName -> ret.response)
+            }
+          case _ =>
+        }
+      }
+      ActorbaseObject(buffer)
+    } else asyncFind(key, collections:_*)(owner)
+  }
+
+  private def asyncFind[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
     var buffer = Map.empty[String, Any]
-    collections.foreach { collectionName =>
-      val response = requestBuilder
-        .withCredentials(connection.username, connection.password)
-        .withUrl(uri + "/collections/" + collectionName + "/" + key)
-        .addHeaders("owner" -> toBase64FromString(owner))
-        .withMethod(GET).send()
-      response.statusCode match {
-        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-        case BadRequest => throw InternalErrorExc("Invalid or malformed request")
-        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-        case OK =>
-          response.body map { content =>
-            val ret = parse(content).extract[SingleResponse]
-            buffer += (collectionName -> ret.response)
-          } getOrElse (Map.empty[String, Any])
-        case _ =>
+    val futureList = Future.traverse(collections)(elem =>
+      Future {
+        (requestBuilder
+          .withCredentials(connection.username, connection.password)
+          .withUrl(uri + "/collections/" + elem + "/" + key)
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(GET).send() -> elem)
+      })
+    val listOfFutures = futureList.map { x =>
+      x map { response =>
+        response._1.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response._1.body map { content =>
+              val ret = parse(content).extract[SingleResponse]
+              buffer += (response._2 -> ret.response)
+            }
+          case _ =>
+        }
       }
     }
+    Await.result(listOfFutures, Duration.Inf)
     ActorbaseObject(buffer)
   }
 
@@ -388,7 +419,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def listCollections : List[Map[String, List[String]]] = {
+  def listCollections: List[Map[String, List[String]]] = {
     implicit val formats = Serialization.formats(NoTypeHints)
     var collections = List.empty[Map[String, List[String]]]
     val response =

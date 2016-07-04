@@ -1,6 +1,10 @@
-name := "Actorbase-CLI"
+name := "actorbase-cli"
+
 version := "1.0"
+
 scalaVersion := "2.11.8"
+
+organization := "com.actorbase"
 
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.2.1",
@@ -26,7 +30,7 @@ val b = ActorbaseDriver("http://b:Actorb4se@127.0.0.1:9999")
 val c = ActorbaseDriver("http://c:Actorb4se@127.0.0.1:9999")
 """
 
-assemblyJarName in assembly := "Actorbase-Client.jar"
+assemblyJarName in assembly := "actorbasecli.jar"
 mainClass in assembly := Some("com.actorbase.cli.views.CommandLoop")
 test in assembly := {}
 assemblyMergeStrategy in assembly := {

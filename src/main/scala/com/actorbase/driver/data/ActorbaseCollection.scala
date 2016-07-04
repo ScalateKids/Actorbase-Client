@@ -127,7 +127,7 @@ case class ActorbaseCollection
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
   @throws(classOf[DuplicateKeyExc])
-  def asyncInsert(kv: (String, Any)*): ActorbaseCollection = {
+  private def asyncInsert(kv: (String, Any)*): ActorbaseCollection = {
     val futureList = Future.traverse(kv)(keyVal =>
       Future {
         (keyVal._1 -> keyVal._2 -> requestBuilder
@@ -372,7 +372,7 @@ case class ActorbaseCollection
   @throws(classOf[InternalErrorExc])
   def find[A >: Any](keys: String*): ActorbaseObject[A] = {
     if(keys.length == 0) ActorbaseObject(data)
-    else {
+    else if(keys.length == 1) {
       var buffer = TreeMap[String, Any]().empty
       keys.foreach { key =>
         if (data.contains(key))
@@ -398,7 +398,7 @@ case class ActorbaseCollection
       }
       data ++= buffer
       ActorbaseObject(buffer.toMap)
-    }
+    } else asyncFind(keys:_*)
   }
 
   /**
@@ -411,7 +411,7 @@ case class ActorbaseCollection
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
-  def asyncFind[A >: Any](keys: String*): ActorbaseObject[A] = {
+  private def asyncFind[A >: Any](keys: String*): ActorbaseObject[A] = {
     var buffer = TreeMap.empty[String, Any]
     val futureList = Future.traverse(keys)(key =>
       Future {

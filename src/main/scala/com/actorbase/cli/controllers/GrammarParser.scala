@@ -107,7 +107,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] representing the right command based on the user input.
     */
   def collectionManagementCommand : Parser[Command] =
-    (("createCollection" | "deleteCollection") ~ quotedString |
+    (("createCollection" | "deleteCollection") ~ keyString |
       "listCollections") ^^ {
 
       case "createCollection" ~ args_1 => new CreateCollectionCommand(new CommandReceiver(Map[String, Any]("name" -> strip(args_1)), driverConnection))

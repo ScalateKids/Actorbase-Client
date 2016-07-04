@@ -61,6 +61,10 @@ case class ActorbaseCollection
     extends Connector {
 
   implicit val formats = DefaultFormats
+
+  /**
+    * default scheme + uri to access server side actorbase
+    */
   val uri: String = scheme + conn.address + ":" + conn.port
 
   /**
@@ -79,30 +83,34 @@ case class ActorbaseCollection
   @throws(classOf[UndefinedCollectionExc])
   @throws(classOf[DuplicateKeyExc])
   def insert(kv: (String, Any)*): ActorbaseCollection = {
-    for((k, v) <- kv) {
-      val response = requestBuilder
-        .withCredentials(conn.username, conn.password)
-        .withUrl(uri + "/collections/" + collectionName + "/" + k)
-        .withBody(serialize(v))
-        .addHeaders("owner" -> toBase64FromString(owner))
-        .withMethod(POST).send()
-      response.statusCode match {
-        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-        case BadRequest => throw InternalErrorExc("Invalid or malformed request")
-        case OK =>
-          response.body map { x =>
-            x.asInstanceOf[String] match {
-              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-              case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
-              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
-              case _ => data += (k -> v)
+    if(kv.length > 1)
+      asyncInsert(kv:_*)
+    else {
+      for ((k, v) <- kv) {
+        val response = requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + k)
+          .withBody(serialize(v))
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(POST).send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case BadRequest => throw InternalErrorExc("Invalid or malformed request")
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case _ => data += (k -> v)
+              }
             }
-          }
-        case _ =>
+          case _ =>
+        }
       }
+      ActorbaseCollection(owner, collectionName, contributors, data)
     }
-    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -175,30 +183,34 @@ case class ActorbaseCollection
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
   def update(kv: (String, Any)*): ActorbaseCollection = {
-    for ((k, v) <- kv) {
-      val response = requestBuilder
-        .withCredentials(conn.username, conn.password)
-        .withUrl(uri + "/collections/" + collectionName + "/" + k)
-        .withBody(serialize(v))
-        .addHeaders("owner" -> toBase64FromString(owner))
-        .withMethod(PUT).send()
-      response.statusCode match {
-        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-        case OK =>
-          response.body map { x =>
-            x.asInstanceOf[String] match {
-              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
-              case _ =>
-                data -= k
-                data += (k -> v)
+    if(kv.length > 1)
+      asyncUpdate(kv:_*)
+    else {
+      for ((k, v) <- kv) {
+        val response = requestBuilder
+          .withCredentials(conn.username, conn.password)
+          .withUrl(uri + "/collections/" + collectionName + "/" + k)
+          .withBody(serialize(v))
+          .addHeaders("owner" -> toBase64FromString(owner))
+          .withMethod(PUT).send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case _ =>
+                  data -= k
+                  data += (k -> v)
+              }
             }
-          }
-        case _ =>
+          case _ =>
+        }
       }
+      ActorbaseCollection(owner, collectionName, contributors, data)
     }
-    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -213,7 +225,7 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
-  def asyncUpdate(kv: (String, Any)*): ActorbaseCollection = {
+  private def asyncUpdate(kv: (String, Any)*): ActorbaseCollection = {
     val futureList = Future.traverse(kv)(keyVal =>
       Future {
         (keyVal._1 -> keyVal._2 -> requestBuilder
@@ -263,23 +275,27 @@ case class ActorbaseCollection
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
   def remove(keys: String*): ActorbaseCollection = {
-    keys.foreach { key =>
-      val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
-      response.statusCode match {
-        case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
-        case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
-        case OK =>
-          response.body map { x =>
-            x.asInstanceOf[String] match {
-              case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
-              case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
-              case _ => data -= key
+    if(keys.length > 1)
+      asyncRemove(keys:_*)
+    else {
+      keys.foreach { key =>
+        val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
+        response.statusCode match {
+          case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+          case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
+          case OK =>
+            response.body map { x =>
+              x.asInstanceOf[String] match {
+                case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
+                case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case _ => data -= key
+              }
             }
-          }
-        case _ =>
+          case _ =>
+        }
       }
+      ActorbaseCollection(owner, collectionName, contributors, data)
     }
-    ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
   /**
@@ -295,7 +311,7 @@ case class ActorbaseCollection
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
-  def asyncRemove(keys: String*): ActorbaseCollection = {
+  private def asyncRemove(keys: String*): ActorbaseCollection = {
     val futureList = Future.traverse(keys)(key =>
       Future {
         (key -> requestBuilder.withCredentials(conn.username, conn.password).withUrl(uri + "/collections/" + collectionName + "/" + key).withMethod(DELETE).send())

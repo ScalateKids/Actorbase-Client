@@ -464,7 +464,10 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   def getCollections: ActorbaseCollectionMap = {
     var colls = TreeMap.empty[String, ActorbaseCollection]
     try {
-      listCollections map (x => colls += (x.head._2.head -> getCollection(x.head._2.head, x.head._1)))
+      listCollections map (x => {
+        println("calling for getCollection("+x.head._2.head+","+ x.head._1+")")
+        colls += (x.head._2.head+"."+x.head._1 -> getCollection(x.head._2.head, x.head._1))
+      } )
     } catch {
       case uce:UndefinedCollectionExc =>
     }

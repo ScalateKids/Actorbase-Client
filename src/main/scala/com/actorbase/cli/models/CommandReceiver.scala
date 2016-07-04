@@ -432,7 +432,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
           case wce: WrongCredentialsExc => "Credentials privilege level does not meet criteria needed to perform this operation."
           case iec: InternalErrorExc => "There was an internal server error, something wrong happened."
           case wnp: WrongNewPasswordExc => "The password inserted does not meet Actorbase criteria"
-          case uue: UndefinedUsernameExc => "Undefined username"
+          case uue: UndefinedUsernameExc => "Wrong password"
         }
       }
     }

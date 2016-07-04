@@ -28,7 +28,6 @@
 
 package com.actorbase.driver.client.api
 
-import scala.util.parsing.json.JSON
 import scala.language.implicitConversions
 
 import scalaj.http.HttpResponse
@@ -89,19 +88,6 @@ object RestMethods {
     *
     */
   case object Response {
-
-    /**
-      * Implicit conversion method, return the body of a Response as a Map
-      *
-      * TODO:
-      * Basic and meaningless implementation, still need a lot of improvements
-      *
-      * @param response The Response object to convert
-      * @return a Map[String, List[String]] representing a JSON object
-      */
-    implicit def toMap(response: Response) : Map[String, List[String]] = {
-      JSON.parseFull(response.body.getOrElse("None")).get.asInstanceOf[Map[String, List[String]]]
-    }
 
     /**
       * Implicit conversion method, return a Response from a WSResponse (playWS! response type)

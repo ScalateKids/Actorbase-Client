@@ -188,6 +188,10 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
   @throws(classOf[UndefinedCollectionExc])
   @throws(classOf[DuplicateKeyExc])
   def insertTo(collection: String, update: Boolean, kv: (String, Any)*)(owner: String = connection.username): Unit = {
+    // val coll = addCollection(collection)
+    // if (!update)
+    //   coll.insert(kv:_*)
+    // else coll.update(kv:_*)
     kv.foreach {
       case (k, v) =>
         val response =
@@ -333,6 +337,15 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
     } else asyncFind(key, collections:_*)(owner)
   }
 
+  /**
+    * Service method, provided async requests included case of collections
+    * length > 1
+    *
+    * @param key a String representing then key to find
+    * @param collections a vararg of String, represents the sequence of collection to query for key
+    * @param owner a String representing the owner of the collections to be queried
+    * @return an object of type ActorbaseObject containing results of the search
+    */
   private def asyncFind[A >: Any](key: String, collections: String*)(owner: String = connection.username): ActorbaseObject[A] = {
     var buffer = Map.empty[String, Any]
     val futureList = Future.traverse(collections)(elem =>

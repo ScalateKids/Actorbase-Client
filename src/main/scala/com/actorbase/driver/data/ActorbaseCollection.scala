@@ -71,6 +71,8 @@ case class ActorbaseCollection
     * @return an object of type ActorbaseCollection representing the collection updated
     * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedCollectionExc in case of undefined collection
+    * @throws DuplicateKeyExc in case of duplicate key
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
@@ -78,7 +80,6 @@ case class ActorbaseCollection
   @throws(classOf[DuplicateKeyExc])
   def insert(kv: (String, Any)*): ActorbaseCollection = {
     for((k, v) <- kv) {
-      // if(!data.contains(k)) {
       val response = requestBuilder
         .withCredentials(conn.username, conn.password)
         .withUrl(uri + "/collections/" + collectionName + "/" + k)
@@ -100,11 +101,24 @@ case class ActorbaseCollection
           }
         case _ =>
       }
-      // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
+  /**
+    * Service method, provide async requests in case of kv length > 1
+    *
+    * @param kv a vararg Tuple2 of type (String, Any)
+    * @return an object of type ActorbaseCollection representing the collection updated
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedCollectionExc in case of undefined collection
+    * @throws DuplicateKeyExc in case of duplicate key
+    */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedCollectionExc])
+  @throws(classOf[DuplicateKeyExc])
   def asyncInsert(kv: (String, Any)*): ActorbaseCollection = {
     val futureList = Future.traverse(kv)(keyVal =>
       Future {
@@ -155,13 +169,13 @@ case class ActorbaseCollection
     * @return an object of ActorbaseCollection containing the updated keys
     * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedCollectionExc in case of undefined collection
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
   def update(kv: (String, Any)*): ActorbaseCollection = {
     for ((k, v) <- kv) {
-      // if(data.contains(k)) {
       val response = requestBuilder
         .withCredentials(conn.username, conn.password)
         .withUrl(uri + "/collections/" + collectionName + "/" + k)
@@ -183,11 +197,22 @@ case class ActorbaseCollection
           }
         case _ =>
       }
-      // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
+  /**
+    * Service method, provide async requests in case of kv length > 1
+    *
+    * @param kv a vararg of Tuple2[String, Any] representing key-value pairs to be updated in the system
+    * @return an object of ActorbaseCollection containing the updated keys
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedCollectionExc in case of undefined collection
+    */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedCollectionExc])
   def asyncUpdate(kv: (String, Any)*): ActorbaseCollection = {
     val futureList = Future.traverse(kv)(keyVal =>
       Future {
@@ -232,13 +257,13 @@ case class ActorbaseCollection
     * @return an object of ActorbaseCollection containing the updated keys
     * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
     * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedCollectionExc in case of undefined collection
     */
   @throws(classOf[WrongCredentialsExc])
   @throws(classOf[InternalErrorExc])
   @throws(classOf[UndefinedCollectionExc])
   def remove(keys: String*): ActorbaseCollection = {
     keys.foreach { key =>
-      // if(data.contains(key)) {
       val response = requestBuilder withCredentials(conn.username, conn.password) withUrl uri + "/collections/" + collectionName + "/" + key withMethod DELETE send()
       response.statusCode match {
         case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
@@ -253,11 +278,23 @@ case class ActorbaseCollection
           }
         case _ =>
       }
-      // }
     }
     ActorbaseCollection(owner, collectionName, contributors, data)
   }
 
+  /**
+    * Service method, provide async request in case of keys > 1
+    *
+    * @param keys a vararg String representing a sequence of keys to be removed
+    * from the collection
+    * @return an object of ActorbaseCollection containing the updated keys
+    * @throws WrongCredentialsExc in case of wrong username or password, or non-existant ones
+    * @throws InternalErrorExc in case of internal server error
+    * @throws UndefinedCollectionExc in case of undefined collection
+    */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
+  @throws(classOf[UndefinedCollectionExc])
   def asyncRemove(keys: String*): ActorbaseCollection = {
     val futureList = Future.traverse(keys)(key =>
       Future {
@@ -310,10 +347,13 @@ case class ActorbaseCollection
     * ActorbaseObject, return all then contents of the collection if the vararg
     * passed asinstanceof parameter is empty
     *
-    *
     * @param keys a vararg String representing a sequence of keys to be retrieved
-    v* @return an object of type ActorbaseObject
+    * @return an object of type ActorbaseObject
+    * @throws WrongCredentialsExc in case of credentials not valid
+    * @throws InternalErrorExc in case of internal error on the server side
     */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def find[A >: Any](keys: String*): ActorbaseObject[A] = {
     if(keys.length == 0) ActorbaseObject(data)
     else {
@@ -345,6 +385,16 @@ case class ActorbaseCollection
     }
   }
 
+  /**
+    * Service method, provide async requests in case of keys > 1
+    *
+    * @param keys a vararg String representing a sequence of keys to be retrieved
+    * @return an object of type ActorbaseObject
+    * @throws WrongCredentialsExc in case of credentials not valid
+    * @throws InternalErrorExc in case of internal error on the server side
+    */
+  @throws(classOf[WrongCredentialsExc])
+  @throws(classOf[InternalErrorExc])
   def asyncFind[A >: Any](keys: String*): ActorbaseObject[A] = {
     var buffer = TreeMap.empty[String, Any]
     val futureList = Future.traverse(keys)(key =>
@@ -374,6 +424,7 @@ case class ActorbaseCollection
     data ++= buffer
     ActorbaseObject(buffer.toMap)
   }
+
   /**
     * Find an element inside the collection, returning an ActorbaseObject
     * representing the key/value pair

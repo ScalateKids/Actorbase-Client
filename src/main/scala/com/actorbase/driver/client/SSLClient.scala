@@ -21,7 +21,7 @@
   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   * SOFTWARE.
   * <p/>
-  * @author Scalatekids 
+  * @author Scalatekids
   * @version 1.0
   * @since 1.0
   */
@@ -53,9 +53,6 @@ trait SSLClient extends Client {
     * and return a Response object with SSL encryption
     *
     * @param request a Request reference, contains all HTTPS request details
-    * @return an object of type Response, containing the status of the response
-    * and the body as Option[String]
-    *
     * @return an object of type Response, containing the status of the response
     * and the body as Option[String]
     */

@@ -219,6 +219,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "InvalidChar" => throw InternalErrorExc("Invalid or malformed request")
                 case _ =>
               }
             }

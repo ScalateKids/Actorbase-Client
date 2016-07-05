@@ -103,6 +103,7 @@ case class ActorbaseCollection
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "InvalidChar" => throw InternalErrorExc("Invalid or malformed request")
                 case _ => data += (k -> v)
               }
             }
@@ -149,6 +150,7 @@ case class ActorbaseCollection
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "InvalidChar" => throw InternalErrorExc("Invalid or malformed request")
                 case _ => data += (response._1._1 -> response._1._2)
               }
             }
@@ -201,6 +203,7 @@ case class ActorbaseCollection
               x.asInstanceOf[String] match {
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "InvalidChar" => throw InternalErrorExc("Invalid or malformed request")
                 case _ =>
                   data -= k
                   data += (k -> v)
@@ -247,6 +250,7 @@ case class ActorbaseCollection
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Undefined collection")
                 case "DuplicatedKey" => throw DuplicateKeyExc("Inserting duplicate key")
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
+                case "InvalidChar" => throw InternalErrorExc("Invalid or malformed request")
                 case _ =>
                   data -= response._1._1
                   data += (response._1._1 -> response._1._2)

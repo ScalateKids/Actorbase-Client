@@ -52,7 +52,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
   val valueString: Parser[String] = """"(?:[^"\\]|\\.)*"""".r
   val literalString: Parser[String] = """.+""".r
   val listString: Parser[String] = """["\S+",\s*"\S+"]+""".r
-  val keyString: Parser[String] = """"\S+"""".r
+  val keyString: Parser[String] = """"(\S[^"]+)"""".r
 
   def strip(s: Any): String = {
     if(s.asInstanceOf[String].takeRight(1) == "\"" && s.asInstanceOf[String].take(1) == "\"") {

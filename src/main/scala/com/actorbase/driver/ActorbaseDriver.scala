@@ -154,7 +154,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
 
   implicit val formats = DefaultFormats
 
-  val uri: String = scheme + connection.address + ":" + connection.port
+  private val uri: String = scheme + connection.address + ":" + connection.port
 
   /**
     * Authentication method, allow to insert credentials to be confirmed by

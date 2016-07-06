@@ -28,11 +28,9 @@
 
 package com.actorbase.driver.client
 
-// import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream }
 import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
 import java.util.Base64
 import java.net.URLEncoder
-// import scala.pickling._, Defaults._
 
 import org.json4s._
 import org.json4s.native.Serialization
@@ -81,72 +79,5 @@ trait Serializer {
     implicit val formats = Serialization.formats(NoTypeHints)
     pretty(parse(write(o)))
   }
-
-  // def deserializeFromBase64[A <: Any](in: String): A = {
-  //   val bytes = Base64.getUrlDecoder.decode(in)
-  //   val inputStream = new ObjectInputStream(new ByteArrayInputStream(bytes))
-  //   inputStream.readUnshared().asInstanceOf[A]
-  // }
-
-  /**
-    * Serialization method. Converts an object of type Any to a JSON string
-    *
-    * @param o object of type Any designated for conversion to Byte[Array]
-    * @return a String object in JSON format
-    * @throws
-    */
-  // def serialize2JSON(o: Any): String = {
-  //   import scala.pickling.json._
-  //   o.pickle.value
-  // }
-
-  // def serialize2JSONSpray(o: AnyRef): String = {
-  //   o.toJson.prettyPrint
-  // }
-
-  /**
-    * Deserialization method. Converts an object of type Array[Byte] to a
-    * refernce of type Any
-    *
-    * @param bytes an array of bytes designated for conversion
-    * @return a reference to the object deserialized
-    * @throws
-    */
-  // def deserializeFromByteArray(bytes: Array[Byte]): Any = {
-  //   // import scala.pickling.binary._
-  //   // bytes.unpickle[Any]
-  //   import java.io.{ ByteArrayInputStream, ObjectInputStream }
-  //   val in = new ObjectInputStream(new ByteArrayInputStream(bytes))
-  //   in.readUnshared().asInstanceOf[Any]
-  // }
-
-  // def serializeDebugger(o: Any): Array[Byte] = {
-  //   val bos = new ByteArrayOutputStream()
-  //   var out = new ObjectOutputStream(bos)
-  //   out.writeObject(o)
-  //   val bytes = bos.toByteArray()
-  //   out.close()
-  //   bos.close()
-  //   bytes
-  // }
-
-  // def deserializeDebugger(bytes: Array[Byte]): Any = {
-  //   import java.io.{ ByteArrayInputStream, ObjectInputStream }
-  //   val in = new ObjectInputStream(new ByteArrayInputStream(bytes))
-  //   in.readUnshared().asInstanceOf[Any]
-  // }
-
-  /**
-    * Deserialization method. Converts an object of type Array[Byte] to a
-    * reference of type Any
-    *
-    * @param json a String object in format JSON designated for conversion
-    * @return a reference to the object deserialized
-    * @throws
-    */
-  // def deserializeFromJSON(json: String): Any = {
-  //   import scala.pickling.json._
-  //   json.unpickle[Any]
-  // }
 
 }

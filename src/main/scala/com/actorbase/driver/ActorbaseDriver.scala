@@ -663,7 +663,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
               r.asInstanceOf[String] match {
                 case "NoPrivileges" => throw WrongCredentialsExc("Insufficient permissions")
                 case "UndefinedCollection" => throw UndefinedCollectionExc("Insufficient permissions")
-                case _ =>
+                case _ => 
               }
             }
           case _ =>

@@ -273,6 +273,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
       try {
         driver.addCollection(name)
       } catch {
+        case uc: UndefinedCollectionExc => return "Undefined collection"
         case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
         case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
       }

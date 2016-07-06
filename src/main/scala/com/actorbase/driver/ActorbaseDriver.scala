@@ -76,7 +76,7 @@ object ActorbaseDriver extends Connector {
     address: String = "127.0.0.1",
     port: Int = 9999,
     ssl: Boolean = false): ActorbaseDriver = {
-    val scheme = if (ssl) "https://" else "http://"
+    implicit val scheme = if (ssl) "https://" else "http://"
     val request = requestBuilder
       .withCredentials(username, password)
       .withUrl(scheme +  address + ":" + port + "/auth/" + username)
@@ -589,6 +589,7 @@ class ActorbaseDriver (val connection: ActorbaseDriver.Connection) (implicit val
       .withMethod(POST).send()
     response.statusCode match {
       case Unauthorized | Forbidden => throw WrongCredentialsExc("Credentials privilege level does not meet criteria needed to perform this operation")
+      case NotFound => throw UndefinedCollectionExc("Undefined collection")
       case BadRequest => throw InternalErrorExc("Invalid or malformed request")
       case Error => throw InternalErrorExc("There was an internal server error, something wrong happened")
       case OK => ActorbaseCollection(connection.username, collectionName)(connection, scheme) // stub owner

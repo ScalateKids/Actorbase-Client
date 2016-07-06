@@ -83,12 +83,6 @@ object CommandLoop {
     }
     DriverConnection.getDriver(hostname, port, username, password) match {
       case Success(d) =>
-        //printing connection parameter after args parse
-        println("[*] Loading param:")
-        println("[*] Hostname : " + hostname)
-        println("[*] Port     : " + port)
-        println("[*] Username : " + username)
-        println("[*] Password : " + password)
 
         var loop : Boolean = true
 

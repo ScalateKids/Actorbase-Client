@@ -317,7 +317,12 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     var response = "deleted"
     params get "collection" map { c =>
       try {
-        driver.dropCollections(as[String](c))
+        if(as[String](c) contains "."){
+          val coll = as[String](c).split("\\.")
+          driver.dropCollectionsFrom( coll(1) )( coll(0) )
+        }
+        else
+          driver.dropCollections(as[String](c))
       }
       catch {
         case uc: UndefinedCollectionExc => response = "Undefined collection."

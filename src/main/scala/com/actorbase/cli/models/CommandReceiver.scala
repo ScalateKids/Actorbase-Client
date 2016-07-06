@@ -151,9 +151,9 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     * @return a String, "logout succeeded" if the method succeeded, an error message is returned if the method failed
     */
   def listUsers(): String = {
-    var result = "\n"
+    var result = "\n "
     try {
-      result = driver.listUsers.mkString("\n")
+      result += driver.listUsers.mkString("\n ")
     } catch {
       case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
@@ -186,7 +186,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
                   val splitted = x.split("\\.")
                   response += driver.getCollection( splitted(1), splitted(0) ).toString+"\n"
                 }
-                else 
+                else
                   response += driver.getCollection( x ).toString+"\n"
               })
           }
@@ -198,18 +198,18 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               allCollections.foreach( x => {
                 val obj = (driver.findFrom(k.asInstanceOf[String], x._1)(x._2))
                 if(obj != new com.actorbase.driver.data.ActorbaseObject(Map[String,Any]()))
-                  response += obj.toString+"\n"                
+                  response += obj.toString+"\n"
                 }
               )
               //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
             case Some(c) =>
               // find key from a list of collections
-      			  c.asInstanceOf[List[String]].foreach{ x => 
+      			  c.asInstanceOf[List[String]].foreach{ x =>
                 if(x contains "."){
         				  val collection = x.split("\\.")
         			    response += (driver.findFrom(k.asInstanceOf[String], collection(1))(collection(0))).toString+"\n"
                 }
-                else 
+                else
                   response += (driver.findFrom(k.asInstanceOf[String], x)() ).toString+"\n"
       			  }
           }
@@ -324,6 +324,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         }
         else
           driver.dropCollections(as[String](c))
+        response = as[String](c) + " " + response
       }
       catch {
         case uc: UndefinedCollectionExc => response = "Undefined collection."
@@ -353,7 +354,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               val coll = collection.split("\\.")
               driver.addContributorTo(username, coll(1), permission, coll(0))
             }
-            else 
+            else
               driver.addContributorTo(username, collection, permission)
             result = s"$username added to collection $collection"
           } catch {
@@ -398,7 +399,7 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
             val coll = collection.split("\\.")
             driver.removeContributorFrom(username, coll(1), coll(0))
           }
-          else 
+          else
             driver.removeContributorFrom(username, collection)
           result = s"$username removed from collection $collection"
         } catch {

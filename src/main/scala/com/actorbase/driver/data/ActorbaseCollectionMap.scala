@@ -37,12 +37,11 @@ import scala.collection.generic.FilterMonadic
 case class ActorbaseCollectionMap private
   (var data: TreeMap[String, ActorbaseCollection])(implicit val conn: Connection, implicit val scheme: String = "http://") extends Connector {
 
-  /**
-    * Insert description here
+    /**
+    * Find keys inside the collection map
     *
-    * @param
-    * @return
-    * @throws
+    * @param keys a vararg of String
+    * @return ActorbaseCollection containing results of the query
     */
   def find(keys: String*): ActorbaseCollection = {
     var (coll, contr) = (new TreeMap[String, Any](), Map.empty[String, Boolean])
@@ -50,57 +49,52 @@ case class ActorbaseCollectionMap private
       collection._2.find(keys:_*).foreach(kv => coll += (kv._1 -> kv._2))
       contr ++= collection._2.contributors
     }
-    ActorbaseCollection("anonymous", "findResults", contr, coll)(conn, scheme)
+    ActorbaseCollection(conn.username, "findResults", contr, coll)(conn, scheme)
   }
 
   /**
-    * Insert description here
+    * Drop collections from the collection map
     *
-    * @param
-    * @return
-    * @throws
+    * @param collections a vararg of String representing a sequence of collections
+    * @return no return value
     */
   def drop(collections: String*): Unit = {
-    // TODO: exceptions check
     collections.foreach { collection =>
-      data.get(collection).get.drop
+      data get collection map (x => x.drop)
       data -= collection
     }
   }
 
   /**
-    * Insert description here
-    *
-    * @param
-    * @return
-    * @throws
+    * Count the number of collections
     */
   def count: Int = data.size
 
   /**
-    * Insert description here
+    * Foreach method, applies a function f to all elements of this map.
     *
-    * @param
-    * @return
-    * @throws
+    * @param f the function that is applied for its side-effect to every element.
+    * The result of function f is discarded.
+    * @return no return value
     */
   def foreach(f: ((String, ActorbaseCollection)) => Unit): Unit = data.foreach(f)
 
   /**
-    * Insert description here
+    * Creates a non-strict filter of this traversable collection.
     *
-    * @param
-    * @return
-    * @throws
+    * @param p the predicate used to test elements.
+    * @return an object of class WithFilter, which supports map, flatMap, foreach,
+    * and withFilter operations. All these operations apply to those elements of
+    * this traversable collection which satisfy the predicate p.
     */
   def withFilter(f: ((String, ActorbaseCollection)) => Boolean): FilterMonadic[(String, ActorbaseCollection), TreeMap[String, ActorbaseCollection]] = data.withFilter(f)
 
   /**
-    * Insert description here
+    * Converts this collection to a string.
     *
     * @param
-    * @return
-    * @throws
+    * @return a string representation of this collection. By default this string
+    * consists of a JSON containing the colleciton name, the owner and items
     */
   override def toString: String = {
     var ret = ""
@@ -108,6 +102,6 @@ case class ActorbaseCollectionMap private
       case (k, v) => ret += "\n" + v.toString + "\n"
     }
     ret
-  }// data.mkString
+  }
 
 }

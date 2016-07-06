@@ -76,7 +76,7 @@ object ActorbaseDriver extends Connector {
     address: String = "127.0.0.1",
     port: Int = 9999,
     ssl: Boolean = false): ActorbaseDriver = {
-    val scheme = if (ssl) "https://" else "http://"
+    implicit val scheme = if (ssl) "https://" else "http://"
     val request = requestBuilder
       .withCredentials(username, password)
       .withUrl(scheme +  address + ":" + port + "/auth/" + username)

@@ -41,17 +41,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import com.actorbase.driver.ActorbaseDriver
 import scala.util.{ Failure, Success }
 
-// object CommandReceiver {
-
-// implicit def anyToString(m: Map[String, Any]): Map[String, String] = m.asInstanceOf[Map[String, String]]
-//   /**
-//     * Driver singleton instance to send command and receive response
-//     */
-//   def actorbaseDriver(hostname: String, port: Int, username: String,  password: String): ActorbaseDriver =
-//     ActorbaseDriver("http://" + username + ":" + password + "@" + hostname + ":" + port)
-
-// }
-
 sealed trait Helper {
   def as[A <: Any](o: Any): A = o.asInstanceOf[A]
 }
@@ -129,23 +118,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
 
 
   /**
-    * Authenticate to the actorbase server.
-    *
-    * @return a String, "login succeeded" if the method succeeded, an error message is returned if the method failed
-    */
-  def login() : String = {
-    // val username =  params.get("username").get.asInstanceOf[String]
-    // val password = params.get("password").get.asInstanceOf[String]
-    // try {
-    //   driver = driver.authenticate(username, password)
-    // } catch {
-    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    // }
-    "Login successful"
-  }
-
-  /**
     * Logout the active connection with the server instance of Actorbase
     *
     * @return a String, "logout succeeded" if the method succeeded, an error message is returned if the method failed
@@ -199,19 +171,19 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
                 val obj = (driver.findFrom(k.asInstanceOf[String], x._1)(x._2))
                 if(obj != new com.actorbase.driver.data.ActorbaseObject(Map[String,Any]()))
                   response += obj.toString+"\n"
-                }
+              }
               )
-              //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
+            //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
             case Some(c) =>
               // find key from a list of collections
-      			  c.asInstanceOf[List[String]].foreach{ x =>
+              c.asInstanceOf[List[String]].foreach{ x =>
                 if(x contains "."){
-        				  val collection = x.split("\\.")
-        			    response += (driver.findFrom(k.asInstanceOf[String], collection(1))(collection(0))).toString+"\n"
+                  val collection = x.split("\\.")
+                  response += (driver.findFrom(k.asInstanceOf[String], collection(1))(collection(0))).toString+"\n"
                 }
                 else
                   response += (driver.findFrom(k.asInstanceOf[String], x)() ).toString+"\n"
-      			  }
+              }
           }
       }
     }
@@ -232,7 +204,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     *
     * @return a String representing the help message
     */
-  // ugly as hell
   def help(): String = {
     var result: String = "\n"
     params get "command" map { c =>
@@ -367,18 +338,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         }
       }
     }
-    // val collection = params.get("collection").get.asInstanceOf[String]
-    // val username = params.get("username").get.asInstanceOf[String]
-    // val permission = params.get("permissions").get.asInstanceOf[String]
-    // val p = if (permission == "read") false else true
-    // try {
-    //   driver.getCollection(collection).addContributor(username, p)
-    // } catch {
-    //   case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
-    //   case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
-    //   case uue: UndefinedUsernameExc => result = "Contributor username not found."
-    //   case uae: UsernameAlreadyExistsExc => result = "Contributor already added."
-    // }
     result
   }
 
@@ -411,15 +370,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
         }
       }
     }
-    // var result: String = ""
-    // val collection = params.get("collection").get.asInstanceOf[String]
-    // val username = params.get("username").get.asInstanceOf[String]
-    // try {
-    //   driver.getCollection(collection).removeContributor(username)
-    // } catch {
-    //   case wce: WrongCredentialsExc => result = "Credentials privilege level does not meet criteria needed to perform this operation."
-    //   case iec: InternalErrorExc => result = "There was an internal server error, something wrong happened."
-    // }
     result
   }
 
@@ -444,19 +394,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
       }
     }
     "Password changed"
-    // try{
-    //   val oldPsw = params.get("oldPsw").get.asInstanceOf[String]
-    //   val newPsw = params.get("newPsw").get.asInstanceOf[String]
-    //   driver.changePassword(newPsw)
-    //
-    //   "Password changed"
-    // }
-    // catch{
-    //   case wce: WrongCredentialsExc => return "Credentials privilege level does not meet criteria needed to perform this operation."
-    //   case iec: InternalErrorExc => return "There was an internal server error, something wrong happened."
-    //   case wnp: WrongNewPasswordExc => return "The password inserted does not meet Actorbase criteria"
-    //   case uue: UndefinedUsernameExc => return "Undefined username"
-    // }
   }
 
   /**

@@ -61,18 +61,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     s.asInstanceOf[String]
   }
 
-  // chained commands
-
-  /**
-    * Method to parse the login and logout commands.
-    *
-    * @return a Parser[Command] representing the login or logout command based on the user input.
-    */
-  def authManagementCommand : Parser[Command] = "login" ~ keyString ~ quotedString ^^ {
-    //    case "logout" => new LogoutCommand(new CommandReceiver(Map[String, Any]("logout" -> None), driverConnection))
-    case "login" ~ args_1 ~ args_2 => new LoginCommand(new CommandReceiver(Map[String, Any]("username" -> args_1, "password" -> args_2), driverConnection))
-  }
-
   /**
     * Method to parse the changePasswordCommand.
     *
@@ -225,7 +213,7 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
     * @return a Parser[Command] containing all the parsable commands of the GrammarParser
     */
   def commandList : Parser[Command] = {
-    insertItemCommand | exportCommand | authManagementCommand | addCollaboratorCommand | findCommand |
+    insertItemCommand | exportCommand | addCollaboratorCommand | findCommand |
     helpCommand | collectionManagementCommand | removeCollaboratorCommand | removeItemCommand |
     changePasswordCommand | userManagementCommand | importCommand
   }
@@ -251,18 +239,6 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
       val pattern = """login(\s*)(\w*)""".r
       var line : String = input
       line match {
-        case login if login matches("login\\s*.*") => {
-          pattern.findAllIn(login).matchData foreach { m =>
-            m match {
-              case nousername if m.group(2).isEmpty => {
-                val user = reader.readLine(">> username: ")
-                line += " " + """\w*""".r.findFirstIn(user).get
-              }
-              case username if !m.group(2).isEmpty => line = "login " + m.group(2)
-            }
-          }
-          line += " " + reader.readLine(">> password: ", '*')
-        }
         case change if change matches("changePassword\\s*") => {
           val oldPassword = reader.readLine(">> password: ", '*')
           """\w*""".r.findFirstIn(oldPassword) map (x => line += " " + "\"" + x + "\"")

@@ -169,11 +169,10 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
               val allCollections = driver.listCollections map (x => x.head._2.head -> x.head._1)
               allCollections.foreach( x => {
                 val obj = (driver.findFrom(k.asInstanceOf[String], x._1)(x._2))
-                if(obj != new com.actorbase.driver.data.ActorbaseObject(Map[String,Any]()))
+                if(obj.nonEmpty)
                   response += obj.toString+"\n"
               }
               )
-            //response = (driver.findFrom(k.asInstanceOf[String], allCollections.toSeq:_*)()).toString
             case Some(c) =>
               // find key from a list of collections
               c.asInstanceOf[List[String]].foreach{ x =>
@@ -189,9 +188,6 @@ class CommandReceiver(params: Map[String, Any], driver: ActorbaseDriver) extends
     }
     catch {
       case uce: UndefinedCollectionExc => response = "Undefined collection"
-      // if (driver.connection.username == "admin")
-      // response = driver.getCollections.toString
-      // else response = "Undefined collection"
       case wce: WrongCredentialsExc => response = "Credentials privilege level does not meet criteria needed to perform this operation."
       case iec: InternalErrorExc => response = "There was an internal server error, something wrong happened."
     }

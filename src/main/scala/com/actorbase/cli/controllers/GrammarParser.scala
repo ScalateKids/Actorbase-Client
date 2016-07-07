@@ -255,14 +255,14 @@ class GrammarParser(commandInvoker: CommandInvoker, view: ResultView, driverConn
         parseAll(commandList, line) match {
           case Success(matched, _) => commandInvoker.storeAndExecute(matched)
           case Failure(msg, _) => {
-            os match {
-              case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg")       // DEBUG
-              case windows if windows.contains("Windows") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // DEBUG
-              case mac if mac.contains("Darwin") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg")          // DEBUG
-              case _ => setState(s"FAILURE: $msg")
-            }
+            // os match {
+            //   case linux if linux.contains("Linux") => setState(s"\u001B[33mFAILURE:\u001B[0m $msg")       // DEBUG
+            //   case windows if windows.contains("Windows") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg") // DEBUG
+            //   case mac if mac.contains("Darwin") => setState(s"\u001B[33mFAILURE:\u001B[1m $msg")          // DEBUG
+            //   case _ => setState(s"FAILURE: $msg")
+            // }
           }
-          case Error(msg, _) => setState(s"ERROR: $msg") // DEBUG
+          case Error(msg, _) => setState("Unrecognized message. Type help for a list of supported commands or help <command> for a specific help.") //setState(s"ERROR: $msg") // DEBUG
         }
       }
       notifyAllObservers()

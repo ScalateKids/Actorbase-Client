@@ -29,7 +29,7 @@ my $json = "";
 my $i = 0;
 
 for(0..3000) {
-    $json .= 'key'.$i . $sample . ',';
+    $json .= '"key'.$i .'"'. $sample . ',';
 	$i++;
 }
 

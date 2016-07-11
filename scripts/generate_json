@@ -20,14 +20,17 @@ my $sample = <<"JSON";
 JSON
 
 my $pre = <<"PRE";
-{"collectionName": "json1", "contributors": {}, "owner": "admin","data": {
+{"collectionName": "json1", "contributors": {}, "owner": "andrea","data": {
 PRE
 
 my $post = "}}";
 my $json = "";
 
+my $i = 0;
+
 for(0..8000) {
-    $json .= '"' . generate_unique_id . '"' . $sample . ','
+    $json .= 'key'.$i . $sample . ',';
+	$i++;
 }
 
 print $pre . $json . $post
